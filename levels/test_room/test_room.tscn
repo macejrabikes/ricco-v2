@@ -1,6 +1,8 @@
 [gd_scene format=3 uid="uid://dtouinu0ljkrw"]
 
 [ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://props/target/target.tscn" id="2_target"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
 
 [sub_resource type="RectangleShape2D" id="Rect_Floor"]
 size = Vector2(1200, 32)
@@ -193,4 +195,24 @@ offset_bottom = 6.0
 mouse_filter = 2
 color = Color(0.36, 0.38, 0.42, 1)
 
+[node name="Target1" parent="." unique_id=486332331 instance=ExtResource("2_target")]
+position = Vector2(110, 0)
+
+[node name="Target2" parent="." unique_id=866848092 instance=ExtResource("2_target")]
+position = Vector2(300, -62)
+
+[node name="Target3" parent="." unique_id=1309619236 instance=ExtResource("2_target")]
+position = Vector2(330, -62)
+
+[node name="Target4" parent="." unique_id=940783142 instance=ExtResource("2_target")]
+position = Vector2(460, -106)
+
+[node name="Target5" parent="." unique_id=225656740 instance=ExtResource("2_target")]
+position = Vector2(800, -80)
+
+[node name="Target6" parent="." unique_id=1898206314 instance=ExtResource("2_target")]
+position = Vector2(640, -66)
+
 [node name="Ricco" parent="." unique_id=1028031660 instance=ExtResource("1_player")]
+
+[node name="HUD" parent="." unique_id=1325573766 instance=ExtResource("3_hud")]

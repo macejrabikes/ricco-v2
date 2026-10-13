@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://weapons/pistol/magazine_drop.gd" id="1_mag"]
+[ext_resource type="Texture2D" path="res://weapons/pistol/magazine_empty.png" id="2_tex"]
+
+[node name="MagazineDrop" type="Sprite2D"]
+texture = ExtResource("2_tex")
+script = ExtResource("1_mag")

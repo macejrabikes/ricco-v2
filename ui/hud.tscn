@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://ui/ammo_panel.gd" id="2_ammo"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="AmmoPanel" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("2_ammo")
