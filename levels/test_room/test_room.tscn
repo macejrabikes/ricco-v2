@@ -29,6 +29,12 @@ size = Vector2(120, 12)
 [sub_resource type="RectangleShape2D" id="Rect_Pillar"]
 size = Vector2(32, 80)
 
+[sub_resource type="RectangleShape2D" id="Rect_ChimneyWall"]
+size = Vector2(16, 200)
+
+[sub_resource type="RectangleShape2D" id="Rect_ChimneyTop"]
+size = Vector2(140, 12)
+
 [node name="TestRoom" type="Node2D" unique_id=664211973]
 
 [node name="Level" type="Node2D" parent="." unique_id=1257109480]
@@ -89,7 +95,7 @@ offset_bottom = 16.0
 mouse_filter = 2
 color = Color(0.36, 0.38, 0.42, 1)
 
-[node name="Step" type="StaticBody2D" parent="Level" unique_id=1071886784]
+[node name="Step" type="StaticBody2D" parent="Level" unique_id=1071886784 groups=["platform"]]
 position = Vector2(180, -12)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Level/Step" unique_id=282666125]
@@ -103,7 +109,7 @@ offset_bottom = 12.0
 mouse_filter = 2
 color = Color(0.36, 0.38, 0.42, 1)
 
-[node name="PlatformA" type="StaticBody2D" parent="Level" unique_id=442643588]
+[node name="PlatformA" type="StaticBody2D" parent="Level" unique_id=442643588 groups=["platform"]]
 position = Vector2(300, -56)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Level/PlatformA" unique_id=542835041]
@@ -117,7 +123,7 @@ offset_bottom = 6.0
 mouse_filter = 2
 color = Color(0.36, 0.38, 0.42, 1)
 
-[node name="PlatformB" type="StaticBody2D" parent="Level" unique_id=597288175]
+[node name="PlatformB" type="StaticBody2D" parent="Level" unique_id=597288175 groups=["platform"]]
 position = Vector2(460, -100)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Level/PlatformB" unique_id=2103546945]
@@ -131,7 +137,7 @@ offset_bottom = 6.0
 mouse_filter = 2
 color = Color(0.36, 0.38, 0.42, 1)
 
-[node name="PlatformC" type="StaticBody2D" parent="Level" unique_id=1753907107]
+[node name="PlatformC" type="StaticBody2D" parent="Level" unique_id=1753907107 groups=["platform"]]
 position = Vector2(640, -60)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Level/PlatformC" unique_id=64332532]
@@ -156,6 +162,34 @@ offset_left = -16.0
 offset_top = -40.0
 offset_right = 16.0
 offset_bottom = 40.0
+mouse_filter = 2
+color = Color(0.36, 0.38, 0.42, 1)
+
+[node name="ChimneyWall" type="StaticBody2D" parent="Level" unique_id=1320805489]
+position = Vector2(870, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Level/ChimneyWall" unique_id=1540436583]
+shape = SubResource("Rect_ChimneyWall")
+
+[node name="ColorRect" type="ColorRect" parent="Level/ChimneyWall" unique_id=1362421537]
+offset_left = -8.0
+offset_top = -100.0
+offset_right = 8.0
+offset_bottom = 100.0
+mouse_filter = 2
+color = Color(0.36, 0.38, 0.42, 1)
+
+[node name="ChimneyTop" type="StaticBody2D" parent="Level" unique_id=52040917 groups=["platform"]]
+position = Vector2(800, -194)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Level/ChimneyTop" unique_id=1759800457]
+shape = SubResource("Rect_ChimneyTop")
+
+[node name="ColorRect" type="ColorRect" parent="Level/ChimneyTop" unique_id=90769567]
+offset_left = -70.0
+offset_top = -6.0
+offset_right = 70.0
+offset_bottom = 6.0
 mouse_filter = 2
 color = Color(0.36, 0.38, 0.42, 1)
 
