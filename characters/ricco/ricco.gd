@@ -11,6 +11,8 @@ extends CharacterBody2D
 ## krok 7c: prebíjanie druhou rukou ducha – starý zásobník vypadne, nový sa zasunie
 ## krok 8: spomalenie času cez ducha Dona (characters/ricco/focus)
 ## krok 9: zdravie (HP) – zásah, krátka nesmrteľnosť s blikaním, smrť a reštart levelu
+## krok 10: nový beh (labky sa striedajú), cúvanie = beh pustený odzadu, prach pri dopade labky
+## krok 11: animácie bez klobúka (kým letí), krv a červený záblesk pri zásahu, bez poskoku
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
 enum State { NORMAL, HANG, CLIMB, DEAD }
@@ -63,7 +65,7 @@ signal died
 @export_group("Health")
 @export var max_health: int = 8               ## 8 = celá pizza v HUD (1 zásah = 1 kúsok)
 @export var invulnerable_time: float = 1.0    ## s po zásahu, kedy Ricca nič nezraní (bliká)
-@export var hurt_knockback: Vector2 = Vector2(90, -140)  ## odhodenie od zdroja zásahu
+@export var hurt_knockback: Vector2 = Vector2(70, 0)  ## odhodenie od zdroja zásahu (y = 0 → bez poskoku)
 @export var respawn_delay: float = 2.5        ## s po smrti, kým sa level reštartuje
 @export_group("")
 
@@ -116,6 +118,7 @@ var ammo_in_mag: int = 0
 var ammo_reserve: int = 0
 var reloading: bool = false
 var health: int = 0
+var run_backwards: bool = false   ## beh pustený odzadu (Ricco ide opačne, než sa pozerá)
 var invulnerable_timer: float = 0.0
 
 
@@ -191,7 +194,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 		jump_buffer_timer = 0.0
 		coyote_timer = 0.0  # aby sa nedalo skočiť dvakrát z jedného coyote okna
-		sprite.play(&"jump")
+		sprite.play(_hat_anim(&"jump"))
 	# Wall jump – vo vzduchu pri stene: odraz šikmo hore preč od steny
 	elif jump_buffer_timer > 0.0 and wall_timer > 0.0:
 		velocity = Vector2(wall_normal_x * wall_jump_velocity.x, wall_jump_velocity.y)
@@ -313,7 +316,7 @@ func _process_hang() -> void:
 	elif Input.get_axis("move_left", "move_right") == -facing:
 		state = State.NORMAL
 		ledge_cooldown = ledge_regrab_time
-		sprite.play(&"fall")
+		sprite.play(_hat_anim(&"fall"))
 
 
 ## Vylezenie: Ricco stojí na mieste a „lezie“ samotná animácia (je zarovnaná na roh hrany),
@@ -345,7 +348,7 @@ func _turn(new_facing: float) -> void:
 	facing = new_facing
 	visual.scale.x = facing
 	if is_on_floor():
-		sprite.play(&"turn")
+		sprite.play(_hat_anim(&"turn"))
 
 
 func _update_animation(direction: float) -> void:
@@ -361,19 +364,19 @@ func _update_animation(direction: float) -> void:
 		pass  # nech odraz od steny dobehne (~0.15 s)
 	elif not on_floor:
 		# Stúpa → jump (prehrá sa raz a ostane na poslednom frame), padá → fall (slučka)
-		_play(&"jump" if velocity.y < 0.0 else &"fall")
+		_play(_hat_anim(&"jump" if velocity.y < 0.0 else &"fall"))
 	elif not was_on_floor:
-		sprite.play(&"land")
-	elif sprite.animation == &"turn" and sprite.is_playing():
+		sprite.play(_hat_anim(&"land"))
+	elif sprite.animation in [&"turn", &"turn_nohat"] and sprite.is_playing():
 		pass  # nech otočka dobehne (trvá ~0.15 s)
-	elif sprite.animation == &"land" and sprite.is_playing() and direction == 0.0:
+	elif sprite.animation in [&"land", &"land_nohat"] and sprite.is_playing() and direction == 0.0:
 		pass  # dopad dobehne, ak sa hráč nehýbe; pri pohybe hneď prejde na beh
 	elif sprite.animation == &"hat_throw" and sprite.is_playing():
 		pass  # hod dobehne celý
 	elif sprite.animation == &"hat_catch" and sprite.is_playing() and absf(velocity.x) < 10.0:
 		pass  # chytenie dobehne, ak Ricco stojí
 	elif absf(velocity.x) > 10.0:
-		_play(&"run")
+		_play_run(signf(velocity.x) != facing)
 	else:
 		_play(&"idle" if has_hat else &"idle_nohat")
 
@@ -388,10 +391,32 @@ func _play(anim: StringName) -> void:
 		sprite.play(anim)
 
 
+## Beh: dopredu normálne, pri cúvaní (pozerá sa na myš, ide opačne) tá istá animácia odzadu.
+## Godot docs: AnimatedSprite2D.play_backwards().
+func _play_run(backwards: bool) -> void:
+	var anim: StringName = _hat_anim(&"run")
+	if sprite.animation == anim and sprite.is_playing() and backwards == run_backwards:
+		return
+	run_backwards = backwards
+	if backwards:
+		sprite.play_backwards(anim)
+	else:
+		sprite.play(anim)
+
+
+## Kým klobúk letí, použi verziu animácie bez klobúka (ak existuje, napr. run → run_nohat).
+func _hat_anim(anim: StringName) -> StringName:
+	if not has_hat:
+		var bare := StringName(String(anim) + "_nohat")
+		if sprite.sprite_frames.has_animation(bare):
+			return bare
+	return anim
+
+
 ## Kolísanie pri behu: Visual sa otáča okolo nôh (origin je pri nohách),
 ## jeden krok = polovica sínusovej vlny, takže každý krok je jeden náklon na stranu.
 func _update_waddle(delta: float) -> void:
-	var running: bool = is_on_floor() and sprite.animation == &"run"
+	var running: bool = is_on_floor() and sprite.animation in [&"run", &"run_nohat"]
 	if running:
 		waddle_phase += absf(velocity.x) * delta / waddle_step * PI
 		var s: float = sin(waddle_phase)
@@ -537,7 +562,14 @@ func _finish_reload() -> void:
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
 
 
+## Snímky behu, v ktorých dopadne labka (na ne patrí obláčik prachu)
+const RUN_STEP_FRAMES: Array[int] = [0, 5]
+
 func _on_sprite_frame_changed() -> void:
+	if sprite.animation in [&"run", &"run_nohat"] and sprite.frame in RUN_STEP_FRAMES and is_on_floor():
+		var back := Vector2(-signf(velocity.x), -0.4).normalized()
+		Burst.spawn(get_tree().current_scene, global_position + Vector2(signf(velocity.x) * 6.0, -1.0), back,
+				Color(0.78, 0.74, 0.68, 0.8), 4, 28.0, Vector2(0, -25), 0.4)
 	if sprite.animation == &"hat_throw" and sprite.frame == HAT_RELEASE_FRAME and has_hat:
 		_launch_hat()
 
@@ -568,6 +600,7 @@ func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
 	shake_timer = 0.15
+	_blood_fx(from)
 	if health == 0:
 		_die()
 		return
@@ -617,3 +650,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		take_damage(1, global_position + Vector2(facing * 20.0, 0))
 	elif key.keycode == KEY_H:
 		heal(1)
+
+
+## Krv pri zásahu: kvapky vyletia od zdroja zásahu a padajú, Ricco na chvíľu sčervenie.
+func _blood_fx(from: Vector2) -> void:
+	var chest: Vector2 = global_position + Vector2(0, -20)
+	var away := Vector2(-facing, -0.6) if from == Vector2.INF else (chest - from).normalized()
+	away = (away + Vector2(0, -0.5)).normalized()
+	Burst.spawn(get_tree().current_scene, chest, away, Color(0.62, 0.04, 0.06), 10, 90.0, Vector2(0, 520), 0.55)
+	Burst.spawn(get_tree().current_scene, chest, away, Color(0.85, 0.12, 0.1), 5, 50.0, Vector2(0, 520), 0.4)
+	sprite.modulate = Color(1.0, 0.72, 0.72)   # jemný červený nádych
+	var tw := create_tween()
+	tw.tween_property(sprite, "modulate", Color.WHITE, 0.3).set_delay(0.08)

@@ -5,7 +5,7 @@ extends SceneTree
 var ANIMS := [
 	["idle",        "idle_hurt",   [0,1,2,3,4,5],                 5.0,  true],
 	["hurt",        "idle_hurt",   [6,7,8,9,10,11,12,13,14,15],  14.0, false],
-	["run",         "run",         range(9),                      9.0, true],
+	["run",         "run",         range(10),                    10.0, true],  # telo zo SOČ animácie, nové labky a plutva
 	["jump",        "jump",        [3,4,5],                      14.0, false],
 	["fall",        "jump",        [6,7,8,9,10,11],              12.0, true],
 	["land",        "jump",        [12,13,14],                   18.0, false],
@@ -26,6 +26,12 @@ var ANIMS := [
 	["hat_throw",   "hat_throw",   [0,1,2,3,4,5],                12.0, false],
 	["hat_catch",   "hat_catch",   [0,1,2,4,5,6,7],              12.0, false],
 	["idle_nohat",  "idle_nohat",  [0],                           1.0, true],
+	# bez klobúka (kým letí hodený klobúk) – hlava dokreslená namiesto klobúka
+	["run_nohat",   "run_nohat",   range(10),                    10.0, true],
+	["jump_nohat",  "jump_nohat",  [3,4,5],                      14.0, false],
+	["fall_nohat",  "jump_nohat",  [6,7,8,9,10,11],              12.0, true],
+	["land_nohat",  "jump_nohat",  [12,13,14],                   18.0, false],
+	["turn_nohat",  "turn_nohat",  [0,1,2],                      20.0, false],
 	["hang",        "hang",        [0],                           1.0, true],
 	["climb",       "climb",       [0,1,2],                      10.0, false, 96],
 ]
