@@ -9,11 +9,15 @@ extends CharacterBody2D
 ## krok 7: zásobník, prebíjanie, vypadnutý zásobník
 ## krok 7b: zbraň drží ruka ducha zavraždeného Dona (characters/ricco/ghost_hand)
 ## krok 7c: prebíjanie druhou rukou ducha – starý zásobník vypadne, nový sa zasunie
+## krok 8: spomalenie času cez ducha Dona (characters/ricco/focus)
+## krok 9: zdravie (HP) – zásah, krátka nesmrteľnosť s blikaním, smrť a reštart levelu
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
-enum State { NORMAL, HANG, CLIMB }
+enum State { NORMAL, HANG, CLIMB, DEAD }
 
 signal ammo_changed(mag: int, reserve: int, reloading: bool)
+signal health_changed(health: int, max_health: int)
+signal died
 
 @export var max_speed: float = 140.0       ## px/s pri behu
 @export var acceleration: float = 900.0    ## ako rýchlo sa rozbehne
@@ -56,6 +60,13 @@ signal ammo_changed(mag: int, reserve: int, reloading: bool)
 @export var reload_time: float = 1.0          ## s (pištoľ: vyhodí, nová ruka podá, zasunie)
 @export_group("")
 
+@export_group("Health")
+@export var max_health: int = 8               ## 8 = celá pizza v HUD (1 zásah = 1 kúsok)
+@export var invulnerable_time: float = 1.0    ## s po zásahu, kedy Ricca nič nezraní (bliká)
+@export var hurt_knockback: Vector2 = Vector2(90, -140)  ## odhodenie od zdroja zásahu
+@export var respawn_delay: float = 2.5        ## s po smrti, kým sa level reštartuje
+@export_group("")
+
 @export_group("Waddle")
 @export var waddle_angle_deg: float = 7.0  ## max. náklon do strany pri behu
 @export var waddle_bob: float = 2.0         ## o koľko px sa pri kroku nadvihne
@@ -79,6 +90,7 @@ const CLIMB_STAND_DISTANCE := 17.0
 @onready var camera: Camera2D = $Camera2D
 @onready var mag: Sprite2D = $Aim/Gun/Mag
 @onready var offhand: GhostHand = $Aim/Gun/OffHand
+@onready var focus: Focus = $Focus  ## spomalenie času (duch Dona) – Shift
 
 ## Ktorý frame animácie "hat_throw" je moment, keď klobúk opustí krídlo
 const HAT_RELEASE_FRAME := 4
@@ -103,6 +115,8 @@ var gun_base_x: float = 0.0         ## pokojová poloha pištole (kvôli cuknuti
 var ammo_in_mag: int = 0
 var ammo_reserve: int = 0
 var reloading: bool = false
+var health: int = 0
+var invulnerable_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -113,6 +127,7 @@ func _ready() -> void:
 	add_to_group(&"player")
 	ammo_in_mag = mag_size
 	ammo_reserve = ammo_reserve_start
+	health = max_health
 
 
 func _process(delta: float) -> void:
@@ -127,7 +142,15 @@ func _process(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	ledge_cooldown -= delta
 	fire_timer -= delta
+	_update_invulnerability(delta)
 	match state:
+		State.DEAD:
+			aim.visible = false
+			if not is_on_floor():
+				velocity += get_gravity() * delta
+			velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+			move_and_slide()
+			return
 		State.HANG:
 			aim.visible = false
 			_process_hang()
@@ -330,6 +353,8 @@ func _update_animation(direction: float) -> void:
 
 	if sprite.animation == &"hat_throw" and sprite.is_playing():
 		pass  # hod klobúka dobehne aj vo vzduchu
+	elif on_floor and sprite.animation == &"hurt" and sprite.is_playing() and direction == 0.0:
+		pass  # slzičky po zásahu dobehnú, ak sa hráč nehýbe
 	elif wall_sliding:
 		_play(&"wall_slide")
 	elif not on_floor and sprite.animation == &"wall_jump" and sprite.is_playing():
@@ -531,3 +556,64 @@ func _on_hat_caught() -> void:
 	has_hat = true
 	if is_on_floor() and state == State.NORMAL and absf(velocity.x) < 10.0:
 		sprite.play(&"hat_catch")
+
+
+# ---------------------------------------------------------------- zdravie
+
+## Zásah: uberie zdravie, odhodí Ricca od zdroja (from), na chvíľu je nesmrteľný a bliká.
+## from = odkiaľ prišiel zásah (napr. pozícia guľky); Vector2.INF = bez odhodenia.
+func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
+	if state == State.DEAD or invulnerable_timer > 0.0 or amount <= 0:
+		return
+	health = maxi(health - amount, 0)
+	health_changed.emit(health, max_health)
+	shake_timer = 0.15
+	if health == 0:
+		_die()
+		return
+	invulnerable_timer = invulnerable_time
+	if from != Vector2.INF and state == State.NORMAL:
+		var away: float = signf(global_position.x - from.x)
+		velocity = Vector2((away if away != 0.0 else -facing) * hurt_knockback.x, hurt_knockback.y)
+	if state == State.NORMAL:
+		sprite.play(&"hurt")
+
+
+func heal(amount: int = 1) -> void:
+	if state == State.DEAD or amount <= 0 or health == max_health:
+		return
+	health = mini(health + amount, max_health)
+	health_changed.emit(health, max_health)
+
+
+func _update_invulnerability(delta: float) -> void:
+	if invulnerable_timer > 0.0:
+		invulnerable_timer -= delta
+		visual.visible = fmod(invulnerable_timer, 0.12) < 0.08   # blikanie
+	else:
+		visual.visible = true
+
+
+func _die() -> void:
+	state = State.DEAD
+	invulnerable_timer = 0.0
+	reloading = false
+	if focus.active:
+		focus.stop()
+	sprite.offset = Vector2.ZERO
+	visual.rotation = 0.0
+	velocity = Vector2(-facing * 60.0, -160.0)
+	sprite.play(&"death")
+	died.emit()
+	get_tree().create_timer(respawn_delay).timeout.connect(get_tree().reload_current_scene)
+
+
+## TEST, kým nie sú nepriatelia: K = zásah, H = vyliečenie (aj v zozname ovládania)
+func _unhandled_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_K:
+		take_damage(1, global_position + Vector2(facing * 20.0, 0))
+	elif key.keycode == KEY_H:
+		heal(1)

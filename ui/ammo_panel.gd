@@ -8,8 +8,7 @@ extends Control
 ## po prebití sa náboje doplnia jeden po druhom, prázdny zásobník bliká načerveno.
 
 const ATLAS: Texture2D = preload("res://ui/hud_ammo.png")
-const GLYPHS := "0123456789/x"
-const GLYPH := Vector2(4, 6)
+const GLYPH := PixelDigits.GLYPH
 const MAX_ICONS := 12          ## väčší zásobník (napr. Tommy gun) sa ukáže číslom
 const MARGIN := Vector2(8, 8)  ## odstup od rohu obrazovky
 
@@ -210,25 +209,18 @@ func _draw_minimal() -> void:
 		draw_rect(Rect2(x0, y + 3, floorf(bw * k), 1), BRASS)
 
 
-# ---------------------------------------------------------------- písmo
+# ---------------------------------------------------------------- písmo (ui/pixel_digits.gd)
 
 func _number_width(n: int, scale: int = 1) -> float:
-	return str(n).length() * (GLYPH.x + 1.0) * scale - scale
+	return PixelDigits.number_width(n, scale)
 
 
 func _draw_number(n: int, pos: Vector2, color: Color, scale: int, outline: bool) -> void:
-	var s := str(n)
-	for i in s.length():
-		_draw_glyph(s[i], pos + Vector2(i * (GLYPH.x + 1.0) * scale, 0), color, scale, outline)
+	PixelDigits.draw_number(self, n, pos, color, scale, outline)
 
 
 func _draw_glyph(ch: String, pos: Vector2, color: Color, scale: int, outline: bool) -> void:
-	var src := Rect2(Vector2(GLYPHS.find(ch) * 5.0, 0), GLYPH)
-	var dst := Rect2(pos, GLYPH * scale)
-	if outline:
-		for o in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1), Vector2(1, 1)]:
-			draw_texture_rect_region(ATLAS, Rect2(dst.position + o, dst.size), src, Color(0, 0, 0, 0.9))
-	draw_texture_rect_region(ATLAS, dst, src, color)
+	PixelDigits.draw_glyph(self, ch, pos, color, scale, outline)
 
 
 ## Biela silueta obrázka (farbí sa cez modulate) – pre čiernu zbraň na lístku
