@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://characters/gangster/gangster.gd" id="1_g"]
+
+[node name="GangsterBruiser" type="CharacterBody2D"]
+script = ExtResource("1_g")
+kind = "bruiser"
+max_health = 5
+walk_speed = 30.0
+run_speed = 105.0
+sight_range = 240.0

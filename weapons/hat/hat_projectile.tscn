@@ -5,5 +5,5 @@
 
 [node name="HatProjectile" type="Sprite2D"]
 texture = ExtResource("2_tex")
-hframes = 4
+hframes = 6
 script = ExtResource("1_hat")

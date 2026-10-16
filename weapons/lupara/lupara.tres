@@ -1,0 +1,34 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://weapons/lupara/lupara.png" id="2_t"]
+[ext_resource type="Texture2D" path="res://weapons/lupara/shell.png" id="3_t"]
+[ext_resource type="Texture2D" path="res://weapons/lupara/two_shells.png" id="4_t"]
+
+[resource]
+script = ExtResource("1_s")
+name = "Lupara"
+texture = ExtResource("2_t")
+slot_name = "PRIMARY"
+grip_px = Vector2(9, 4)
+muzzle_px = Vector2(34.0, 3.0)
+two_handed = true
+foregrip_px = Vector2(21, 5)
+automatic = false
+fire_cooldown = 0.3
+pellets = 7
+spread_deg = 16.0
+damage = 1
+bullet_speed = 620.0
+bullet_lifetime = 0.32
+recoil_px = 6.0
+shake = 4.0
+mag_size = 2
+reserve_start = 16
+reload_time = 1.2
+mag_texture = ExtResource("3_t")
+mag_px = Vector2(15, 1)
+mag_out = Vector2(-3, 6)
+mag_visible = false
+drop_count = 2
+new_mag_texture = ExtResource("4_t")

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://weapons/revolver/revolver.png" id="2_t"]
+[ext_resource type="Texture2D" path="res://weapons/revolver/casing.png" id="3_t"]
+[ext_resource type="Texture2D" path="res://weapons/revolver/speedloader.png" id="4_t"]
+
+[resource]
+script = ExtResource("1_s")
+name = "Revolver"
+texture = ExtResource("2_t")
+slot_name = "SIDEARM"
+grip_px = Vector2(3, 6)
+muzzle_px = Vector2(23.0, 2.5)
+automatic = false
+fire_cooldown = 0.32
+pellets = 1
+spread_deg = 0.5
+damage = 2
+bullet_speed = 820.0
+bullet_lifetime = 1.2
+recoil_px = 5.0
+shake = 3.0
+mag_size = 6
+reserve_start = 24
+reload_time = 1.3
+mag_texture = ExtResource("3_t")
+mag_px = Vector2(9, 3)
+mag_out = Vector2(-2, 5)
+mag_visible = false
+drop_count = 6
+new_mag_texture = ExtResource("4_t")

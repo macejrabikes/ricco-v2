@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://ui/ammo_panel.gd" id="2_ammo"]
@@ -6,24 +6,30 @@
 [ext_resource type="Script" path="res://ui/health_poster.gd" id="4_health"]
 [ext_resource type="Script" path="res://ui/controls_help.gd" id="5_help"]
 [ext_resource type="Theme" path="res://ui/theme/hud_theme.tres" id="6_theme"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu/pause_menu.tscn" id="7_pause"]
+[ext_resource type="PackedScene" path="res://ui/retro_filter/retro_filter.tscn" id="8_retro"]
+[ext_resource type="Script" path="res://ui/cursor/cursor_controller.gd" id="9_cursor"]
 
 [node name="HUD" type="CanvasLayer"]
 layer = 10
 script = ExtResource("1_hud")
 
 [node name="AmmoPanel" type="Control" parent="."]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("2_ammo")
 
 [node name="FocusMeter" type="Control" parent="."]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("3_focus")
 
 [node name="HealthPoster" type="Control" parent="."]
+process_mode = 3
 layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
@@ -33,3 +39,11 @@ script = ExtResource("4_health")
 theme = ExtResource("6_theme")
 mouse_filter = 2
 script = ExtResource("5_help")
+
+[node name="PauseMenu" parent="." instance=ExtResource("7_pause")]
+
+[node name="RetroFilter" parent="." instance=ExtResource("8_retro")]
+
+[node name="Cursor" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("9_cursor")

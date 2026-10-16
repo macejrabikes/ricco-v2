@@ -32,6 +32,8 @@ func _on_focus_changed(v: float, a: bool) -> void:
 
 
 func _process(delta: float) -> void:
+	var player := get_tree().get_first_node_in_group(&"player")
+	visible = player == null or player.focus == null or player.focus.unlocked
 	_time += delta / Engine.time_scale if Engine.time_scale > 0.0 else delta
 	var panel := get_node_or_null(ammo_panel_path) as Control
 	if panel:

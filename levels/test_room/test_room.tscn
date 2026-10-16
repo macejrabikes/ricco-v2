@@ -3,6 +3,9 @@
 [ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://props/target/target.tscn" id="2_target"]
 [ext_resource type="PackedScene" path="res://ui/hud.tscn" id="3_hud"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_tommy.tscn" id="4_tommy"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_coppola.tscn" id="5_coppola"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_bruiser.tscn" id="6_bruiser"]
 
 [sub_resource type="RectangleShape2D" id="Rect_Floor"]
 size = Vector2(1200, 32)
@@ -212,6 +215,15 @@ position = Vector2(800, -80)
 
 [node name="Target6" parent="." unique_id=1898206314 instance=ExtResource("2_target")]
 position = Vector2(640, -66)
+
+[node name="GangsterBruiser" parent="." unique_id=448260573 instance=ExtResource("6_bruiser")]
+position = Vector2(420, 0)
+
+[node name="GangsterTommy" parent="." unique_id=2112610676 instance=ExtResource("4_tommy")]
+position = Vector2(480, -106)
+
+[node name="GangsterCoppola" parent="." unique_id=1438598598 instance=ExtResource("5_coppola")]
+position = Vector2(650, -66)
 
 [node name="Ricco" parent="." unique_id=1028031660 instance=ExtResource("1_player")]
 

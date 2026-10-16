@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://weapons/pistol/pistol.png" id="2_t"]
+[ext_resource type="Texture2D" path="res://weapons/pistol/magazine_empty.png" id="3_t"]
+[ext_resource type="Texture2D" path="res://weapons/pistol/magazine.png" id="4_t"]
+
+[resource]
+script = ExtResource("1_s")
+name = "Pistol"
+texture = ExtResource("2_t")
+slot_name = "SIDEARM"
+grip_px = Vector2(4, 6)
+muzzle_px = Vector2(22.5, 2.5)
+automatic = false
+fire_cooldown = 0.14
+pellets = 1
+spread_deg = 1.5
+damage = 1
+bullet_speed = 650.0
+bullet_lifetime = 1.2
+recoil_px = 3.0
+shake = 2.0
+mag_size = 8
+reserve_start = 32
+reload_time = 1.0
+mag_texture = ExtResource("3_t")
+mag_px = Vector2(3, 5)
+mag_out = Vector2(0, 9.5)
+mag_visible = true
+drop_count = 1
+new_mag_texture = ExtResource("4_t")

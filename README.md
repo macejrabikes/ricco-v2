@@ -10,15 +10,16 @@
 <p align="center">
   <img alt="Godot 4.7" src="https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white">
   <img alt="GDScript" src="https://img.shields.io/badge/GDScript-static%20typed-355570">
-  <img alt="Status" src="https://img.shields.io/badge/status-in%20development-c79947">
+  <img alt="Status" src="https://img.shields.io/badge/status-chapter%20I%20playable-c79947">
   <img alt="Platform" src="https://img.shields.io/badge/platform-PC-555">
 </p>
 
 ---
 
 **Ricco** is about one meter tall, "pure muscle" (his words) and loves pizza a little too much.
-When the Don is murdered, his ghost refuses to leave – he holds Ricco's gun with a spectral hand
-and, for a few seconds at a time, **slows down the world** around him.
+One night Don Vito calls him to the pizzeria – *"back way, nobody sees you"*. Ricco finds the Don dying in the
+cellar, and the Don's ghost refuses to leave: he lends Ricco his hands to hold a gun and, for a few seconds
+at a time, **slows down the world**.
 
 This is a full remake of my old high‑school project (SOČ), rebuilt from scratch, step by step.
 
@@ -26,75 +27,79 @@ This is a full remake of my old high‑school project (SOČ), rebuilt from scrat
   <img src="docs/media/gameplay.gif" alt="Gameplay: running, slow‑motion shooting, hat throw, reload" width="85%">
 </p>
 
-## ✨ Features so far
+<p align="center"><img src="docs/media/h_chapter1.png" alt="Chapter I – The Don's Ghost" width="100%"></p>
+
+A prologue without a gun – sneak, hide in the dark, and find out who got the Don.
 
 | | |
 |---|---|
-| **Tight platforming** – acceleration, coyote time, jump buffering, variable jump height, a penguin waddle | **Wall slide & wall jump** – only off real walls, not thin platforms |
-| **Ledge grab & climb** – hang on an edge, press jump to climb up | **Mouse aiming** – Ricco faces where he aims |
-| **The Don's ghost hand** holds the pistol; a second ghost hand brings a fresh magazine when reloading | **Real ammo** – limited magazines, empty mags drop to the floor and bounce |
-| **Slow‑mo ("focus")** – the world slows down, the screen turns ghost‑blue, Ricco leaves afterimages | **Boomerang hat** – throw the fedora, it flies back to Ricco |
-| **Health** – hits, short invulnerability, death & restart | **Noir HUD** – two styles (noir ticket / minimal), pixel font with full Slovak diacritics |
+| <img src="docs/media/ch1_street.png" alt="Rainy street in front of Pizzeria Don Vito"> | <img src="docs/media/ch1_party.png" alt="Private party in the restaurant, Ricco hiding up on the gallery"> |
+| **The street** – rain, neon, a bouncer at the door. Learn to move, jump, grab ledges, slide and wall jump. | **The restaurant** – a private party. Stay up in the dark; if a guest sees you, they scream for the goons. |
+| <img src="docs/media/ch1_tunnels.png" alt="Smugglers' tunnels with a flashlight patrol"> | <img src="docs/media/ch1_don.png" alt="The Don lying in his hideout"> |
+| **The tunnels** – a maze of old prohibition tunnels. Follow the blood, avoid the flashlights. | **The Don's hideout** – a dying Don, his ghost, and Ricco's first gunfight. |
 
-<p align="center">
-  <img src="docs/media/reload.gif" alt="Two‑hand ghost reload" height="190">
-  <img src="docs/media/ledge.gif" alt="Ledge grab and climb" height="190">
-  <img src="docs/media/hat.gif" alt="Boomerang hat throw" height="190">
-</p>
+Along the way: a kitchen and a storage room full of guards, and a speakeasy door that only opens to the right knock.
 
-## 🎮 Controls
+<p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
+
+- **Tight platforming** – coyote time, jump buffering, variable jump, ledge grab, wall jump, penguin belly slide
+- **Stealth** – light and darkness, sneaking, silent takedowns from behind, a hat throw that stuns (or puts out a lamp)
+- **The Don's ghost** – a spectral hand holds the pistol and reloads it; slow‑mo turns the screen ghost‑blue
+- **Real ammo** – limited magazines, empty mags drop and bounce
+- **Mafia goons** built from body parts, with patrols, flashlights and different weapons; party guests with randomized faces
+- **Dialogue & cutscenes** – typewriter dialogue box with portraits
+- **Settings** – custom cursor and crosshairs (with live previews), HUD styles, a retro filter
+
+<p align="center"><img src="docs/media/h_controls.png" alt="Controls" width="100%"></p>
 
 | Key | Action |
 |---|---|
 | `A` `D` / arrows | move |
 | `Space` / `W` | jump, wall jump, climb a ledge |
-| Left mouse | shoot |
+| `S` / `Ctrl` | belly slide |
+| `C` / `Alt` | sneak |
+| `F` | takedown from behind · knock on a door |
 | Right mouse / `E` | throw the hat |
+| Left mouse | shoot |
 | `R` | reload |
 | `Shift` | slow‑mo (the Don's ghost) |
-| `F2` | switch HUD style |
-| `F1` | hide the controls overlay |
-| `K` / `H` | *debug:* take a hit / heal (until enemies exist) |
+| `Esc` | pause menu & settings |
 
-## 🗺️ Roadmap
+<p align="center"><img src="docs/media/h_roadmap.png" alt="Roadmap" width="100%"></p>
 
-- [x] Movement, wall jump, ledge grab
-- [x] Pistol, magazines, ghost‑hand reload
-- [x] Boomerang hat
-- [x] Slow‑mo with the Don's ghost
-- [x] Health, death & restart
-- [ ] Belly slide (penguin style)
-- [ ] First enemies – mafia goons
-- [ ] Human shield, bombs
-- [ ] Weapons & loadout – 1 sidearm + 2 primaries (Tommy gun, lupara, revolver…)
-- [ ] Swimming and ice – secrets & puzzles
-- [ ] Style meter / combos, reputation with the Don
-- [ ] Bosses weak to specific abilities, abilities unlocked level by level
-- [ ] Arena mode
-- [ ] Story & dialogue
+- [x] Movement, shooting, slow‑mo, the hat, health
+- [x] First enemies, stealth, takedowns
+- [x] **Chapter I** – street, restaurant, kitchen, storage, casino, tunnels, the Don
+- [ ] More weapons & loadout (Tommy gun, lupara, revolver…), human shield
+- [ ] Next chapters – revenge, bosses, abilities unlocked level by level
+- [ ] Style meter, secrets, swimming & ice
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)
 
-## 🛠️ Tech
+<p align="center"><img src="docs/media/h_tech.png" alt="Tech" width="100%"></p>
 
-- **Godot 4.7** (Forward+), **GDScript** with static typing, PC only
+- **Godot 4.7**, **GDScript** with static typing, PC only
 - Pixel‑art resolution **640×360**, integer scaling
 - Addons: [Phantom Camera](https://github.com/ramokz/phantom-camera), [Aseprite Wizard](https://github.com/viniciusgerevini/godot-aseprite-wizard), [LimboAI](https://github.com/limbonaut/limboai), [Dialogic 2](https://github.com/dialogic-godot/dialogic)
 
 ```
-characters/ricco/   player: movement, weapons, ghost hands, slow‑mo, sprites
-weapons/            pistol, bullets, magazines, hat
-ui/                 HUD (ammo, health, slow‑mo meter), fonts, theme
-levels/             test room
-settings/           game settings (saved to user://settings.cfg)
-tools/              editor scripts (builds Ricco's SpriteFrames)
+characters/   Ricco (player), gangsters, the Don
+levels/       level1 (street → restaurant → casino) + cellar (tunnels), test room
+world/        stealth (light zones), effects, NPCs (guests, rats), doors
+weapons/      pistol, bullets, magazines, hat
+ui/           HUD, dialogue box, menus, cursors, fonts
+settings/     game settings (saved to user://settings.cfg)
+tools/        generator scripts (Ricco's SpriteFrames, level 1 + cellar maps)
 ```
+
+Level 1 and the cellar are generated by `tools/build_level1.gd`
+(`godot --headless --path . --script res://tools/build_level1.gd`) – the cellar maze is a text map in that file.
 
 ### Running it
 1. Install [Godot 4.7](https://godotengine.org/download)
 2. Clone the repo (it uses **Git LFS** for images: `git lfs install` first)
 3. Open `project.godot` and press **F5**
 
-## 🙏 Credits
+<p align="center"><img src="docs/media/h_credits.png" alt="Credits" width="100%"></p>
 
 - **Font:** [Tiny5](https://github.com/Gissio/font_tiny5) by Gissio – SIL Open Font License (`ui/fonts/Tiny5_OFL.txt`)
 - **Character art:** generated with PixelLab and Google Gemini, then cleaned up into pixel art by hand/script

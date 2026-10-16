@@ -2,7 +2,7 @@ class_name Burst
 extends CPUParticles2D
 ## Jednorazový výbuch častíc (iskry, črepy). Po dohraní sa sám zmaže.
 
-static func spawn(parent: Node, pos: Vector2, dir: Vector2, color: Color, amount_: int = 8, speed: float = 90.0,
+static func spawn(parent: Node, pos: Vector2, dir: Vector2, col: Color, amount_: int = 8, speed: float = 90.0,
 		gravity_: Vector2 = Vector2(0, 400), life: float = 0.35) -> void:
 	var p := Burst.new()
 	p.one_shot = true
@@ -16,7 +16,7 @@ static func spawn(parent: Node, pos: Vector2, dir: Vector2, color: Color, amount
 	p.gravity = gravity_
 	p.scale_amount_min = 1.0
 	p.scale_amount_max = 2.0
-	p.color = color
+	p.color = col
 	p.global_position = pos
 	parent.add_child(p)
 	p.finished.connect(p.queue_free)

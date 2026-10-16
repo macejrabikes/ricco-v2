@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://weapons/tommy/tommy.png" id="2_t"]
+[ext_resource type="Texture2D" path="res://weapons/tommy/stick_mag.png" id="3_t"]
+
+[resource]
+script = ExtResource("1_s")
+name = "Tommy gun"
+texture = ExtResource("2_t")
+slot_name = "PRIMARY"
+grip_px = Vector2(15, 7)
+muzzle_px = Vector2(46.0, 3.0)
+two_handed = true
+foregrip_px = Vector2(33, 8)
+automatic = true
+fire_cooldown = 0.075
+pellets = 1
+spread_deg = 4.0
+damage = 1
+bullet_speed = 700.0
+bullet_lifetime = 1.2
+recoil_px = 2.0
+shake = 1.5
+mag_size = 30
+reserve_start = 90
+reload_time = 1.4
+mag_texture = ExtResource("3_t")
+mag_px = Vector2(20, 6)
+mag_out = Vector2(0, 10.0)
+mag_visible = true
+drop_count = 1
+new_mag_texture = ExtResource("3_t")

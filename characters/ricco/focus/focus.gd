@@ -1,7 +1,7 @@
 class_name Focus
 extends Node
 ## Spomalenie času („focus“) – duch Dona na chvíľu spomalí svet okolo Ricca (ako v My Friend Pedro).
-##  - Shift (akcia "focus") zapne/vypne spomalenie,
+##  - Shift (akcia "focus" v Project Settings → Input Map) zapne/vypne spomalenie,
 ##  - kým beží, míňa sa ukazovateľ; keď dôjde, spomalenie skončí samo,
 ##  - po skončení sa ukazovateľ po chvíli pomaly dobíja (neskôr aj za zabitia/štýl),
 ##  - obrazovka sa odfarbí do modra, okraje stmavnú a za Riccom ostávajú duchovské odlesky.
@@ -10,6 +10,8 @@ extends Node
 ## (Tween.set_ignore_time_scale), aby sa spomalenie nespomaľovalo samo.
 
 signal changed(value: float, active: bool)
+
+@export var unlocked: bool = true   ## false = spomalenie sa ešte nedá použiť (a ukazovateľ je skrytý)
 
 @export_range(0.05, 1.0) var slow_scale: float = 0.3   ## rýchlosť sveta počas spomalenia
 @export var duration: float = 4.0          ## s (reálne) – plný ukazovateľ vydrží toľko
@@ -30,7 +32,6 @@ var _tween: Tween
 
 
 func _ready() -> void:
-	_ensure_input()
 	overlay_rect.visible = false
 	_set_strength(0.0)
 
@@ -39,17 +40,9 @@ func _exit_tree() -> void:
 	Engine.time_scale = 1.0  # pri zmene levelu nesmie ostať svet spomalený
 
 
-## Akcia "focus" (Shift). Zatiaľ sa pridá v kóde, neskôr ju presunieme do Project Settings → Input Map.
-static func _ensure_input() -> void:
-	if InputMap.has_action(&"focus"):
-		return
-	InputMap.add_action(&"focus")
-	var ev := InputEventKey.new()
-	ev.physical_keycode = KEY_SHIFT
-	InputMap.action_add_event(&"focus", ev)
-
-
 func _process(delta: float) -> void:
+	if not unlocked:
+		return   # spomalenie ešte Ricco nemá (level 1 – dá mu ho duch Dona)
 	var real: float = delta / Engine.time_scale if Engine.time_scale > 0.0 else delta
 	if Input.is_action_just_pressed(&"focus"):
 		if active:

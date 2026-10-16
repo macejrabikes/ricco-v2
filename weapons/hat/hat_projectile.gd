@@ -1,9 +1,10 @@
 extends Sprite2D
-## Riccov klobúk ako frisbee: letí naplocho a točí sa okolo zvislej osi (4 snímky, hat_frisbee.png),
+## Riccov klobúk ako frisbee: ten istý klobúk, čo má na hlave (hat_frisbee.png – 6 snímok,
+## cez klobúk prebieha odlesk, takže vidno, že sa točí); letí naplocho, nakláňa sa podľa smeru letu,
 ## spomalí, otočí sa a vráti sa k Riccovi.
 ## Od stien, zeme a stropu sa odrazí (Vector2.bounce), aj pri návrate – cez steny neprejde.
 ## Ak sa pri návrate zasekne (alebo letí priveľmi dlho), „puf“ a je späť u Ricca.
-## Každý terč zasiahne raz za hod.
+## Každý terč zasiahne raz za hod. Gangstra omráči (hat_hit).
 
 signal caught
 
@@ -15,6 +16,8 @@ signal caught
 @export var catch_distance: float = 14.0
 @export var max_time: float = 3.0
 @export var stuck_time: float = 0.8          ## s – ak sa pri návrate nepribližuje, vráti sa „kúzlom“
+@export var spin_fps: float = 20.0           ## rýchlosť odlesku (točenia)
+@export var half_size: Vector2 = Vector2(16, 7)  ## polovica veľkosti klobúka – okraj sa odrazí, nie stred
 @export_flags_2d_physics var hit_mask: int = 1 | 4
 
 var owner_body: Node2D = null    ## Ricco
@@ -34,9 +37,9 @@ func launch(from: Vector2, dir: Vector2, who: Node2D) -> void:
 
 func _physics_process(delta: float) -> void:
 	max_time -= delta
-	# frisbee: rýchle točenie (snímky), mierny náklon podľa smeru letu
+	# frisbee: odlesk prebieha dookola (snímky), mierny náklon podľa smeru letu
 	spin_t += delta
-	frame = int(spin_t * 28.0) % hframes
+	frame = int(spin_t * spin_fps) % hframes
 	rotation = lerpf(rotation, clampf(velocity.y / 900.0, -0.35, 0.35), minf(1.0, 10.0 * delta))
 	flip_h = velocity.x < 0.0
 
@@ -65,27 +68,35 @@ func _physics_process(delta: float) -> void:
 	_move(velocity * delta)
 
 
-## Pohyb s odrazmi: lúč po dráhe, pri stene odraz a zvyšok dráhy pokračuje novým smerom.
+## Pohyb s odrazmi: lúč po dráhe (predĺžený o polovicu klobúka, aby sa odrazil okraj),
+## pri stene odraz a zvyšok dráhy pokračuje novým smerom.
 func _move(motion: Vector2) -> void:
 	var space := get_world_2d().direct_space_state
 	for i in 3:   # najviac 3 odrazy za snímku
 		var from: Vector2 = global_position
-		var q := PhysicsRayQueryParameters2D.create(from, from + motion, hit_mask)
+		var dir: Vector2 = motion.normalized()
+		var reach: float = absf(dir.x) * half_size.x + absf(dir.y) * half_size.y
+		var q := PhysicsRayQueryParameters2D.create(from, from + motion + dir * reach, hit_mask)
 		q.exclude = already_hit.map(func(o): return o.get_rid())
 		var hit := space.intersect_ray(q)
 		if hit.is_empty():
 			global_position = from + motion
 			return
 		var c: Object = hit.collider
+		if c.has_method("hat_hit"):        # gangster: omráči ho a zhodí mu klobúk
+			c.hat_hit(damage, velocity.normalized())
+			already_hit.append(c)
+			continue
 		if c.has_method("take_hit"):
 			c.take_hit(damage, velocity.normalized())
 			already_hit.append(c)
 			continue   # terčom preletí
-		# stena / zem / strop → odraz
+		# stena / zem / strop → odraz; klobúk ostane celý pred stenou
 		var n: Vector2 = hit.normal
 		Burst.spawn(get_parent(), hit.position, n, Color(0.3, 0.3, 0.3), 4, 50.0)
-		var used: float = (hit.position - from).length()
-		global_position = hit.position + n * 1.5
+		var edge: float = absf(n.x) * half_size.x + absf(n.y) * half_size.y
+		var used: float = maxf((hit.position - from).length() - reach, 0.0)
+		global_position = hit.position + n * (edge + 0.5)
 		velocity = velocity.bounce(n) * bounce_keep
 		motion = motion.bounce(n).normalized() * maxf(motion.length() - used, 0.0)
 		if not returning:

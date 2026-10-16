@@ -4,7 +4,8 @@ extends SceneTree
 # [name, sheet, frames, fps, loop, (voliteľne) veľkosť framu – predvolene 64]
 var ANIMS := [
 	["idle",        "idle_hurt",   [0,1,2,3,4,5],                 5.0,  true],
-	["hurt",        "idle_hurt",   [6,7,8,9,10,11,12,13,14,15],  14.0, false],
+	["hurt",        "hurt",        [0,1,2],                      14.0, false],  # zľaknutie, klobúk poskočí a dopadne
+	["hurt_nohat",  "hurt_nohat",  [0,1,2],                      14.0, false],
 	["run",         "run",         range(10),                    10.0, true],  # telo zo SOČ animácie, nové labky a plutva
 	["jump",        "jump",        [3,4,5],                      14.0, false],
 	["fall",        "jump",        [6,7,8,9,10,11],              12.0, true],
@@ -32,6 +33,9 @@ var ANIMS := [
 	["fall_nohat",  "jump_nohat",  [6,7,8,9,10,11],              12.0, true],
 	["land_nohat",  "jump_nohat",  [12,13,14],                   18.0, false],
 	["turn_nohat",  "turn_nohat",  [0,1,2],                      20.0, false],
+	["slide_start_nohat", "slide_nohat", [1,2,5,6],              16.0, false],  # skok na brucho (bez snímok 3, 4)
+	["slide_nohat",       "slide_nohat", [5,6,7,8,9],            12.0, true],
+	["slide_end_nohat",   "slide_nohat", [10,11,12,13,14,15],    18.0, false],
 	["hang",        "hang",        [0],                           1.0, true],
 	["climb",       "climb",       [0,1,2],                      10.0, false, 96],
 ]

@@ -11,6 +11,7 @@ const ATLAS: Texture2D = preload("res://ui/hud_ammo.png")
 const GLYPH := PixelDigits.GLYPH
 const MAX_ICONS := 12          ## väčší zásobník (napr. Tommy gun) sa ukáže číslom
 const MARGIN := Vector2(8, 8)  ## odstup od rohu obrazovky
+const GAP := 6.0               ## medzera od HP plagátu (ten je úplne vpravo)
 
 # noir lístok
 const PAPER := Color8(232, 222, 196)
@@ -26,6 +27,7 @@ const DIM := Color8(60, 60, 66)
 const RED := Color8(255, 82, 66)
 
 @export var weapon_icon: Texture2D = preload("res://weapons/pistol/pistol.png")
+@export var health_poster_path: NodePath = ^"../HealthPoster"
 
 var mag: int = 0
 var reserve: int = 0
@@ -40,6 +42,7 @@ var _fill_t: float = 1.0       ## 0 → 1 počas dopĺňania
 var _time: float = 0.0
 var _icon_silhouette: Texture2D  ## jednofarebná silueta zbrane pre noir lístok
 var _speckles: PackedVector2Array  ## „zrnitosť“ papiera (pevné body, aby neblikali)
+var _style: int = -1               ## štýl, pre ktorý je spočítané rozloženie (mení sa aj v pause menu)
 
 
 func _ready() -> void:
@@ -49,7 +52,10 @@ func _ready() -> void:
 	if player:
 		mag_size = player.mag_size
 		reload_time = player.reload_time
+		if player.weapon:
+			weapon_icon = player.weapon.texture
 		player.ammo_changed.connect(_on_ammo_changed)
+		player.weapon_changed.connect(_on_weapon_changed)
 		mag = player.ammo_in_mag
 		reserve = player.ammo_reserve
 	_icon_silhouette = _make_silhouette(weapon_icon)
@@ -64,6 +70,22 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameSettings.save()
 		_update_layout()
 		get_viewport().set_input_as_handled()
+
+
+## Iná zbraň v ruke: nová silueta, veľkosť zásobníka, rozloženie
+func _on_weapon_changed(w: WeaponData) -> void:
+	visible = w != null      # bez zbrane sa panel skryje
+	if w == null:
+		return
+	weapon_icon = w.texture
+	mag_size = w.mag_size
+	reload_time = w.reload_time
+	reloading = false
+	mag = -100          # nasledujúce ammo_changed nespustí odskok ani dopĺňanie
+	_pop_t = 1.0
+	_fill_t = 1.0
+	_icon_silhouette = _make_silhouette(weapon_icon)
+	_update_layout()
 
 
 func _on_ammo_changed(new_mag: int, new_reserve: int, new_reloading: bool) -> void:
@@ -86,7 +108,20 @@ func _process(delta: float) -> void:
 	_fill_t = minf(_fill_t + delta / 0.2, 1.0)
 	if reloading:
 		_reload_t += delta
+	if _style != GameSettings.hud_style:
+		_update_layout()
+	_place()
 	queue_redraw()
+
+
+## Vpravo dole, naľavo od HP plagátu (ak je)
+func _place() -> void:
+	var vp: Vector2 = get_viewport_rect().size
+	var right: float = vp.x - MARGIN.x
+	var poster := get_node_or_null(health_poster_path) as Control
+	if poster and poster.visible and poster.has_method("layout_rect"):
+		right = poster.layout_rect().position.x - GAP
+	position = Vector2(right - size.x, vp.y - MARGIN.y - size.y).floor()
 
 
 # ---------------------------------------------------------------- rozloženie
@@ -100,9 +135,10 @@ func _minimal_size() -> Vector2:
 
 
 func _update_layout() -> void:
+	_style = GameSettings.hud_style
 	var s: Vector2 = _noir_size() + Vector2(2, 2) if GameSettings.hud_style == GameSettings.HudStyle.NOIR else _minimal_size()
 	size = s
-	position = (get_viewport_rect().size - size - MARGIN).floor()
+	_place()
 	if GameSettings.hud_style == GameSettings.HudStyle.NOIR:
 		_speckles.clear()
 		var ns: Vector2 = _noir_size()
@@ -203,7 +239,7 @@ func _draw_minimal() -> void:
 		for i in mag_size:
 			draw_rect(Rect2(x0 + i * 4, y, 3, 2), BRASS if i < shown else DIM)
 	if reloading:
-		var bw: float = mag_size * 4 - 1 if mag_size <= MAX_ICONS else big_w
+		var bw: float = float(mag_size * 4 - 1) if mag_size <= MAX_ICONS else big_w
 		var k: float = clampf(_reload_t / reload_time, 0.0, 1.0)
 		draw_rect(Rect2(x0, y + 3, bw, 1), BRASS_D)
 		draw_rect(Rect2(x0, y + 3, floorf(bw * k), 1), BRASS)
@@ -211,16 +247,16 @@ func _draw_minimal() -> void:
 
 # ---------------------------------------------------------------- písmo (ui/pixel_digits.gd)
 
-func _number_width(n: int, scale: int = 1) -> float:
-	return PixelDigits.number_width(n, scale)
+func _number_width(n: int, sc: int = 1) -> float:
+	return PixelDigits.number_width(n, sc)
 
 
-func _draw_number(n: int, pos: Vector2, color: Color, scale: int, outline: bool) -> void:
-	PixelDigits.draw_number(self, n, pos, color, scale, outline)
+func _draw_number(n: int, pos: Vector2, col: Color, sc: int, outline: bool) -> void:
+	PixelDigits.draw_number(self, n, pos, col, sc, outline)
 
 
-func _draw_glyph(ch: String, pos: Vector2, color: Color, scale: int, outline: bool) -> void:
-	PixelDigits.draw_glyph(self, ch, pos, color, scale, outline)
+func _draw_glyph(ch: String, pos: Vector2, col: Color, sc: int, outline: bool) -> void:
+	PixelDigits.draw_glyph(self, ch, pos, col, sc, outline)
 
 
 ## Biela silueta obrázka (farbí sa cez modulate) – pre čiernu zbraň na lístku

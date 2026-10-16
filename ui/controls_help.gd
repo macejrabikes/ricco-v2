@@ -1,5 +1,5 @@
 extends PanelContainer
-## Dočasný zoznam ovládania vľavo dole (kým nebude menu). F1 ho skryje/ukáže.
+## Zoznam ovládania vľavo dole. F1 ho skryje/ukáže (aj pause menu → Settings → Controls hint).
 ## Klávesy sú „tlačidlá“ (Label so StyleBoxFlat), písmo Tiny5 z ui/theme/hud_theme.tres.
 
 const ROWS := [
@@ -8,10 +8,15 @@ const ROWS := [
 	[["ĽAVÉ TL."], "streľba"],
 	[["PRAVÉ TL.", "E"], "hod klobúka"],
 	[["R"], "prebiť"],
+	[["1", "2", "3", "4"], "zbrane  (aj koliesko, Q = posledná)"],
 	[["SHIFT"], "spomalenie – duch Dona"],
+	[["S", "CTRL"], "šmyk po bruchu  (aj šípka dole)"],
+	[["C", "ALT"], "zakrádanie (drž)"],
+	[["F"], "zneškodniť zozadu"],
+	[["ESC", "P"], "pauza"],
 	[["F2"], "štýl HUD"],
 	[["K", "H"], "TEST: zásah / vyliečiť"],
-	[["F1"], "skryť ovládanie"],
+	[["F1"], "skryť ovládanie  (aj v nastaveniach)"],
 ]
 
 const BG := Color(0.04, 0.04, 0.06, 0.72)
@@ -22,6 +27,8 @@ const KEY_EDGE := Color8(20, 18, 16)
 
 
 func _ready() -> void:
+	GameSettings.ensure_loaded()
+	visible = GameSettings.show_controls
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var panel := StyleBoxFlat.new()
 	panel.bg_color = BG
@@ -87,4 +94,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	var key := event as InputEventKey
 	if key and key.pressed and not key.echo and key.keycode == KEY_F1:
 		visible = not visible
+		GameSettings.show_controls = visible
+		GameSettings.save()
 		get_viewport().set_input_as_handled()

@@ -22,7 +22,7 @@ func take_hit(damage: int, dir: Vector2) -> void:
 	Burst.spawn(get_parent(), global_position, dir + Vector2(0, -0.8), Color(0.75, 0.16, 0.16), 14, 140.0)
 	sprite.visible = false
 	shape.set_deferred("disabled", true)
-	await get_tree().create_timer(respawn_time).timeout
+	await get_tree().create_timer(respawn_time, false).timeout  # počas pauzy stojí
 	hp = hp_max
 	sprite.visible = true
 	shape.set_deferred("disabled", false)

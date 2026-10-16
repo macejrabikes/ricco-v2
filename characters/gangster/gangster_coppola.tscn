@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://characters/gangster/gangster.gd" id="1_g"]
+[ext_resource type="Resource" path="res://weapons/lupara/lupara.tres" id="2_w"]
+
+[node name="GangsterCoppola" type="CharacterBody2D"]
+script = ExtResource("1_g")
+kind = "coppola"
+weapon = ExtResource("2_w")
+max_health = 3
+walk_speed = 40.0
+sight_range = 260.0
+aim_time = 0.8
+burst_count = 1
+pellets = 6
+spread_deg = 24.0
+bullet_lifetime = 0.5
+cooldown = Vector2(1.2, 1.7)
+preferred_range = 150.0
