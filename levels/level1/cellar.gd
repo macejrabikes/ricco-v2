@@ -40,6 +40,7 @@ func _ready() -> void:
 	tw.tween_interval(0.3)
 	tw.tween_property(black, "color:a", 0.0, 0.8)
 	tw.tween_callback(black.get_parent().queue_free)
+	Sfx.loop(&"tunnels", self, Vector2.INF, -2.0)
 	if checkpoint == 3 and not cellar_arrived:
 		cellar_arrived = true
 		_arrive()

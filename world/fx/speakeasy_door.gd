@@ -86,6 +86,7 @@ func _check_later(count: int) -> void:
 func _answer(ok: bool) -> void:
 	_busy = true
 	_sprite.frame = 1
+	Sfx.play(&"slot_open", global_position + Vector2(0, -60))
 	await get_tree().create_timer(0.6).timeout
 	if ok:
 		_say("...GET IN. QUICK.", 1.6)
@@ -127,6 +128,8 @@ func _doorman_gag() -> void:
 
 
 func _set_open(on: bool) -> void:
+	if on != _open:
+		Sfx.play(&"door_open" if on else &"door_close", global_position + Vector2(0, -40))
 	_open = on
 	_sprite.frame = 2 if on else 0
 	_shape.set_deferred(&"disabled", on)
@@ -170,6 +173,7 @@ func start_demo() -> void:
 		_knock_fx()
 	await get_tree().create_timer(0.7).timeout
 	_sprite.frame = 1
+	Sfx.play(&"slot_open", global_position + Vector2(0, -60))
 	_say("...", 1.0)
 	await get_tree().create_timer(1.0).timeout
 	if not is_instance_valid(m) or m.get(&"state") not in [0, 1]:
@@ -195,6 +199,7 @@ func _reveal_hint() -> void:
 
 
 func _knock_fx() -> void:
+	Sfx.play(&"knock", global_position + Vector2(0, -40), 0.0, 0.08)
 	var l := Label.new()
 	l.text = "KNOCK"
 	l.add_theme_font_override(&"font", FONT)

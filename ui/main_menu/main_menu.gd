@@ -14,7 +14,7 @@ const GLOW := preload("res://levels/level1/art/glow.png")
 ## Okná na budovách v pozadí (menu_buildings.png má všetky tmavé, tieto sa rozsvecujú)
 const WINDOWS: Array[Vector2] = [Vector2(14, 140), Vector2(14, 192), Vector2(14, 244), Vector2(58, 140), Vector2(58, 192), Vector2(58, 244), Vector2(414, 108), Vector2(414, 160), Vector2(414, 212), Vector2(458, 108), Vector2(458, 160), Vector2(458, 212), Vector2(502, 108), Vector2(502, 160), Vector2(502, 212), Vector2(546, 108), Vector2(546, 160), Vector2(546, 212), Vector2(590, 108), Vector2(590, 160), Vector2(590, 212), Vector2(140, 196), Vector2(352, 196)]
 
-enum Page { MAIN, SETTINGS, CONTROLS }
+enum Page { MAIN, SETTINGS, CONTROLS, AUDIO }
 
 @onready var column: VBoxContainer = $Root/Column
 @onready var fade: ColorRect = $Fade
@@ -47,6 +47,7 @@ func _ready() -> void:
 	fade.color.a = 1.0
 	create_tween().tween_property(fade, "color:a", 0.0, 0.6)
 	_title_flicker_in()
+	Sfx.loop(&"rain", self, Vector2.INF, -10.0)   # dážď za oknom
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -56,7 +57,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameSettings.save()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"pause") and page != Page.MAIN:
-		_show_page(Page.MAIN)
+		_show_page(Page.SETTINGS if page == Page.AUDIO else Page.MAIN)
 		get_viewport().set_input_as_handled()
 
 
@@ -73,7 +74,9 @@ func _show_page(p: Page) -> void:
 			pages.hint("ENTER  SELECT     F11  FULLSCREEN")
 			pages.focus(first)
 		Page.SETTINGS:
-			pages.settings_page(_show_page.bind(Page.MAIN))
+			pages.settings_page(_show_page.bind(Page.MAIN), _show_page.bind(Page.AUDIO))
+		Page.AUDIO:
+			pages.audio_page(_show_page.bind(Page.SETTINGS))
 		Page.CONTROLS:
 			pages.controls_page(_show_page.bind(Page.MAIN))
 

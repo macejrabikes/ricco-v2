@@ -35,4 +35,5 @@ func _physics_process(delta: float) -> void:
 		target.take_hit(damage, direction)
 	else:
 		Burst.spawn(get_parent(), hit.position, hit.normal, Color(1.0, 0.85, 0.4), 6, 80.0)  # iskry od steny
+		Sfx.play([&"impact_wall", &"impact_wall", &"ricochet_1", &"ricochet_2"][randi() % 4], hit.position, -6.0, 0.12)
 	queue_free()

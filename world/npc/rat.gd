@@ -29,3 +29,5 @@ func _process(delta: float) -> void:
 		position.x = _home.x + signf(position.x - _home.x) * span
 	if randf() < delta * 0.6:
 		_pause = randf_range(0.4, 1.5)
+		if randf() < 0.35:
+			Sfx.play(&"rat_squeak", global_position, -10.0, 0.15)

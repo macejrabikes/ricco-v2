@@ -36,6 +36,9 @@ func _ready() -> void:
 		mouse_entered.connect(grab_focus)
 		focus_entered.connect(queue_redraw)
 		focus_exited.connect(queue_redraw)
+		focus_entered.connect(func(): Sfx.ui(&"ui_move"))      # zvuky menu (audio/sfx.gd)
+		pressed.connect(func(): Sfx.ui(&"ui_select"))
+		changed.connect(func(_d: int): Sfx.ui(&"ui_move"))
 	else:
 		focus_mode = Control.FOCUS_NONE
 		mouse_filter = Control.MOUSE_FILTER_IGNORE

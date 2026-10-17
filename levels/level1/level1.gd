@@ -93,8 +93,10 @@ func _ready() -> void:
 		talk.body_entered.connect(_on_bouncer_talk)
 	if checkpoint >= 1 and player:
 		_go_inside.call_deferred(mini(checkpoint, 2), false)
-	elif player and not intro_done:
-		_intro()
+	else:
+		_ambience(false)
+		if player and not intro_done:
+			_intro()
 
 
 ## Zostup do pivnice: Ricco sám zíde po schodoch do tmy, obraz stmavne a načíta sa pivnica
@@ -199,6 +201,7 @@ func _go_inside(spawn_index: int, fade: bool) -> void:
 	if zone:
 		zone.apply(player, true)
 	pcam.teleport_position()
+	_ambience(true)
 	var rain := get_node_or_null(^"Rain") as CPUParticles2D
 	if rain:
 		rain.emitting = false
@@ -212,6 +215,26 @@ func _go_inside(spawn_index: int, fade: bool) -> void:
 		tw2.tween_interval(0.15)
 		tw2.tween_property(black, "color:a", 0.0, 0.45)
 		tw2.tween_callback(black.get_parent().queue_free)
+
+
+## Zvuky prostredia (audio/sfx.gd): vonku dážď a bzučiaci neón, vnútri tlmený dážď, dav na oslave, kuchyňa
+var _amb: Node
+
+func _ambience(inside: bool) -> void:
+	if _amb:
+		_amb.queue_free()
+	_amb = Node.new()
+	_amb.name = "AmbienceSounds"
+	add_child(_amb)
+	if not inside:
+		Sfx.loop(&"rain", _amb, Vector2.INF, -3.0)
+		var neon := get_node_or_null(^"Props/Neon") as Node2D
+		if neon:
+			Sfx.loop(&"neon_buzz", _amb, neon.global_position + Vector2(10, 30), -8.0)
+	else:
+		Sfx.loop(&"rain_inside", _amb, Vector2.INF, -6.0)
+		Sfx.loop(&"crowd", _amb, Vector2(178 * 16, -60), 2.0)
+		Sfx.loop(&"kitchen", _amb, Vector2(216 * 16, -40), -2.0)
 
 
 func _fade_rect() -> ColorRect:

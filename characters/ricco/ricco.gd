@@ -187,6 +187,7 @@ func _ready() -> void:
 	sprite.animation_finished.connect(_on_sprite_animation_finished)
 	sprite.frame_changed.connect(_on_sprite_frame_changed)
 	flash.visible = false
+	_setup_flash()
 	add_to_group(&"player")
 	for w in loadout:
 		weapon_ammo.append([w.mag_size, w.reserve_start])
@@ -299,6 +300,7 @@ func _update_takedown() -> void:
 	shake_timer = 0.08
 	shake_strength = 1.5
 	takedown_target.takedown(Vector2(dir, -0.2))
+	Sfx.play(&"takedown", global_position)
 	takedown_target = null
 
 
@@ -398,6 +400,7 @@ func _physics_process(delta: float) -> void:
 		jump_buffer_timer = 0.0
 		coyote_timer = 0.0  # aby sa nedalo skočiť dvakrát z jedného coyote okna
 		sprite.play(_hat_anim(&"jump"))
+		Sfx.play(&"jump", Vector2.INF, -6.0)
 	# Wall jump – vo vzduchu pri stene: odraz šikmo hore preč od steny
 	elif jump_buffer_timer > 0.0 and wall_timer > 0.0:
 		velocity = Vector2(wall_normal_x * wall_jump_velocity.x, wall_jump_velocity.y)
@@ -407,6 +410,7 @@ func _physics_process(delta: float) -> void:
 		wall_sliding = false
 		_turn(wall_normal_x)
 		sprite.play(&"wall_jump")  # krátky odraz nohou od steny, potom jump/fall
+		Sfx.play(&"wall_jump", Vector2.INF, -4.0)
 
 	# Variabilná výška: pustíš skok počas stúpania → Ricco spomalí a skok je nižší
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
@@ -450,7 +454,11 @@ func _physics_process(delta: float) -> void:
 	_update_aim()
 	_update_weapons()
 
+	var was_air: bool = not is_on_floor()
+	var fall_vy: float = velocity.y
 	move_and_slide()
+	if was_air and is_on_floor() and fall_vy > 220.0:
+		Sfx.play(&"land", Vector2.INF, -8.0 + minf(fall_vy / 100.0, 6.0))
 	_update_animation(direction)
 	_update_waddle(delta)
 	_update_crouch(delta)
@@ -550,6 +558,7 @@ func _try_grab_ledge(dir: float) -> bool:
 
 	# Zavesenie
 	state = State.HANG
+	Sfx.play(&"ledge_grab", Vector2.INF, -4.0)
 	velocity = Vector2.ZERO
 	wall_sliding = false
 	ledge_top = Vector2(stand_x, top_y)
@@ -576,6 +585,7 @@ func _process_hang() -> void:
 ## Vylezenie: Ricco stojí na mieste a „lezie“ samotná animácia (je zarovnaná na roh hrany),
 ## na konci ho presunieme na hranu – takto sa to robí aj v hrách typu Assassin's Creed / Prince of Persia.
 func _start_climb() -> void:
+	Sfx.play(&"climb", Vector2.INF, -6.0)
 	state = State.CLIMB
 	visual.position = Vector2.ZERO
 	sprite.offset = CLIMB_SPRITE_OFFSET
@@ -737,6 +747,8 @@ func _update_weapons() -> void:
 		if ammo_in_mag > 0:
 			_shoot()
 		elif Input.is_action_just_pressed("shoot"):
+			if ammo_reserve <= 0 and not reloading:
+				Sfx.play(&"dry_fire")   # nič v zásobníku ani v zálohe – cvak
 			_start_reload()  # prázdny zásobník → automaticky prebije
 	if Input.is_action_just_pressed("reload"):
 		_start_reload()
@@ -765,15 +777,66 @@ func _shoot() -> void:
 		b.lifetime = weapon.bullet_lifetime
 		b.global_position = muzzle.global_position
 		get_tree().current_scene.add_child(b)
-	# šťava: záblesk, cuknutie zbrane, zatrasenie kamery
-	flash.visible = true
-	flash.rotation = randf_range(-0.3, 0.3)
-	get_tree().create_timer(0.05, false).timeout.connect(func(): flash.visible = false)  # false = počas pauzy stojí
+	# šťava: zvuk, záblesk (3 snímky + žiara + dym), cuknutie a nadhodenie zbrane, zatrasenie kamery
+	Sfx.shot(weapon)
+	_muzzle_flash()
 	gun.position.x = gun_base_x - weapon.recoil_px
-	create_tween().tween_property(gun, "position:x", gun_base_x, 0.08)
-	shake_timer = 0.06
+	var kick: float = -0.045 * weapon.recoil_px * gun.scale.y   # hlaveň vyskočí hore
+	if _recoil_tween:
+		_recoil_tween.kill()
+	_recoil_tween = create_tween().set_parallel(true)
+	gun.rotation = kick
+	_recoil_tween.tween_property(gun, "position:x", gun_base_x, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_recoil_tween.tween_property(gun, "rotation", 0.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if weapon.recoil_px >= 6.0 and is_on_floor():
+		velocity.x -= aim_dir.x * 60.0   # lupara odtlačí Ricca
+	shake_timer = 0.08
 	shake_strength = weapon.shake
 	shot_fired.emit()
+
+
+# ---------------------------------------------------------------- záblesk z hlavne
+const FLASH_TEX := preload("res://weapons/pistol/muzzle_flash_big.png")
+const GLOW_TEX := preload("res://levels/level1/art/glow.png")
+const FLASH_SCALE := {"Pistol": 0.8, "Revolver": 1.0, "Tommy gun": 0.75, "Lupara": 1.35}
+var _flash_glow: Sprite2D
+var _recoil_tween: Tween
+
+func _setup_flash() -> void:
+	flash.texture = FLASH_TEX
+	flash.hframes = 3
+	flash.centered = false
+	flash.offset = Vector2(-3, -12)   # ústie je vľavo v strede obrázka
+	flash.position = Vector2(1, 0)
+	_flash_glow = Sprite2D.new()
+	_flash_glow.texture = GLOW_TEX
+	var m := CanvasItemMaterial.new()
+	m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	_flash_glow.material = m
+	_flash_glow.modulate = Color(1.0, 0.75, 0.4, 0.8)
+	_flash_glow.scale = Vector2.ONE * 0.6
+	_flash_glow.position = Vector2(6, 0)
+	_flash_glow.visible = false
+	muzzle.add_child(_flash_glow)
+
+
+func _muzzle_flash() -> void:
+	var k: float = FLASH_SCALE.get(weapon.name, 0.8)
+	flash.scale = Vector2(k, k * randf_range(0.85, 1.15))
+	flash.rotation = randf_range(-0.12, 0.12)
+	flash.frame = 0
+	flash.visible = true
+	_flash_glow.visible = true
+	_flash_glow.scale = Vector2.ONE * 0.55 * k
+	var tw := create_tween()
+	tw.tween_interval(0.025)
+	tw.tween_callback(func(): flash.frame = 1)
+	tw.tween_interval(0.025)
+	tw.tween_callback(func(): flash.frame = 2; _flash_glow.visible = false)
+	tw.tween_interval(0.025)
+	tw.tween_callback(func(): flash.visible = false)
+	Burst.spawn(get_tree().current_scene, muzzle.global_position, aim_dir + Vector2(0, -0.4),
+			Color(0.75, 0.72, 0.7, 0.55), 3 if k < 1.0 else 6, 30.0, Vector2(0, -30), 0.6)   # dym z hlavne
 
 
 ## Prebíjanie (ako naozaj): zbraň sa nakloní, starý zásobník (bubon, nábojnice, broky) vykĺzne a padne na zem,
@@ -833,6 +896,7 @@ func _start_reload() -> void:
 
 ## Starý zásobník / nábojnice / broky sa pustia – ďalej padajú samé (magazine_drop.gd)
 func _drop_magazine() -> void:
+	Sfx.play(&"cylinder_spin" if weapon.name == "Revolver" else &"mag_out", Vector2.INF, -4.0)
 	var center: Vector2 = mag.texture.get_size() / 2.0
 	for i in weapon.drop_count:
 		var m := magazine_scene.instantiate()
@@ -846,6 +910,7 @@ func _drop_magazine() -> void:
 
 
 func _magazine_inserted() -> void:
+	Sfx.play(&"shell_insert" if weapon.name == "Lupara" else &"mag_in", Vector2.INF, -3.0)
 	mag.position = _gun_px(weapon.mag_px)
 	mag.texture = weapon.mag_texture
 	mag.visible = weapon.mag_visible
@@ -853,6 +918,8 @@ func _magazine_inserted() -> void:
 
 
 func _finish_reload() -> void:
+	if weapon.name in ["Pistol", "Tommy gun"]:
+		Sfx.play(&"slide_rack", Vector2.INF, -5.0)
 	var need: int = mag_size - ammo_in_mag
 	var take: int = mini(need, ammo_reserve)
 	ammo_in_mag += take
@@ -989,6 +1056,7 @@ const RUN_STEP_FRAMES: Array[int] = [0, 5]
 
 func _on_sprite_frame_changed() -> void:
 	if sprite.animation in [&"run", &"run_nohat"] and sprite.frame in RUN_STEP_FRAMES and is_on_floor():
+		Sfx.play(&"step_1" if sprite.frame == 0 else &"step_2", Vector2.INF, -14.0 if sneaking else -8.0, 0.1)
 		var back := Vector2(-signf(velocity.x), -0.4).normalized()
 		Burst.spawn(get_tree().current_scene, global_position + Vector2(signf(velocity.x) * 6.0, -1.0), back,
 				Color(0.78, 0.74, 0.68, 0.8), 4, 28.0, Vector2(0, -25), 0.4)
@@ -998,6 +1066,7 @@ func _on_sprite_frame_changed() -> void:
 
 func _launch_hat() -> void:
 	has_hat = false
+	Sfx.play(&"hat_throw", Vector2.INF, -2.0)
 	var h := hat_scene.instantiate()
 	get_tree().current_scene.add_child(h)
 	var start: Vector2 = global_position + Vector2(facing * 12.0, -30.0)
@@ -1008,6 +1077,7 @@ func _launch_hat() -> void:
 
 func _on_hat_caught() -> void:
 	has_hat = true
+	Sfx.play(&"hat_catch", Vector2.INF, -4.0)
 	if is_on_floor() and state == State.NORMAL and absf(velocity.x) < 10.0:
 		sprite.play(&"hat_catch")
 
@@ -1052,6 +1122,7 @@ func _start_slide() -> void:
 	sprite.offset = Vector2.ZERO
 	_set_slide_shape(true)
 	sprite.play(_hat_anim(&"slide_start"))
+	Sfx.play(&"belly_slide", Vector2.INF, -2.0)
 	Burst.spawn(get_tree().current_scene, global_position + Vector2(-dir * 4.0, -1.0), Vector2(-dir, -0.5).normalized(),
 			Color(0.78, 0.74, 0.68, 0.8), 6, 45.0, Vector2(0, -25), 0.4)
 
@@ -1116,6 +1187,7 @@ func _end_slide(get_up: bool) -> void:
 	_set_slide_shape(false)
 	if get_up:
 		sprite.play(_hat_anim(&"slide_end"))
+		Sfx.play(&"slide_getup", Vector2.INF, -8.0)
 
 
 ## Vymení kapsulu: stojaca (zvislá) ↔ ležiaca (vodorovná, pri zemi). Zbraň ide nižšie k zemi.
@@ -1181,6 +1253,7 @@ func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
 	if health == 0:
 		_die()
 		return
+	Sfx.play(&"hurt")
 	invulnerable_timer = invulnerable_time
 	if from != Vector2.INF and state == State.NORMAL:
 		var away: float = signf(global_position.x - from.x)
@@ -1200,6 +1273,7 @@ func add_ammo() -> bool:
 	if loadout.is_empty():
 		return false
 	_store_ammo()
+	Sfx.play(&"pickup_ammo")
 	for i in loadout.size():
 		weapon_ammo[i][1] += loadout[i].mag_size
 	ammo_reserve = weapon_ammo[weapon_index][1]
@@ -1232,6 +1306,7 @@ func _die() -> void:
 	visual.rotation = 0.0
 	velocity = Vector2(-facing * 60.0, -160.0)
 	sprite.play(&"death")
+	Sfx.play(&"death")
 	died.emit()
 	get_tree().create_timer(respawn_delay, false).timeout.connect(get_tree().reload_current_scene)  # počas pauzy stojí
 

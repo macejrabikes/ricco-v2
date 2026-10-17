@@ -10,7 +10,7 @@ const FADE_TIME := 0.15
 const BLUR := 2.5
 const DIM := 0.55
 
-enum Page { MAIN, SETTINGS, CONTROLS }
+enum Page { MAIN, SETTINGS, CONTROLS, AUDIO }
 
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
 
@@ -42,6 +42,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"pause"):
 		if not is_open:
 			open()
+		elif page == Page.AUDIO:
+			_show_page(Page.SETTINGS)
 		elif page != Page.MAIN:
 			_show_page(Page.MAIN)
 		else:
@@ -110,7 +112,9 @@ func _show_page(p: Page) -> void:
 			pages.hint("ESC / P  RESUME     ENTER  SELECT")
 			pages.focus(first)
 		Page.SETTINGS:
-			pages.settings_page(_show_page.bind(Page.MAIN))
+			pages.settings_page(_show_page.bind(Page.MAIN), _show_page.bind(Page.AUDIO))
+		Page.AUDIO:
+			pages.audio_page(_show_page.bind(Page.SETTINGS))
 		Page.CONTROLS:
 			pages.controls_page(_show_page.bind(Page.MAIN))
 

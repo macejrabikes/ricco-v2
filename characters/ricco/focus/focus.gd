@@ -37,6 +37,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	Sfx.set_slowmo(false)
 	Engine.time_scale = 1.0  # pri zmene levelu nesmie ostať svet spomalený
 
 
@@ -64,8 +65,14 @@ func _process(delta: float) -> void:
 	changed.emit(meter, active)
 
 
+var _heart: Node   ## tlkot srdca počas spomalenia
+
 func start() -> void:
 	active = true
+	Sfx.play(&"slowmo_in", Vector2.INF, -2.0, 0.0)
+	Sfx.set_slowmo(true)
+	if _heart == null:
+		_heart = Sfx.loop(&"heartbeat", self, Vector2.INF, -8.0, &"SFX")
 	_afterimage_timer = 0.0
 	overlay_rect.visible = true
 	_blend(slow_scale, 1.0)
@@ -73,6 +80,11 @@ func start() -> void:
 
 func stop() -> void:
 	active = false
+	Sfx.set_slowmo(false)
+	Sfx.play(&"slowmo_out", Vector2.INF, -4.0, 0.0)
+	if _heart:
+		_heart.queue_free()
+		_heart = null
 	_since_end = 0.0
 	_blend(1.0, 0.0)
 

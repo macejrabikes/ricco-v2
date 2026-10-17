@@ -23,6 +23,7 @@ signal caught
 var owner_body: Node2D = null    ## Ricco
 var velocity: Vector2 = Vector2.ZERO
 var returning: bool = false
+var _return_sfx: bool = false   ## zvuk návratu (švih, ktorý sa približuje) zaznie raz
 var already_hit: Array = []
 var spin_t: float = 0.0
 var _best_dist: float = INF
@@ -49,6 +50,9 @@ func _physics_process(delta: float) -> void:
 		if velocity.length() < 40.0 or max_time < 1.5:
 			returning = true
 	else:
+		if not _return_sfx:
+			_return_sfx = true
+			Sfx.play(&"hat_return", Vector2.INF, -4.0)
 		var to_owner: Vector2 = target_pos - global_position
 		var dist: float = to_owner.length()
 		if dist < catch_distance or max_time <= 0.0:

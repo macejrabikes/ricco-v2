@@ -25,6 +25,8 @@ func _physics_process(delta: float) -> void:
 		return
 	global_position = hit.position - Vector2(0, 3)
 	bounces += 1
+	if bounces == 1:
+		Sfx.play(&"mag_drop" if texture and texture.get_width() > 6 else &"casing_drop", global_position, -8.0, 0.15)
 	velocity = Vector2(velocity.x * 0.4, -velocity.y * 0.3)
 	spin *= 0.3
 	if bounces >= 2:

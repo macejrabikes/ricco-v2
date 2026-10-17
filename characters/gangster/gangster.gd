@@ -58,7 +58,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 const BULLET := preload("res://weapons/pistol/bullet.tscn")
 const DROP := preload("res://weapons/pistol/magazine_drop.tscn")
 const AMMO := preload("res://props/ammo/ammo_pickup.tscn")
-const FLASH := preload("res://weapons/pistol/muzzle_flash.png")
+const FLASH := preload("res://weapons/pistol/muzzle_flash_big.png")
 
 ## Spoločné body kostry (nohy na y = 0, pozerá sa doprava)
 const HIP := Vector2(0, -28)
@@ -79,6 +79,8 @@ const RIGS := {
 	"coppola": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},
 	"bruiser": {"torso": Vector2(14, 27)},
 }
+
+static var _last_alert_ms: int = -10000   ## zvuk „!“ naraz len raz
 
 var state: State = State.PATROL
 var health: int
@@ -189,7 +191,11 @@ func _build_rig() -> void:
 	arm_front.add_child(muzzle)
 	flash = Sprite2D.new()
 	flash.texture = FLASH
-	flash.position = Vector2(4, 0)
+	flash.hframes = 3
+	flash.centered = false
+	flash.offset = Vector2(-3, -12)
+	flash.scale = Vector2.ONE * (1.2 if pellets > 1 else 0.75)
+	flash.position = Vector2(1, 0)
 	flash.visible = false
 	muzzle.add_child(flash)
 	laser = Line2D.new()
@@ -365,6 +371,11 @@ func alarm() -> void:
 
 
 func _show_alert_mark() -> void:
+	# krátky tón k výkričníku – naraz len jeden, aj keď si Ricca všimne celá partia
+	var now := Time.get_ticks_msec()
+	if now - _last_alert_ms > 600:
+		_last_alert_ms = now
+		Sfx.play(&"alert", global_position + Vector2(0, -60), -4.0, 0.02)
 	if _alert_mark == null:
 		_alert_mark = Label.new()
 		_alert_mark.text = "!"
@@ -542,15 +553,19 @@ func _fire() -> void:
 		b.modulate = Color(1.0, 0.6, 0.5)
 		b.global_position = muzzle.global_position
 		get_tree().current_scene.add_child(b)
-	_flash_t = 0.05
-	flash.rotation = randf_range(-0.3, 0.3)
+	_flash_t = 0.06
+	flash.frame = randi() % 2
+	flash.rotation = randf_range(-0.12, 0.12)
+	Sfx.shot(weapon, global_position, -3.0)
 	arm_front.position.x = SHOULDER_FRONT.x - 2.0   # spätný ráz
 	create_tween().tween_property(arm_front, "position:x", SHOULDER_FRONT.x, 0.08)
 
 
 func _punch() -> void:
 	var dx: float = player.global_position.x - global_position.x
+	Sfx.play(&"punch_swing", global_position, -4.0)
 	if signf(dx) == facing and absf(dx) < punch_range + 8.0 and absf(player.global_position.y - global_position.y) < 40.0:
+		Sfx.play(&"punch_hit", global_position)
 		if player.has_method("take_damage"):
 			player.take_damage(1, global_position + Vector2(0, -30))
 		Burst.spawn(get_tree().current_scene, player.global_position + Vector2(0, -22), Vector2(facing, -0.3), Color(1, 0.9, 0.5), 6, 80.0)
@@ -564,6 +579,7 @@ func take_hit(damage: int, dir: Vector2) -> void:
 		return
 	passive = false
 	health -= damage
+	Sfx.play(&"impact_body", global_position + Vector2(0, -40), -2.0)
 	Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -44), dir + Vector2(0, -0.3),
 			Color(0.62, 0.05, 0.05), 6, 90.0, Vector2(0, 520), 0.5)
 	rig.modulate = Color(3, 3, 3)
@@ -606,6 +622,7 @@ func hat_hit(damage: int, dir: Vector2) -> void:
 	if state == State.DEAD:
 		return
 	_knock_hat(dir)
+	Sfx.play(&"hat_bonk", global_position + Vector2(0, -60))
 	take_hit(damage, dir)
 	if state != State.DEAD:
 		state = State.STUN
@@ -629,6 +646,7 @@ func _knock_hat(dir: Vector2) -> void:
 
 func _die(dir: Vector2) -> void:
 	state = State.DEAD
+	Sfx.play(&"enemy_death", global_position, -2.0)
 	laser.visible = false
 	if _flash:
 		for c in _flash.get_children():

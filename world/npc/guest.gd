@@ -1,7 +1,7 @@
 class_name Guest
 extends Sprite2D
 ## Hosť na oslave v pizzerii (nie mafián). Pohráva sa s pohárom / je / tancuje (snímky vedľa seba v obrázku).
-## Keď uvidí Ricca na svetle, zvrieskne a privolá mafiánov (Gangster.alarm) – Ricco sa musí držať v tme.
+## Keď uvidí Ricca na svetle, zľakne sa („!“ nad hlavou) a privolá mafiánov (Gangster.alarm) – Ricco sa musí držať v tme.
 
 @export var loop: bool = false           ## true = snímky stále dookola (tanec, harmonika); false = občas sa napije
 @export var fps: float = 5.0
@@ -9,9 +9,7 @@ extends Sprite2D
 @export var see_range: float = 150.0     ## px vodorovne
 @export var alarm_range: float = 520.0   ## px – ktorí mafiáni počujú krik
 
-const SCREAMS: Array[String] = ["AIUTO!! A PENGUIN!", "MAMMA MIA! A BIRD!", "HEY! WHO LET THAT IN?!", "EEEEK!!", "SECURITY! A PENGUIN!"]
-
-static var _last_scream_ms: int = -100000   ## krik naraz len jeden (ostatní sa len zľaknú)
+static var _last_alert_ms: int = -100000   ## zvuk „!“ naraz len raz
 
 var _t: float = 0.0
 var _seq: Array = []      ## [snímka, trvanie]
@@ -19,6 +17,7 @@ var _i: int = 0
 var _cool: float = 0.0
 var _check: float = 0.0
 var player: Node2D
+var _mark: Label
 
 
 func _ready() -> void:
@@ -64,11 +63,11 @@ func _animate(delta: float) -> void:
 
 func _scream() -> void:
 	_cool = 8.0
-	var lvl := get_tree().current_scene
 	var now := Time.get_ticks_msec()
-	if lvl.has_method(&"speech") and now - _last_scream_ms > 2500:
-		_last_scream_ms = now
-		lvl.speech(self, SCREAMS[randi() % SCREAMS.size()], Color8(255, 220, 200), 2.4, offset.y - 4.0)
+	if now - _last_alert_ms > 600:
+		_last_alert_ms = now
+		Sfx.play(&"alert", global_position + Vector2(0, -40), -4.0, 0.02)
+	_show_mark()
 	for g in get_tree().get_nodes_in_group(&"enemies"):
 		if g.has_method(&"alarm") and (g as Node2D).global_position.distance_to(global_position) < alarm_range:
 			g.alarm()
@@ -76,3 +75,25 @@ func _scream() -> void:
 	var tw := create_tween()
 	tw.tween_property(self, "offset:y", offset.y - 4.0, 0.08)
 	tw.tween_property(self, "offset:y", offset.y, 0.12)
+
+
+## „!“ nad hlavou (ako u mafiánov)
+func _show_mark() -> void:
+	if _mark == null:
+		_mark = Label.new()
+		_mark.text = "!"
+		_mark.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
+		_mark.add_theme_font_size_override(&"font_size", 16)
+		_mark.add_theme_color_override(&"font_color", Color8(255, 214, 90))
+		_mark.add_theme_color_override(&"font_outline_color", Color8(14, 10, 12))
+		_mark.add_theme_constant_override(&"outline_size", 4)
+		_mark.z_index = 30
+		add_child(_mark)
+	var top: float = get_rect().position.y
+	_mark.visible = true
+	_mark.modulate.a = 1.0
+	_mark.position = Vector2(-3, top - 12.0)
+	var tw := create_tween()
+	tw.tween_property(_mark, "position:y", top - 18.0, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.9)
+	tw.tween_property(_mark, "modulate:a", 0.0, 0.25)

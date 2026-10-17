@@ -131,13 +131,17 @@ func _preview(key: String, index: int) -> void:
 	preview.global_position = Vector2(r.position.x - preview.size.x - 70.0, r.get_center().y - preview.size.y / 2.0).round()
 
 
-## Stránka nastavení. back = kam sa vráti BACK / ESC.
-func settings_page(back: Callable) -> MenuItem:
+## Stránka nastavení. back = kam sa vráti BACK / ESC, audio = otvorí stránku zvuku.
+func settings_page(back: Callable, audio: Callable = Callable()) -> MenuItem:
 	clear()
 	preview = SettingsPreview.new()
 	column.get_parent().add_child(preview)
 	title("SETTINGS")
-	var first := setting("FULLSCREEN", _full_name(), func(_d: int, it: MenuItem):
+	var first: MenuItem = null
+	if audio.is_valid():
+		first = item("AUDIO", audio)
+		first.focus_entered.connect(func(): _preview("", 0))
+	var full := setting("FULLSCREEN", _full_name(), func(_d: int, it: MenuItem):
 		GameSettings.fullscreen = not GameSettings.fullscreen
 		it.set_value(_full_name()))
 	choice("SCALING", PackedStringArray(["PIXEL PERFECT", "FILL SCREEN"]), 0 if GameSettings.pixel_perfect else 1, func(i: int):
@@ -162,8 +166,48 @@ func settings_page(back: Callable) -> MenuItem:
 	spacer()
 	item("BACK", back)
 	hint("LEFT / RIGHT  CHANGE     ENTER  LIST     ESC  BACK")
+	if first == null:
+		first = full
 	focus(first)
 	return first
+
+
+const VOLUMES := [["MASTER", "Master"], ["MUSIC", "Music"], ["SOUND EFFECTS", "SFX"], ["AMBIENCE", "Ambience"], ["MENU SOUNDS", "UI"]]
+## Skúšobný zvuk pri zmene hlasitosti danej zbernice
+const VOLUME_TEST := {"Master": &"ui_select", "Music": &"ui_select", "SFX": &"pistol_a", "Ambience": &"drip", "UI": &"ui_move"}
+
+
+## Stránka zvuku: hlasitosť zberníc 0–10 (audio/sfx.gd, GameSettings.volumes)
+func audio_page(back: Callable) -> MenuItem:
+	clear()
+	title("AUDIO")
+	var first: MenuItem = null
+	for row in VOLUMES:
+		var key: String = row[1]
+		var it := MenuItem.new(row[0], _vol_text(GameSettings.volume(key)))
+		it.font_size = item_size
+		it.changed.connect(func(d: int):
+			var v: int = GameSettings.volume(key) + d
+			if v > 10:
+				v = 0   # Enter / klik prechádza dookola
+			GameSettings.volumes[key] = clampi(v, 0, 10)
+			it.set_value(_vol_text(GameSettings.volumes[key]))
+			Sfx.apply_volumes()
+			GameSettings.save()
+			if key != "UI":
+				Sfx.play(VOLUME_TEST[key], Vector2.INF, -4.0, 0.0, &"UI" if key in ["Master", "Music"] else StringName(key)))
+		column.add_child(it)
+		if first == null:
+			first = it
+	spacer()
+	item("BACK", back)
+	hint("LEFT / RIGHT  VOLUME     ESC  BACK")
+	focus(first)
+	return first
+
+
+static func _vol_text(v: int) -> String:
+	return "%s%s  %3d%%" % ["|".repeat(v), ".".repeat(10 - v), v * 10]
 
 
 func controls_page(back: Callable) -> MenuItem:

@@ -22,6 +22,7 @@ func switch_off(dir: Vector2 = Vector2.UP) -> void:
 	if _off:
 		return
 	_off = true
+	Sfx.play(&"glass_break", global_position)
 	for n in [&"Cone", &"Glow"]:
 		var c := get_node_or_null(NodePath(String(n))) as CanvasItem
 		if c:
