@@ -13,7 +13,7 @@ const AMB_DIR := "res://audio/amb/%s.ogg"
 const MAX_DISTANCE := 900.0   ## px – ďalej od kamery 2D zvuk nepočuť
 
 ## Výstrel podľa zbrane (WeaponData.name)
-const SHOTS := {"Pistol": &"pistol_a", "Revolver": &"revolver_shot", "Tommy gun": &"tommy_shot", "Lupara": &"lupara_shot"}
+const SHOTS := {"Derringer": &"pistol_c", "Pistol": &"pistol_a", "Revolver": &"revolver_shot", "Tommy gun": &"tommy_shot", "Lupara": &"lupara_shot"}
 
 static var _setup_done: bool = false
 static var slowmo: bool = false

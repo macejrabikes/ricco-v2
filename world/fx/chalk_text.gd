@@ -4,6 +4,7 @@ extends Node2D
 ## Nápis kriedou na stene – každé písmeno je trochu inak natočené a posunuté (ako keď to niekto
 ## naozaj písal rukou), krieda je nerovnomerná (slabší druhý ťah, prach okolo) a pod prvým riadkom
 ## je rýchlo načmáraná čiara. Kreslí sa v _draw (Godot docs: classes/class_canvasitem – draw_char).
+## {SNEAK} v texte sa nahradí podľa nastavenia zakrádania („HOLD C“ alebo „C … ON / OFF“, GameSettings.sneak_toggle).
 
 @export_multiline var text: String = "CHALK":
 	set(v):
@@ -22,13 +23,24 @@ extends Node2D
 const FONT := preload("res://ui/fonts/tiny5.ttf")
 
 
+func _ready() -> void:
+	add_to_group(&"chalk_text")   # po zmene nastavení sa prekreslia (ui/pause_menu/menu_pages.gd)
+
+
+func _shown_text() -> String:
+	if not text.contains("{SNEAK}"):
+		return text
+	GameSettings.ensure_loaded()
+	return text.replace("{SNEAK}", "C  -  SNEAK ON / OFF" if GameSettings.sneak_toggle else "HOLD C  -  SNEAK")
+
+
 func _draw() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var line_h: float = font_size * 1.15
 	var y: float = font_size
 	var first_width: float = 0.0
-	var lines := text.split("\n")
+	var lines := _shown_text().split("\n")
 	for li in lines.size():
 		var x: float = rng.randf_range(-2.0, 2.0)
 		var slope: float = rng.randf_range(-0.025, 0.025)   # riadok mierne stúpa / klesá

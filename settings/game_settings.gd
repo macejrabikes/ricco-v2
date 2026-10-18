@@ -1,6 +1,6 @@
 class_name GameSettings
 ## Nastavenia hry: štýl HUD, veľkosť HP plagátu, celá obrazovka, škálovanie, retro filter, zoznam ovládania,
-## zameriavač (štýl a veľkosť), hlasitosť (master, hudba, efekty, prostredie, menu).
+## zameriavač (štýl a veľkosť), hlasitosť (master, hudba, efekty, prostredie, menu), zakrádanie (držať / prepínať).
 ## Ukladajú sa do user://settings.cfg cez ConfigFile (Godot docs: classes/class_configfile).
 ## Všetko je statické, takže netreba autoload – stačí GameSettings.hud_style kdekoľvek.
 ## Mení sa v pause menu → Settings (ui/pause_menu).
@@ -21,6 +21,7 @@ static var show_controls: bool = true    ## zoznam ovládania vľavo dole
 static var retro_filter: bool = false    ## starý film – sépia, zrno, vinetácia
 static var crosshair: int = 0            ## index do CROSSHAIRS (GHOST = polopriesvitný)
 static var crosshair_size: int = 2       ## index do CROSSHAIR_SIZES (predvolene MEDIUM)
+static var sneak_toggle: bool = false    ## false = zakrádanie, kým držíš C (HOLD), true = C zapne / vypne (TOGGLE)
 ## Hlasitosť zberníc 0–10 (audio/sfx.gd)
 static var volumes: Dictionary = {"Master": 8, "Music": 7, "SFX": 8, "Ambience": 7, "UI": 6}
 static var _loaded: bool = false
@@ -42,6 +43,7 @@ static func ensure_loaded() -> void:
 	retro_filter = bool(cfg.get_value("display", "retro_filter", retro_filter))
 	crosshair = clampi(int(cfg.get_value("cursor", "crosshair", crosshair)), 0, CROSSHAIRS.size() - 1)
 	crosshair_size = clampi(int(cfg.get_value("cursor", "crosshair_size_v2", crosshair_size)), 0, CROSSHAIR_SIZES.size() - 1)
+	sneak_toggle = bool(cfg.get_value("controls", "sneak_toggle", sneak_toggle))
 	for k in volumes:
 		volumes[k] = clampi(int(cfg.get_value("audio", k, volumes[k])), 0, 10)
 
@@ -57,6 +59,7 @@ static func save() -> void:
 	cfg.set_value("display", "retro_filter", retro_filter)
 	cfg.set_value("cursor", "crosshair", crosshair)
 	cfg.set_value("cursor", "crosshair_size_v2", crosshair_size)
+	cfg.set_value("controls", "sneak_toggle", sneak_toggle)
 	for k in volumes:
 		cfg.set_value("audio", k, volumes[k])
 	cfg.save(PATH)

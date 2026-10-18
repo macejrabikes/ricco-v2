@@ -1,7 +1,7 @@
 extends CanvasLayer
 ## Pause menu – ESC alebo P. Hra sa zastaví (get_tree().paused, Godot docs: tutorials/scripting/pausing_games),
 ## pozadie sa rozmaže a stmaví (pause_blur.gdshader), menu je vpravo (štýl „minimal“, po anglicky).
-## Stránky: hlavná (Resume, Settings, Controls, Restart, Main menu, Quit), nastavenia, ovládanie
+## Stránky: hlavná (Resume, Arsenal, Settings, Restart, Main menu, Quit), nastavenia (kategórie vrátane ovládania)
 ## (nastavenia a ovládanie sú spoločné s úvodným menu – ui/pause_menu/menu_pages.gd).
 ## Tento uzol má process_mode = ALWAYS, takže beží aj počas pauzy.
 ## F11 prepína celú obrazovku kedykoľvek (aj bez menu).
@@ -13,6 +13,7 @@ const DIM := 0.55
 enum Page { MAIN, SETTINGS, CONTROLS, AUDIO }
 
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
+const LoadingScreen := preload("res://ui/loading/loading_screen.gd")   ## prechod bez preblikovania (odpauzuje až pri výmene scény)
 
 @onready var blur: ColorRect = $Blur
 @onready var root: Control = $Root
@@ -42,10 +43,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"pause"):
 		if not is_open:
 			open()
-		elif page == Page.AUDIO:
-			_show_page(Page.SETTINGS)
-		elif page != Page.MAIN:
-			_show_page(Page.MAIN)
+		elif page != Page.MAIN and pages.esc_back.is_valid():
+			pages.esc_back.call()   # o stránku späť (napr. DISPLAY → SETTINGS → hlavná)
 		else:
 			close()
 		get_viewport().set_input_as_handled()
@@ -104,8 +103,8 @@ func _show_page(p: Page) -> void:
 			pages.clear()
 			pages.title("PAUSED")
 			var first := pages.item("RESUME", close)
+			pages.item("ARSENAL", _open_arsenal)
 			pages.item("SETTINGS", _show_page.bind(Page.SETTINGS))
-			pages.item("CONTROLS", _show_page.bind(Page.CONTROLS))
 			pages.item("RESTART", _restart)
 			pages.item("MAIN MENU", _to_main_menu)
 			pages.item("QUIT GAME", func(): get_tree().quit())
@@ -117,6 +116,16 @@ func _show_page(p: Page) -> void:
 			pages.audio_page(_show_page.bind(Page.SETTINGS))
 		Page.CONTROLS:
 			pages.controls_page(_show_page.bind(Page.MAIN))
+
+
+## Arsenal (ui/arsenal/arsenal.gd) prekryje menu, ESC ho zavrie a vráti sa na hlavnú stránku pauzy
+func _open_arsenal() -> void:
+	pages.clear()
+	var a := Arsenal.new()
+	root.add_child(a)
+	a.closed.connect(func():
+		a.queue_free()
+		_show_page(Page.MAIN))
 
 
 func _apply_and_save() -> void:
@@ -133,12 +142,8 @@ func _after_settings() -> void:
 
 
 func _restart() -> void:
-	get_tree().paused = false
-	Engine.time_scale = 1.0
-	get_tree().reload_current_scene()
+	LoadingScreen.go(get_tree(), get_tree().current_scene.scene_file_path)
 
 
 func _to_main_menu() -> void:
-	get_tree().paused = false
-	Engine.time_scale = 1.0
-	get_tree().change_scene_to_file(MAIN_MENU)
+	LoadingScreen.go(get_tree(), MAIN_MENU)

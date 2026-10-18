@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_s"]
 [ext_resource type="Texture2D" path="res://weapons/lupara/lupara.png" id="2_t"]
 [ext_resource type="Texture2D" path="res://weapons/lupara/shell.png" id="3_t"]
 [ext_resource type="Texture2D" path="res://weapons/lupara/two_shells.png" id="4_t"]
+[ext_resource type="Texture2D" path="res://weapons/lupara/lupara_frame.png" id="5_t"]
+[ext_resource type="Texture2D" path="res://weapons/lupara/lupara_barrels.png" id="6_t"]
 
 [resource]
 script = ExtResource("1_s")
@@ -17,18 +19,24 @@ foregrip_px = Vector2(21, 5)
 automatic = false
 fire_cooldown = 0.3
 pellets = 7
-spread_deg = 16.0
-damage = 1
+spread_deg = 20.0
+damage = 0.6
 bullet_speed = 620.0
-bullet_lifetime = 0.32
+bullet_lifetime = 0.6
 recoil_px = 6.0
 shake = 4.0
 mag_size = 2
 reserve_start = 16
 reload_time = 1.2
 mag_texture = ExtResource("3_t")
-mag_px = Vector2(15, 1)
+mag_px = Vector2(16, 1)
 mag_out = Vector2(-3, 6)
 mag_visible = false
 drop_count = 2
 new_mag_texture = ExtResource("4_t")
+effective_range = 90.0
+falloff_range = 90.0
+frame_texture = ExtResource("5_t")
+barrel_texture = ExtResource("6_t")
+hinge_px = Vector2(19, 7)
+open_deg = -30.0

@@ -21,6 +21,7 @@ const FONT := preload("res://ui/fonts/tiny5.ttf")
 var player: Node2D
 var doorman: Node2D
 var _sprite: Sprite2D
+var _sprite_x: float   ## pôvodná poloha obrázka – dvere sa pri klopaní trasú okolo nej
 var _shape: CollisionShape2D
 var _hint: Label
 var _busy: bool = false
@@ -33,6 +34,7 @@ var _demo_started: bool = false
 
 func _ready() -> void:
 	_sprite = $Sprite
+	_sprite_x = _sprite.position.x
 	_shape = $Shape
 	doorman = get_node_or_null(doorman_path) as Node2D
 	_hint = Label.new()
@@ -214,12 +216,12 @@ func _knock_fx() -> void:
 	tw.tween_property(l, "position:y", l.position.y - 10.0, 0.5)
 	tw.parallel().tween_property(l, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(l.queue_free)
-	var sh := create_tween()   # dvere sa trasú
-	sh.tween_property(_sprite, "position:x", 1.0, 0.03)
-	sh.tween_property(_sprite, "position:x", 0.0, 0.05)
+	var sh := create_tween()   # dvere sa trasú (o 1 px a späť na pôvodné miesto)
+	sh.tween_property(_sprite, "position:x", _sprite_x + 1.0, 0.03)
+	sh.tween_property(_sprite, "position:x", _sprite_x, 0.05)
 
 
 func _say(t: String, dur: float) -> void:
 	var lvl := get_tree().current_scene
 	if lvl.has_method(&"speech"):
-		lvl.speech(self, t, Color8(245, 235, 209), dur, -46.0)
+		lvl.speech(self, t, Color8(245, 235, 209), dur, -84.0)   # nad dverami (hlas spoza okienka)

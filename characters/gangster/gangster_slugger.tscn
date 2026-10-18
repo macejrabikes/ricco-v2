@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://characters/gangster/gangster.gd" id="1_g"]
+
+[node name="GangsterSlugger" type="CharacterBody2D"]
+script = ExtResource("1_g")
+kind = "slugger"
+max_health = 5
+walk_speed = 28.0
+run_speed = 85.0
+sight_range = 240.0
+punch_range = 44.0
+windup_time = 0.6
+recover_time = 0.9
+melee_damage = 2

@@ -9,8 +9,8 @@ const HINT := Color8(120, 112, 96)
 
 const CONTROLS := [
 	["MOVE", "A / D"], ["JUMP, WALL JUMP, CLIMB", "SPACE / W"], ["SHOOT", "LEFT MOUSE"],
-	["THROW HAT", "RIGHT MOUSE / E"], ["RELOAD", "R"], ["SWITCH WEAPON", "1-4 / WHEEL / Q"], ["SLOW-MO", "SHIFT"],
-	["BELLY SLIDE", "S / CTRL"], ["SNEAK (HOLD)", "C / ALT"], ["TAKEDOWN FROM BEHIND", "F"], ["PAUSE", "ESC / P"], ["FULLSCREEN", "F11"],
+	["THROW HAT", "RIGHT MOUSE / E"], ["RELOAD", "R"], ["SWITCH WEAPON", "1-3 / WHEEL / Q"], ["SLOW-MO", "SHIFT"],
+	["BELLY SLIDE", "S / CTRL"], ["SNEAK", "C / ALT"], ["TAKEDOWN / SWAP WEAPON", "F"], ["PAUSE", "ESC / P"], ["FULLSCREEN", "F11"],
 ]
 
 var column: VBoxContainer
@@ -18,6 +18,7 @@ var on_apply: Callable      ## zavolá sa po každej zmene nastavení (uloženie
 var item_size: int = 8      ## veľkosť písma položiek (úvodné menu 16)
 var title_size: int = 16
 var preview: SettingsPreview   ## náhľad vedľa nastavení (zameriavač, plagát, retro filter)
+var esc_back: Callable         ## kam sa vráti ESC z práve otvorenej stránky (nastaví ju každá stránka)
 
 
 func _init(column_: VBoxContainer, on_apply_: Callable) -> void:
@@ -131,16 +132,32 @@ func _preview(key: String, index: int) -> void:
 	preview.global_position = Vector2(r.position.x - preview.size.x - 70.0, r.get_center().y - preview.size.y / 2.0).round()
 
 
-## Stránka nastavení. back = kam sa vráti BACK / ESC, audio = otvorí stránku zvuku.
+## Stránka nastavení = zoznam kategórií (obraz, HUD a mierenie, zvuk, ovládanie).
+## back = kam sa vráti BACK / ESC, audio = otvorí stránku zvuku.
 func settings_page(back: Callable, audio: Callable = Callable()) -> MenuItem:
 	clear()
+	esc_back = back
+	title("SETTINGS")
+	var reopen := func(): settings_page(back, audio)
+	var first := item("DISPLAY", func(): display_page(reopen))
+	item("HUD & AIM", func(): hud_page(reopen))
+	if audio.is_valid():
+		item("AUDIO", audio)
+	item("CONTROLS", func(): controls_page(reopen))
+	spacer()
+	item("BACK", back)
+	hint("ENTER  SELECT     ESC  BACK")
+	focus(first)
+	return first
+
+
+## Kategória OBRAZ: celá obrazovka, škálovanie, retro filter
+func display_page(back: Callable) -> MenuItem:
+	clear()
+	esc_back = back
 	preview = SettingsPreview.new()
 	column.get_parent().add_child(preview)
-	title("SETTINGS")
-	var first: MenuItem = null
-	if audio.is_valid():
-		first = item("AUDIO", audio)
-		first.focus_entered.connect(func(): _preview("", 0))
+	title("DISPLAY")
 	var full := setting("FULLSCREEN", _full_name(), func(_d: int, it: MenuItem):
 		GameSettings.fullscreen = not GameSettings.fullscreen
 		it.set_value(_full_name()))
@@ -149,7 +166,21 @@ func settings_page(back: Callable, audio: Callable = Callable()) -> MenuItem:
 	setting("RETRO FILTER", _on_off(GameSettings.retro_filter), func(_d: int, it: MenuItem):
 		GameSettings.retro_filter = not GameSettings.retro_filter
 		it.set_value(_on_off(GameSettings.retro_filter)))
-	choice("HUD STYLE", PackedStringArray(["NOIR", "MINIMAL"]), GameSettings.hud_style, func(i: int):
+	spacer()
+	item("BACK", back)
+	hint("LEFT / RIGHT  CHANGE     ENTER  LIST     ESC  BACK")
+	focus(full)
+	return full
+
+
+## Kategória HUD A MIERENIE: štýl HUD, plagát, zameriavač, zoznam ovládania
+func hud_page(back: Callable) -> MenuItem:
+	clear()
+	esc_back = back
+	preview = SettingsPreview.new()
+	column.get_parent().add_child(preview)
+	title("HUD & AIM")
+	var first := choice("HUD STYLE", PackedStringArray(["NOIR", "MINIMAL"]), GameSettings.hud_style, func(i: int):
 		GameSettings.hud_style = i as GameSettings.HudStyle)
 	var posters := PackedStringArray()
 	for v in GameSettings.PORTRAIT_SCALES:
@@ -166,8 +197,6 @@ func settings_page(back: Callable, audio: Callable = Callable()) -> MenuItem:
 	spacer()
 	item("BACK", back)
 	hint("LEFT / RIGHT  CHANGE     ENTER  LIST     ESC  BACK")
-	if first == null:
-		first = full
 	focus(first)
 	return first
 
@@ -180,6 +209,7 @@ const VOLUME_TEST := {"Master": &"ui_select", "Music": &"ui_select", "SFX": &"pi
 ## Stránka zvuku: hlasitosť zberníc 0–10 (audio/sfx.gd, GameSettings.volumes)
 func audio_page(back: Callable) -> MenuItem:
 	clear()
+	esc_back = back
 	title("AUDIO")
 	var first: MenuItem = null
 	for row in VOLUMES:
@@ -210,17 +240,32 @@ static func _vol_text(v: int) -> String:
 	return "%s%s  %3d%%" % ["|".repeat(v), ".".repeat(10 - v), v * 10]
 
 
+## Kategória OVLÁDANIE: zoznam kláves; pri zakrádaní sa dá vybrať HOLD (drž C) alebo TOGGLE (C zapne / vypne)
 func controls_page(back: Callable) -> MenuItem:
 	clear()
+	esc_back = back
 	title("CONTROLS")
+	# zoznam je hustejší než ostatné stránky (bez medzier medzi riadkami), inak by sa s veľkým písmom nezmestil
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override(&"separation", 0)
+	column.add_child(list)
+	var first: MenuItem
 	for row in CONTROLS:
+		if row[0] == "SNEAK":
+			first = choice("SNEAK  " + row[1], PackedStringArray(["HOLD", "TOGGLE"]), 1 if GameSettings.sneak_toggle else 0, func(i: int):
+				GameSettings.sneak_toggle = i == 1
+				column.get_tree().call_group(&"chalk_text", &"queue_redraw")   # nápisy kriedou „HOLD C – SNEAK“ (world/fx/chalk_text.gd)
+				column.get_tree().call_group(&"controls_help", &"refresh"))
+			first.reparent(list)
+			continue
 		var it := MenuItem.new(row[0], row[1])
 		it.selectable = false
 		it.font_size = item_size
-		column.add_child(it)
+		list.add_child(it)
+		it.custom_minimum_size.y = item_size + 2
 	spacer()
-	var first := item("BACK", back)
-	hint("ESC  BACK")
+	item("BACK", back)
+	hint("LEFT / RIGHT  CHANGE     ESC  BACK")
 	focus(first)
 	return first
 

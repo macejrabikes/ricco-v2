@@ -4,7 +4,7 @@ extends StaticBody2D
 @export var hp_max: int = 1
 @export var respawn_time: float = 2.0
 
-var hp: int
+var hp: float
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shape: CollisionShape2D = $CollisionShape2D
 
@@ -13,8 +13,8 @@ func _ready() -> void:
 	hp = hp_max
 
 
-func take_hit(damage: int, dir: Vector2) -> void:
-	hp -= damage
+func take_hit(damage: float, dir: Vector2) -> void:
+	hp -= maxf(damage, 1.0)   # plechovku zhodí každý zásah, aj slabý z diaľky
 	if hp > 0:
 		sprite.modulate = Color(3, 3, 3)  # biely záblesk
 		create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.1)

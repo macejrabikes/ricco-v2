@@ -14,10 +14,14 @@ extends CharacterBody2D
 ## krok 10: nový beh (labky sa striedajú), cúvanie = beh pustený odzadu, prach pri dopade labky
 ## krok 11: animácie bez klobúka (kým letí), krv a červený záblesk pri zásahu, bez poskoku
 ## krok 12: šmyk po bruchu (S / Ctrl / šípka dole) – nižší, rýchly, dá sa pri ňom strieľať všetkými smermi
-## krok 13: viac zbraní (weapons/*.tres – WeaponData): pištoľ, revolver, Tommy gun, lupara; 1–4 / koliesko / Q
+## krok 13: viac zbraní (weapons/*.tres – WeaponData): pištoľ, revolver, Tommy gun, lupara; 1–3 / koliesko / Q
+## krok 14: zbrane zo zeme (weapons/weapon_pickup.gd), výbava = 1 bočná (kláves 1) + 2 hlavné (2, 3), F = výmena
+## krok 15: derringer a lupara (lámacie prebíjanie – hlavne sa vyklopia), rozptyl rastie pri streľbe za sebou (WeaponData Accuracy)
+## krok 17: plávanie v hlbokej vode (world/water/water_zone.gd) – S = ponor, medzerník = hore / vyskočiť, pod vodou ho nevidno
+## krok 16: pocit zásahu (silné zatrasenie, červené okraje obrazovky, hitstop), schody ako šikmá rampa, výstrel počujú gangstri
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
-enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE }
+enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM }
 
 signal ammo_changed(mag: int, reserve: int, reloading: bool)
 signal weapon_changed(weapon: WeaponData)
@@ -56,9 +60,10 @@ signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí�
 @export_group("Weapons")
 @export var bullet_scene: PackedScene = preload("res://weapons/pistol/bullet.tscn")
 @export var hat_scene: PackedScene = preload("res://weapons/hat/hat_projectile.tscn")
-## Výbava – zbrane, ktoré Ricco nosí (neskôr výber: 1 bočná + 2 hlavné). Prepína sa 1–4, kolieskom, Q = posledná.
+## Výbava – zbrane, ktoré Ricco nosí: najprv bočná (SIDEARM, kláves 1), potom max. 2 hlavné (PRIMARY, klávesy 2 a 3).
+## Prepína sa 1–3, kolieskom, Q = posledná.
 @export var loadout: Array[WeaponData] = [
-	preload("res://weapons/pistol/pistol.tres"), preload("res://weapons/revolver/revolver.tres"),
+	preload("res://weapons/derringer/derringer.tres"),
 	preload("res://weapons/tommy/tommy.tres"), preload("res://weapons/lupara/lupara.tres")]
 @export var shake_strength: float = 2.0       ## zatrasenie kamerou pri výstrele (px)
 @export var camera_lean: Vector2 = Vector2(72, 32)   ## px – kamera sa vysunie k myši: myš vpravo → Ricco je vľavo od stredu
@@ -82,6 +87,14 @@ signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí�
 @export var slide_min_speed: float = 45.0     ## px/s – pod touto rýchlosťou sa Ricco postaví
 @export var slide_aim_height: float = 11.0    ## px nad zemou – kde je zbraň počas šmyku
 @export var crawl_speed: float = 55.0         ## px/s – pod nízkym stropom sa Ricco plazí po bruchu (dá sa riadiť)
+@export_group("")
+
+@export_group("Swim")
+@export var swim_speed: float = 95.0       ## px/s pod vodou
+@export var swim_accel: float = 420.0      ## ako rýchlo sa rozpláva
+@export var swim_drag: float = 240.0       ## ako rýchlo zastaví, keď pustíš smer
+@export var swim_jump: float = -290.0      ## vyskočenie z hladiny (px/s, záporné = hore)
+@export var float_depth: float = 16.0      ## px – o koľko sú nohy pod hladinou, keď pláva na hladine
 @export_group("")
 
 @export_group("Waddle")
@@ -118,6 +131,7 @@ const HAT_RELEASE_FRAME := 4
 const SLIDE_MIN_TIME := 0.3
 ## Kamera mieri na stred Ricca (nie na jeho nohy)
 const CAMERA_Y := -20.0
+const SLOPE_SINK := 4.0   ## px – o koľko je spodok kapsuly na 45° svahu nad ním: r · (√2 − 1)
 
 var state: State = State.NORMAL
 var facing: float = 1.0             ## 1 = doprava, -1 = doľava
@@ -140,9 +154,13 @@ var light_zones: int = 0      ## v koľkých LightZone (svetlo lampy, pece…) p
 var dark_area: bool = false   ## level to zapne v interiéri – mimo svetla je Ricco v tme a gangstri ho nevidia
 var in_cutscene: bool = false ## počas cutscény hráč Ricca neovláda (pohyb robí scéna)
 var sneaking: bool = false    ## drží C – prikrčený, pomalší
+var _sneak_on: bool = false   ## režim TOGGLE (Settings → Controls): C zapne / vypne zakrádanie
 var takedown_target: Node2D   ## gangster, ktorého sa dá práve zneškodniť (ukáže sa nápoveda)
 var _takedown_t: float = 0.0  ## s – prebieha úder
 var _slide_t: float = 0.0     ## s – ako dlho už šmyk trvá
+var submerged: bool = false   ## celý pod hladinou – gangstri ho nevidia
+var _swim_cooldown: float = 0.0   ## s – po vyskočení z vody hneď znova nespadne do plávania
+var _bubble_t: float = 0.0
 var has_hat: bool = true            ## false = klobúk práve letí
 var gun_base_x: float = 0.0         ## pokojová poloha pištole (kvôli cuknutiu pri výstrele)
 var ammo_in_mag: int = 0
@@ -153,6 +171,8 @@ var weapon_index: int = 0
 var last_weapon_index: int = 0
 var weapon_ammo: Array = []           ## pre každú zbraň výbavy [v zásobníku, rezerva]
 var _reload_tween: Tween
+var _barrels: Sprite2D                ## hlavne lámacej zbrane počas prebíjania (dieťa Gun, otáča sa na pánte)
+var _bloom: float = 0.0               ## ° – rozptyl navyše zo streľby za sebou (WeaponData.spread_bloom_deg)
 var _swap_tween: Tween
 var mag_size: int:                    ## pre HUD – veľkosť zásobníka zbrane v ruke
 	get: return weapon.mag_size if weapon else 0
@@ -171,6 +191,10 @@ var _takedown_hint: Label
 
 func _ready() -> void:
 	_ensure_actions()
+	# schody: cez schodíky je neviditeľná šikmá rampa (tools/build_level1.gd – _stair_ramp), Ricco po nej ide plynule
+	floor_max_angle = deg_to_rad(50.0)
+	floor_snap_length = 16.0         # pri zostupe ostane prilepený na rampe (ani na hornej hrane schodov nevyskočí)
+	floor_constant_speed = true      # hore aj dole rovnako rýchlo
 	_add_takedown_anim()
 	_add_throw_walk_anim()
 	_takedown_hint = Label.new()
@@ -189,6 +213,10 @@ func _ready() -> void:
 	flash.visible = false
 	_setup_flash()
 	add_to_group(&"player")
+	_barrels = Sprite2D.new()
+	_barrels.centered = false
+	_barrels.visible = false
+	gun.add_child(_barrels)
 	for w in loadout:
 		weapon_ammo.append([w.mag_size, w.reserve_start])
 	_equip(0, false)
@@ -209,9 +237,11 @@ func _process(delta: float) -> void:
 	# zatrasenie kamerou (offset sa po chvíli vráti na nulu)
 	if shake_timer > 0.0:
 		shake_timer -= delta
-		camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_strength
+		var fade: float = minf(1.0, shake_timer / 0.1)   # ku koncu doznieva
+		camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_strength * fade
 	else:
 		camera.offset = Vector2.ZERO
+	_update_hurt_overlay()
 
 
 ## Akcie zakrádania a zneškodnenia pridá do Input Map za behu, ak ešte nie sú v project.godot
@@ -263,9 +293,19 @@ func _add_takedown_anim() -> void:
 		sf.add_frame(&"takedown", at)
 
 
-## Zakrádanie: kto drží C na zemi, ide pomaly a prikrčene
+## Zakrádanie: kto drží C na zemi, ide pomaly a prikrčene. V režime TOGGLE (GameSettings.sneak_toggle)
+## ho C zapne a ďalšie C vypne; vypne ho aj skok, šmyk, plávanie, visenie a cutscéna.
 func _update_sneak() -> void:
-	sneaking = Input.is_action_pressed(&"sneak") and is_on_floor() and state == State.NORMAL and not in_cutscene
+	var can: bool = is_on_floor() and state == State.NORMAL and not in_cutscene
+	if not GameSettings.sneak_toggle:
+		_sneak_on = false
+		sneaking = Input.is_action_pressed(&"sneak") and can
+		return
+	if Input.is_action_just_pressed(&"sneak"):
+		_sneak_on = not _sneak_on
+	if state != State.NORMAL or in_cutscene:
+		_sneak_on = false
+	sneaking = _sneak_on and can
 
 
 ## Nájde gangstra, ktorého sa dá zneškodniť (zozadu alebo omráčeného), a po stlačení F (bez zbrane aj ľavé tlačidlo) ho zloží
@@ -342,7 +382,12 @@ func _update_camera_lean(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	ledge_cooldown -= delta
 	fire_timer -= delta
+	if weapon:
+		_bloom = maxf(_bloom - weapon.bloom_recover_deg * delta, 0.0)
 	_update_invulnerability(delta)
+	_swim_cooldown -= delta
+	if state in [State.NORMAL, State.SLIDE] and _swim_cooldown <= 0.0 and _water_index(global_position + Vector2(0, -14)) >= 0:
+		_start_swim()
 	match state:
 		State.DEAD:
 			aim.visible = false
@@ -360,6 +405,9 @@ func _physics_process(delta: float) -> void:
 			return  # pohyb rieši animácia climb
 		State.SLIDE:
 			_process_slide(delta)
+			return
+		State.SWIM:
+			_process_swim(delta)
 			return
 
 	# Gravitácia – get_gravity() berie hodnotu z Project Settings → Physics → 2D.
@@ -399,6 +447,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 		jump_buffer_timer = 0.0
 		coyote_timer = 0.0  # aby sa nedalo skočiť dvakrát z jedného coyote okna
+		_sneak_on = false   # skok zakrádanie vypne
 		sprite.play(_hat_anim(&"jump"))
 		Sfx.play(&"jump", Vector2.INF, -6.0)
 	# Wall jump – vo vzduchu pri stene: odraz šikmo hore preč od steny
@@ -697,17 +746,19 @@ func _update_crouch(delta: float) -> void:
 ## jeden krok = polovica sínusovej vlny, takže každý krok je jeden náklon na stranu.
 func _update_waddle(delta: float) -> void:
 	var running: bool = is_on_floor() and sprite.animation in [&"run", &"run_nohat"]
+	# na schodoch (45° rampa) je spodok kapsuly ~4 px nad svahom – obrázok ide nižšie, aby stál na schodíkoch
+	var slope_dy: float = SLOPE_SINK if is_on_floor() and get_floor_normal().y > -0.9 else 0.0
 	if running:
 		waddle_phase += absf(velocity.x) * delta / waddle_step * PI
 		var s: float = sin(waddle_phase) * (0.4 if sneaking else 1.0)
 		visual.rotation = deg_to_rad(waddle_angle_deg) * s
-		visual.position.y = -absf(s) * waddle_bob
+		visual.position.y = -absf(s) * waddle_bob + slope_dy
 		# rýchlosť framov podľa rýchlosti behu (pri rozbehu pomalšie)
 		sprite.speed_scale = clampf(absf(velocity.x) / max_speed, 0.4, 1.0)
 	else:
 		# plynulý návrat do rovnej polohy
 		visual.rotation = lerpf(visual.rotation, 0.0, minf(1.0, 20.0 * delta))
-		visual.position.y = lerpf(visual.position.y, 0.0, minf(1.0, 20.0 * delta))
+		visual.position.y = lerpf(visual.position.y, slope_dy, minf(1.0, 20.0 * delta))
 		sprite.speed_scale = 1.0
 		if not is_on_floor():
 			waddle_phase = 0.0
@@ -767,7 +818,7 @@ func _shoot() -> void:
 	for i in weapon.pellets:
 		var b := bullet_scene.instantiate()
 		# broky sa rozložia do vejára, jedna guľka má len malý náhodný rozptyl
-		var spread: float = weapon.spread_deg
+		var spread: float = weapon.spread_deg + _bloom
 		var a: float = randf_range(-spread, spread) if weapon.pellets == 1 \
 				else lerpf(-spread / 2.0, spread / 2.0, (i + randf()) / weapon.pellets)
 		b.direction = aim_dir.rotated(deg_to_rad(a))
@@ -775,8 +826,11 @@ func _shoot() -> void:
 		b.damage = weapon.damage
 		b.speed = weapon.bullet_speed * (randf_range(0.85, 1.05) if weapon.pellets > 1 else 1.0)
 		b.lifetime = weapon.bullet_lifetime
+		b.effective_range = weapon.effective_range
+		b.falloff_range = weapon.falloff_range
 		b.global_position = muzzle.global_position
 		get_tree().current_scene.add_child(b)
+	_bloom = minf(_bloom + weapon.spread_bloom_deg, weapon.spread_max_deg)
 	# šťava: zvuk, záblesk (3 snímky + žiara + dym), cuknutie a nadhodenie zbrane, zatrasenie kamery
 	Sfx.shot(weapon)
 	_muzzle_flash()
@@ -792,13 +846,14 @@ func _shoot() -> void:
 		velocity.x -= aim_dir.x * 60.0   # lupara odtlačí Ricca
 	shake_timer = 0.08
 	shake_strength = weapon.shake
+	Gangster.noise(global_position, SHOT_NOISE)   # výstrel počuť – gangstri v okolí sa idú pozrieť
 	shot_fired.emit()
 
 
 # ---------------------------------------------------------------- záblesk z hlavne
 const FLASH_TEX := preload("res://weapons/pistol/muzzle_flash_big.png")
 const GLOW_TEX := preload("res://levels/level1/art/glow.png")
-const FLASH_SCALE := {"Pistol": 0.8, "Revolver": 1.0, "Tommy gun": 0.75, "Lupara": 1.35}
+const FLASH_SCALE := {"Derringer": 0.65, "Pistol": 0.8, "Revolver": 1.0, "Tommy gun": 0.75, "Lupara": 1.35}
 var _flash_glow: Sprite2D
 var _recoil_tween: Tween
 
@@ -852,6 +907,9 @@ func _start_reload() -> void:
 		return
 	reloading = true
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, true)
+	if weapon.frame_texture:
+		_start_break_reload()
+		return
 	var k: float = weapon.reload_time / 1.0   # časovanie nižšie je pre 1 s
 	var tilt: float = -0.35 * gun.scale.y   # hlaveň mierne hore, pažba k Riccovi
 	var mag_in: Vector2 = _gun_px(weapon.mag_px)
@@ -894,6 +952,67 @@ func _start_reload() -> void:
 	tw.tween_callback(_finish_reload)
 
 
+## Lámacia zbraň (derringer, lupara): hlavne sa na pánte vyklopia (derringer hore, lupara dole), prázdne
+## nábojnice vypadnú z komôr, druhá ruka ducha zasunie nové náboje a hlavne sa zaklapnú. Hlavne sú samostatný Sprite (_barrels)
+## nad rámom (weapon.frame_texture), otáča sa okolo weapon.hinge_px.
+func _start_break_reload() -> void:
+	var k: float = weapon.reload_time / 1.0
+	var tilt: float = -0.25 * gun.scale.y
+	var open: float = -deg_to_rad(weapon.open_deg)   # v priestore zbrane: záporný uhol = ústie hore, kladný = dole
+	var chamber: Vector2 = _gun_px(weapon.mag_px)
+	gun.texture = weapon.frame_texture
+	_barrels.texture = weapon.barrel_texture
+	_barrels.offset = -weapon.hinge_px
+	_barrels.position = _gun_px(weapon.hinge_px)
+	_barrels.rotation = 0.0
+	_barrels.visible = true
+	mag.texture = weapon.mag_texture
+	mag.position = chamber
+	mag.visible = false
+	var hand: Node = offhand.get_node("NewMag")
+	hand.texture = weapon.new_mag_texture
+	hand.visible = true
+	var from: Vector2 = offhand.position if (weapon.two_handed and offhand.visible) else OFFHAND_START
+	offhand.position = from
+	if not (weapon.two_handed and offhand.visible):
+		offhand.fade = 0.0
+	offhand.visible = true
+	var inside: Vector2 = chamber - OFFHAND_MAG
+	var tw := create_tween()
+	_reload_tween = tw
+	# 1. naklonenie + hlavne sa vyklopia → nábojnice vypadnú
+	tw.tween_property(gun, "rotation", tilt, 0.08 * k)
+	tw.parallel().tween_property(offhand, "position", OFFHAND_START, 0.12 * k)   # druhá ruka pustí predpažbie
+	tw.tween_property(_barrels, "rotation", open, 0.09 * k).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(_drop_magazine)
+	# 2. druhá ruka priletí s dvoma nábojmi a zasunie ich do komôr
+	tw.tween_property(offhand, "fade", 1.0, 0.12 * k)
+	tw.parallel().tween_property(offhand, "position", inside + Vector2(-6, 6), 0.3 * k) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(offhand, "position", inside, 0.08 * k).set_ease(Tween.EASE_IN)
+	tw.tween_callback(_magazine_inserted)
+	# 3. hlavne sa zaklapnú (cvak) a zbraň cukne; dvojručná: ruka chytí predpažbie a zavrie ich ním,
+	#    inak ruka odletí a rozplynie sa
+	if weapon.two_handed:
+		tw.tween_property(offhand, "position", _offhand_rest(), 0.12 * k).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(_barrels, "rotation", 0.0, 0.07 * k).set_ease(Tween.EASE_IN)
+	else:
+		tw.tween_property(offhand, "position", OFFHAND_START, 0.16 * k).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(offhand, "fade", 0.0, 0.16 * k)
+		tw.tween_property(_barrels, "rotation", 0.0, 0.06 * k).set_ease(Tween.EASE_IN)
+	tw.tween_callback(_close_barrels)
+	tw.tween_property(gun, "rotation", tilt - 0.12 * gun.scale.y, 0.04 * k)
+	tw.tween_property(gun, "rotation", 0.0, 0.14 * k).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(_finish_reload)
+
+
+func _close_barrels() -> void:
+	Sfx.play(&"mag_in", Vector2.INF, -4.0, 0.1)
+	gun.texture = weapon.texture
+	_barrels.visible = false
+	_barrels.rotation = 0.0
+
+
 ## Starý zásobník / nábojnice / broky sa pustia – ďalej padajú samé (magazine_drop.gd)
 func _drop_magazine() -> void:
 	Sfx.play(&"cylinder_spin" if weapon.name == "Revolver" else &"mag_out", Vector2.INF, -4.0)
@@ -910,7 +1029,7 @@ func _drop_magazine() -> void:
 
 
 func _magazine_inserted() -> void:
-	Sfx.play(&"shell_insert" if weapon.name == "Lupara" else &"mag_in", Vector2.INF, -3.0)
+	Sfx.play(&"shell_insert" if weapon.name in ["Lupara", "Derringer"] else &"mag_in", Vector2.INF, -3.0)
 	mag.position = _gun_px(weapon.mag_px)
 	mag.texture = weapon.mag_texture
 	mag.visible = weapon.mag_visible
@@ -964,6 +1083,10 @@ func _equip(i: int, animate: bool = true) -> void:
 	reloading = false
 	weapon_index = i
 	weapon = loadout[i]
+	Progress.unlock(weapon.name)   # prvý raz v ruke → odomknutá v Arsenale
+	_bloom = 0.0
+	_barrels.visible = false   # prerušené lámacie prebíjanie
+	_barrels.rotation = 0.0
 	ammo_in_mag = weapon_ammo[i][0]
 	ammo_reserve = weapon_ammo[i][1]
 	gun.texture = weapon.texture
@@ -1030,7 +1153,7 @@ func give_weapon(w: WeaponData) -> void:
 	_equip(i)
 
 
-## 1–4 = zbraň z výbavy, koliesko myši = ďalšia/predošlá, Q = posledná použitá
+## 1–3 = zbraň z výbavy (1 bočná, 2–3 hlavné), koliesko myši = ďalšia/predošlá, Q = posledná použitá
 func _weapon_switch_input(event: InputEvent) -> void:
 	if state == State.DEAD:
 		return
@@ -1248,8 +1371,8 @@ func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
 		return
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
-	shake_timer = 0.15
 	_blood_fx(from)
+	_hurt_fx(health == 0)
 	if health == 0:
 		_die()
 		return
@@ -1260,6 +1383,59 @@ func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
 		velocity = Vector2((away if away != 0.0 else -facing) * hurt_knockback.x, hurt_knockback.y)
 	if state == State.NORMAL:
 		sprite.play(_hat_anim(&"hurt"))   # zľakne sa, klobúk poskočí a dopadne späť
+
+
+const SHOT_NOISE := 260.0   ## px – do tejto vzdialenosti gangstri počujú výstrel
+const HURT_SHADER := """
+shader_type canvas_item;
+// červené okraje obrazovky pri zásahu (a slabo pulzujúce, keď Riccovi zostáva málo zdravia)
+uniform float strength = 0.0;
+void fragment() {
+	vec2 d = (UV - vec2(0.5)) * vec2(1.0, 0.8);
+	float v = smoothstep(0.22, 0.62, length(d));
+	COLOR = vec4(0.72, 0.02, 0.04, v * strength);
+}
+"""
+
+var _hurt_rect: ColorRect
+var _hurt_flash: float = 0.0   ## 0–1, po zásahu rýchlo klesne
+
+
+## Pocit zásahu: silné zatrasenie kamery, červené okraje obrazovky a na okamih zastavený svet (hitstop)
+func _hurt_fx(fatal: bool) -> void:
+	shake_timer = 0.32 if fatal else 0.24
+	shake_strength = 5.0 if fatal else 3.5
+	if _hurt_rect == null:
+		var layer := CanvasLayer.new()
+		layer.layer = 30
+		add_child(layer)
+		_hurt_rect = ColorRect.new()
+		_hurt_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_hurt_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sh := Shader.new()
+		sh.code = HURT_SHADER
+		var m := ShaderMaterial.new()
+		m.shader = sh
+		_hurt_rect.material = m
+		layer.add_child(_hurt_rect)
+	_hurt_flash = 1.0
+	var tw := create_tween().set_ignore_time_scale(true)
+	tw.tween_property(self, "_hurt_flash", 0.0, 0.5).set_delay(0.06)
+	# hitstop: svet na zlomok sekundy takmer stojí (nie počas spomalenia – to má vlastný time_scale)
+	if is_equal_approx(Engine.time_scale, 1.0):
+		Engine.time_scale = 0.05
+		get_tree().create_timer(0.08 if fatal else 0.06, true, false, true).timeout.connect(func():
+			if is_equal_approx(Engine.time_scale, 0.05):
+				Engine.time_scale = 1.0)
+
+
+func _update_hurt_overlay() -> void:
+	if _hurt_rect == null:
+		return
+	var low: float = 0.0   # málo zdravia → okraje slabo pulzujú ako tlkot srdca
+	if state != State.DEAD and health > 0 and health <= 2:
+		low = 0.22 + 0.12 * maxf(0.0, sin(Time.get_ticks_msec() * 0.006))
+	(_hurt_rect.material as ShaderMaterial).set_shader_parameter(&"strength", maxf(_hurt_flash * 0.8, low))
 
 
 ## Guľka od gangstra (bullet.gd volá take_hit na všetkom, čo zasiahne)
@@ -1279,6 +1455,74 @@ func add_ammo() -> bool:
 	ammo_reserve = weapon_ammo[weapon_index][1]
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, reloading)
 	return true
+
+
+const MAX_PRIMARY := 2   ## hlavné zbrane vo výbave (klávesy 2 a 3)
+
+enum Pickup { NONE, TAKE, SWAP }
+
+## Čo sa stane so zbraňou na zemi: NONE = nič (prológ bez zbrane, smrť), TAKE = zoberie ju sám
+## (už ju má → náboje, alebo má voľné miesto), SWAP = miesto je plné, F ju vymení za zbraň vo výbave.
+func pickup_mode(w: WeaponData) -> Pickup:
+	if loadout.is_empty() or state == State.DEAD:
+		return Pickup.NONE
+	if loadout.has(w):
+		return Pickup.TAKE
+	if w.slot_name == "SIDEARM":
+		return Pickup.SWAP if _slot_index("SIDEARM") >= 0 else Pickup.TAKE
+	var primaries: int = loadout.filter(func(x: WeaponData) -> bool: return x.slot_name != "SIDEARM").size()
+	return Pickup.SWAP if primaries >= MAX_PRIMARY else Pickup.TAKE
+
+
+## Zbraň zo zeme (weapons/weapon_pickup.gd). Novú zbraň pridá do výbavy a hneď ju vezme do ruky
+## (plný zásobník, zvyšok do rezervy); ak ju už má, len si vezme náboje. Vráti false, ak ju nezobral.
+func pick_up_weapon(w: WeaponData, ammo: int) -> bool:
+	if pickup_mode(w) != Pickup.TAKE:
+		return false
+	_store_ammo()
+	var i: int = loadout.find(w)
+	if i >= 0:
+		weapon_ammo[i][1] += ammo
+		ammo_reserve = weapon_ammo[weapon_index][1]
+		Sfx.play(&"pickup_ammo")
+		ammo_changed.emit(ammo_in_mag, ammo_reserve, reloading)
+		return true
+	i = 0 if w.slot_name == "SIDEARM" else loadout.size()   # bočná je vždy prvá (kláves 1)
+	loadout.insert(i, w)
+	weapon_ammo.insert(i, [mini(ammo, w.mag_size), maxi(ammo - w.mag_size, 0)])
+	if i <= weapon_index:
+		weapon_index += 1
+	Sfx.play(&"slide_rack", Vector2.INF, -4.0)
+	_equip(i)
+	return true
+
+
+## Výmena so zbraňou zo zeme (F): nová zbraň zaberie miesto rovnakého druhu – hlavnú v ruke,
+## inak prvú hlavnú. Vráti [stará zbraň, jej náboje spolu], ktorú si zbraň na zemi „vezme“.
+func swap_weapon(w: WeaponData, ammo: int) -> Array:
+	if pickup_mode(w) != Pickup.SWAP:
+		return []
+	_store_ammo()
+	var i: int = _slot_index("SIDEARM")
+	if w.slot_name != "SIDEARM":
+		i = weapon_index if weapon.slot_name != "SIDEARM" else _slot_index("PRIMARY")
+	var old: WeaponData = loadout[i]
+	var old_ammo: int = weapon_ammo[i][0] + weapon_ammo[i][1]
+	loadout[i] = w
+	weapon_ammo[i] = [mini(ammo, w.mag_size), maxi(ammo - w.mag_size, 0)]
+	if i == weapon_index:
+		weapon = null   # _equip by inak novú zbraň nevzal (rovnaký index) a prepísal by jej náboje
+	Sfx.play(&"slide_rack", Vector2.INF, -4.0)
+	_equip(i)
+	return [old, old_ammo]
+
+
+## Index prvej zbrane daného druhu („SIDEARM“, inak hlavná), -1 = nemá
+func _slot_index(slot: String) -> int:
+	for i in loadout.size():
+		if (loadout[i].slot_name == "SIDEARM") == (slot == "SIDEARM"):
+			return i
+	return -1
 
 
 func heal(amount: int = 1) -> void:
@@ -1333,3 +1577,127 @@ func _blood_fx(from: Vector2) -> void:
 	sprite.modulate = Color(1.0, 0.72, 0.72)   # jemný červený nádych
 	var tw := create_tween()
 	tw.tween_property(sprite, "modulate", Color.WHITE, 0.3).set_delay(0.08)
+
+
+# ---------------------------------------------------------------- plávanie
+
+const SWIM_SPRITE_OFFSET := Vector2(0, 6)   ## animácia swim je kreslená vyššie ako ležiaca kapsula
+## preload namiesto class_name – build levelu (--headless --script) funguje aj pred prvým otvorením editora
+const WaterZoneScript := preload("res://world/water/water_zone.gd")
+
+
+func _water() -> WaterZoneScript:
+	return get_tree().get_first_node_in_group(&"water") as WaterZoneScript
+
+
+func _water_index(p: Vector2) -> int:
+	var w := _water()
+	return w.find(p) if w else -1
+
+
+func _start_swim() -> void:
+	if state == State.SLIDE:
+		_slide_t = 0.0
+	state = State.SWIM
+	_set_slide_shape(true)
+	aim.visible = false
+	wall_sliding = false
+	sprite.speed_scale = 1.0
+	sprite.offset = SWIM_SPRITE_OFFSET
+	sprite.play(&"swim")
+	if velocity.y > 120.0:
+		_splash(velocity.y)
+	velocity.y *= 0.3   # voda pád pribrzdí
+
+
+func _end_swim() -> void:
+	state = State.NORMAL
+	submerged = false
+	_swim_cooldown = 0.3
+	_set_slide_shape(false)
+	sprite.offset = Vector2.ZERO
+	visual.rotation = 0.0
+	aim.visible = weapon != null
+
+
+## Na hladine pláva (nadnáša ho), S ho ponorí, pod vodou pláva na všetky strany (medzerník = hore).
+## Na hladine medzerník = vyskočí z vody; keď pláva ku nízkemu okraju, sám sa naň vyšvihne.
+func _process_swim(delta: float) -> void:
+	var w := _water()
+	var i: int = w.find(global_position + Vector2(0, -12)) if w else -1
+	if i < 0:
+		_end_swim()   # vyplával z vody (napr. dole po schodoch von)
+		return
+	var surface: float = w.surface_y(i)
+	var depth: float = INF if surface == INF else global_position.y - surface   # INF pod stropom (sifón)
+	var at_surface: bool = depth < float_depth + 8.0
+	var dir := Vector2(Input.get_axis(&"move_left", &"move_right"), 0.0)
+	if Input.is_action_pressed(&"slide"):
+		dir.y = 1.0
+	elif Input.is_action_pressed(&"jump") and not at_surface:
+		dir.y = -1.0
+	if at_surface and Input.is_action_just_pressed(&"jump"):
+		_leave_water(Vector2(dir.x * 110.0, swim_jump))
+		return
+	if dir.y > 0.0 or not at_surface:
+		# pod vodou: voľný pohyb, bez ovládania pomaly stúpa k hladine
+		if dir != Vector2.ZERO:
+			velocity = velocity.move_toward(dir.normalized() * swim_speed, swim_accel * delta)
+		else:
+			velocity = velocity.move_toward(Vector2(0, -14.0), swim_drag * delta)
+	else:
+		# na hladine: pláva do strán a hojdá sa na vlnkách
+		velocity.x = move_toward(velocity.x, dir.x * swim_speed * 0.85, (swim_accel if dir.x != 0.0 else swim_drag) * delta)
+		var target: float = surface + float_depth + sin(Time.get_ticks_msec() * 0.004) * 1.5
+		velocity.y = clampf((target - global_position.y) * 8.0, -90.0, 90.0)
+	move_and_slide()
+	# na hladine pri nízkom okraji (breh jamy) → vyšvihne sa von
+	if at_surface and dir.x != 0.0 and is_on_wall() and _water_index(global_position + Vector2(dir.x * 18.0, -30)) < 0 \
+			and _ledge_low(dir.x, surface):
+		_leave_water(Vector2(dir.x * 100.0, -270.0))
+		return
+	if dir.x != 0.0 and signf(dir.x) != facing:
+		facing = signf(dir.x)
+		visual.scale.x = facing
+	# telo sa nakloní v smere plávania (hore / dole)
+	var tilt: float = 0.0
+	if not at_surface and velocity.length() > 20.0:
+		tilt = clampf(atan2(velocity.y, absf(velocity.x) + 30.0), -0.9, 0.9) * facing
+	visual.rotation = lerp_angle(visual.rotation, tilt, 1.0 - exp(-10.0 * delta))
+	sprite.speed_scale = 0.5 + velocity.length() / swim_speed
+	submerged = depth > 26.0
+	if submerged:
+		_bubble_t -= delta
+		if _bubble_t <= 0.0:
+			_bubble_t = randf_range(0.5, 1.1)
+			Burst.spawn(get_tree().current_scene, global_position + Vector2(facing * 14.0, -18.0), Vector2.UP,
+					Color(0.75, 0.88, 1.0, 0.7), 2, 18.0, Vector2(0, -40), 0.9)
+
+
+## Je okraj pred Riccom nízko nad hladinou (dá sa naň vyšvihnúť)? Lúč zhora nadol tesne za stenou.
+func _ledge_low(dir: float, surface: float) -> bool:
+	if surface == INF:
+		return false
+	var x: float = global_position.x + dir * (HALF_WIDTH + 14.0)
+	var q := PhysicsRayQueryParameters2D.create(Vector2(x, surface - 30.0), Vector2(x, surface + 4.0), collision_mask, [get_rid()])
+	var hit := get_world_2d().direct_space_state.intersect_ray(q)
+	return not hit.is_empty()
+
+
+func _leave_water(v: Vector2) -> void:
+	_end_swim()
+	velocity = v
+	_splash(220.0)
+	sprite.play(_hat_anim(&"jump"))
+	Sfx.play(&"jump", Vector2.INF, -6.0)
+
+
+func _splash(strength: float) -> void:
+	var w := _water()
+	var i: int = w.find(global_position + Vector2(0, -12)) if w else -1
+	var y: float = w.surface_y(i) if i >= 0 else global_position.y
+	if y == INF:
+		return
+	Burst.spawn(get_tree().current_scene, Vector2(global_position.x, y), Vector2.UP, Color(0.7, 0.85, 1.0, 0.85),
+			int(clampf(strength / 30.0, 5.0, 14.0)), clampf(strength * 0.6, 60.0, 160.0), Vector2(0, 420), 0.5)
+	Sfx.play(&"splash", Vector2.INF, -4.0)

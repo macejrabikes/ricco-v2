@@ -46,6 +46,12 @@ const I_BALCONY := Vector2i(4, 2)
 const I_PILLAR := Vector2i(5, 2)
 const I_STONE_BG := Vector2i(6, 2)
 const I_STONE := Vector2i(7, 2)
+const I_NOSE := [Vector2i(0, 3), Vector2i(1, 3)]        ## jemné schodíky po rampe (bez kolízie): klesajú doprava / doľava
+const I_STAIR_TOP := [Vector2i(2, 3), Vector2i(3, 3)]   ## vrchný blok schodu pod schodíkmi
+const I_STAIR_FILL := Vector2i(4, 3)                    ## kameň pod schodmi
+const I_DUCT := Vector2i(5, 3)        ## vetracie potrubie – plech (pevný)
+const I_DUCT_IN := Vector2i(6, 3)     ## vnútro potrubia (pozadie)
+const I_DUCT_END := Vector2i(7, 3)    ## otvorený koniec potrubia (pozadie; alternatíva 1 = zrkadlovo)
 
 # súradnice v atlase tiles_tunnel.png (zdroj 2) – pivnica
 const TN_BRICK := [Vector2i(0, 0), Vector2i(1, 0)]
@@ -65,43 +71,51 @@ const TN_STEP := Vector2i(0, 2)
 const TN_GRATE := Vector2i(1, 2)
 const TN_CRATE := Vector2i(2, 2)
 const TN_VOID := Vector2i(3, 2)
+const TN_NOSE := [Vector2i(0, 3), Vector2i(1, 3)]       ## jemné schodíky po rampe (bez kolízie): klesajú doprava / doľava
+const TN_STAIR_TOP := [Vector2i(2, 3), Vector2i(3, 3)]  ## vrchný blok schodu pod schodíkmi
+const TN_STAIR_FILL := Vector2i(4, 3)                   ## kameň pod schodmi
+const TN_STAIR_FLAT := Vector2i(5, 3)                   ## najvyšší schod (rovný vrch)
+const TN_DEEP := Vector2i(5, 1)       ## hlboká voda (plávanie)
+const TN_OSSUARY := [Vector2i(4, 2), Vector2i(5, 2)]   ## kostnica: výklenok s lebkou, stena z kostí
+const TN_SURFACE := Vector2i(6, 2)    ## hladina nad hlbokou vodou
+const CATACOMB := Rect2i(17, 19, 113, 13)   ## zatopené katakomby (pozadie z kostnice)
 
 ## Pivnica P2 – pašerácke tunely (samostatná scéna levels/level1/cellar.tscn). 1 znak = 1 dlaždica:
-## # stena  . tunel  ^ schod  R zával  | mreže  x debna  ~ voda  = rošt  - doska
+## # stena  . tunel  ^ schod  R zával  | mreže  x debna  ~ voda (hladina)  % hlboká voda (pláva sa)  = rošt  - doska  c sviečka
 ## S štart  D Don  E dvere von  K kam pribehnú gangstri  G hliadka s baterkou  g stráž (chrbtom doprava)
 ## b žiarovka (svetlo)  o kvapka krvi (správna cesta)  r potkan  L pálenica  X krieda „slepá ulička“
-const MAZE := """...#################################################################################################
-...#################################################################################################
-..................b.................b...................b...............RRR#########################
-^^^^^.................................................................X.RRR#########################
-^^^^....................................................................RRR#########################
-^^^.....................................................................RRR#########################
-^^......................................................................RRR#########################
-^.....S...o.........o.........o.G.......o..o..................r.........RRR#########################
-############################################...#####################################################
-############################################...##########################W##########################
-############################################...#####################################################
-###............b.............###......b........................|............................b...####
-###..........................###...............................|................................####
-###..........................###...............................|................................####
-###..........................###...............................|................................####
-###............................................................|................................####
-###.......o.......o...r...o.......o...o...o.........g..........|......o......Ko.................####
-#####....###############################################################....####^...............####
-#####....###############################################################....####^^..............####
-#####....###############################################################....####^^^.............####
-##..b............................b..........................b..........#....####^^^^............####
-##.....................................................................#....####^^^^^.............##
-##.....................................................................#....####^^^^^^............##
-##...........x..............................................................####^^^^^^^...........##
-##..........xx............................................xx................####^^^^^^^^..........##
-##.L........xx......~~~~~~~~~~~~~~~~~~~~G~~~~~r~~~~.o.....xx....o...........####^^^^^^^^^...D....E##
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################"""
+const MAZE := """...#############################################################################################################################################################################################
+...#############################################################################################################################################################################################
+..................b.................b...................b...............RRR#####################################################################################################################
+^.....................................................................X.RRR#####################################################################################################################
+^^......................................................................RRR#####################################################################################################################
+^^^.....................................................................RRR#####################################################################################################################
+^^^^....................................................................RRR#####################################################################################################################
+^^^^^.S...o.........o.........o.G.......o..o..................r.........RRR#####################################################################################################################
+############################################...#################################################################################################################################################
+############################################...##########################W######################################################################################################################
+############################################...#################################################################################################################################################
+###............b.............###......b........................|........RRR#####################################################################.....................b....##........##...b....##
+###..........................###...............................|........RRR#####################################################################..........................##........##........##
+###..........................###...............................|........RRR#####################################################################..............................................##
+###..........................###...............................|........RRR#####################################################################..............................................##
+###............................................................|........RRR#####################################################################..............................................##
+###.......o.......o...r...o.......o...o...o.........g..........|......o.RRR#####################################################################.....Ko.......................................##
+#####....#######################################################################################################################################....####^.....................................##
+#####....#######################################################################################################################################....####^^....................................##
+#####....######################################################...........##..................##################################################....####^^^...................................##
+##..b........................######........######.........................##..................############..........................b..........#....####^^^^..................................##
+##...........................######........######.........................##..................############.....................................#....####^^^^^.........................------..##
+##...........................######........######.........................##..................############.....................................#....####^^^^^^......------....................##
+##...........x...............######........######.........................##..................############..........................................####^^^^^^^...............................##
+##..........xx...............######...c....######.........................##........G.........############.....x......---...---...xx................####^^^^^^^^........................x.....##
+##.L........xx...c...........######...##...######.........rc.o............##..==============..############...oxx.cg..............cxx....o.G.r.......####^^^^^^^^^.o....r........D......xx....E##
+##################~~~~~~~~~~~######~~~##~~~######~~~~~~~~######~~~~~~~~~~~##~~~~~~~~~~~~~~~~~~##%%%%%%%%%%~~~#######~~~~~~~~~~~~~###############################################################
+##################%%%%%%%%%%%######%%%##%%%######%%%%%%%%######%%%%%%%%%%%##%%%%%%%%%%%%%%%%%%##%%%%%%%%%%%%%#######%%%%%%%%%%%%%###############################################################
+##################%%%%%%%%%%%%%%%%%%%%##%%%######%%%%%%%%######%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#######%%%%%%%%%%%%%###############################################################
+##################%%%%%%%%%%%%%%%%%%%%##%%%%%%%%%%%%%%%%%######%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#######%%%%%%%%%%%%%###############################################################
+##################%%%%%%%%%%%%%%%%%%%%##%%%%%%%%%%%%%%%%%######%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#######%%%%%%%%%%%%%###############################################################
+################################################################################################################################################################################################"""
 
 ## Interiér leží napravo od exteriéru (kamera ho odtiaľ nevidí); Ricco sa doň dostane oknom (prechod v level1.gd).
 ## Vnútri je to jeden súvislý priestor (žiadne ďalšie prechody).
@@ -109,18 +123,21 @@ const SX0 := -80         ## začiatok ulice (ľavá stena je o 2 dlaždice ďale
 const PZ := 64           ## pizzeria Don Vito na ulici (ľavý okraj markízy)
 const DINE_GALLERY := -10   ## riadok galérie pri okne (reštaurácia)
 const DINE_BEAM := -12      ## riadok trámov nad hosťami
-const IX0 := 158         ## ľavá stena interiéru
-const IX1 := 383         ## pravý koniec (stena pivnice)
+const IX0 := 142         ## ľavá stena interiéru (jedáleň je široká, nech sa hostia aj nápisy zmestia)
+const IX1 := 399         ## pravý koniec (stena pivnice)
 const TOP := -18         ## riadok stropu (jedáleň … herňa)
 const CX0 := 282         ## začiatok herne (za priečkou skladu)
 const BALCONY_Y := -8    ## riadok podlahy balkóna / lávky v sklade
-const BALCONY_X1 := 312  ## koniec balkóna – odtiaľ sa zoskočí do tmy pri schodoch
-const STAIRS_X := 326    ## prvý schod dole do pivnice
+const BALCONY_X1 := 328  ## koniec balkóna – odtiaľ sa zoskočí do tmy pri schodoch
+const STAIRS_X := 342    ## prvý schod dole do pivnice
 const CELLAR_FLOOR := 6  ## riadok dlážky pivnice (o 6 dlaždíc nižšie)
 const CELLAR_TOP := -10  ## riadok stropu pivnice
-const KX0 := 334         ## pravá stena herne = začiatok pivnice pod ňou
+const KX0 := 350         ## pravá stena herne = začiatok pivnice pod ňou
 const KX1 := IX1
-const DON_X := 352
+const DON_X := 368
+const VENT_Y := -14       ## horný riadok vnútra vetracieho potrubia (vnútro 2 dlaždice = 32 px → len plazenie)
+const VENT_X0 := 198      ## vstup v jedálni na konci trámu B
+const VENT_X1 := 213      ## koniec v kuchyni – vypadne sa na policu nad kuchárom
 
 var rng := RandomNumberGenerator.new()
 var lvl: Node2D
@@ -162,7 +179,7 @@ func _init() -> void:
 	_trigger("Checkpoint2", Vector2(282.5 * T, -2 * T), Vector2(24, 4 * T))     # za dverami herne
 	_trigger("KnockTrigger", Vector2(273.5 * T, -5 * T), Vector2(12 * T, 10 * T))   # zadná časť skladu – mafián ide zaklopať
 	_trigger("CellarDescent", Vector2((STAIRS_X + 0.5) * T, -1.5 * T), Vector2(16, 3 * T))   # hore na schodoch do pivnice
-	for sp in [["InteriorSpawn", Vector2(163 * T, DINE_GALLERY * T)], ["CasinoSpawn", Vector2((CX0 + 1.5) * T, -6 * T)]]:
+	for sp in [["InteriorSpawn", Vector2((IX0 + 5) * T, DINE_GALLERY * T)], ["CasinoSpawn", Vector2((CX0 + 1.5) * T, -6 * T)]]:
 		var m := Marker2D.new()
 		_node(m, sp[0], lvl)
 		m.position = sp[1]
@@ -249,23 +266,24 @@ func _make_tileset() -> TileSet:
 	var isrc := TileSetAtlasSource.new()
 	isrc.texture = load(ART + "tiles_interior.png")
 	isrc.texture_region_size = Vector2i(T, T)
-	for y in 3:
+	for y in 4:
 		for x in 8:
 			isrc.create_tile(Vector2i(x, y))
 	ts.add_source(isrc, 1)
-	for c in [I_WOOD, I_UNDER, I_CHECKER, I_DARK, I_BEAM, I_WALL, I_BALCONY, I_STONE]:
+	for c in [I_WOOD, I_UNDER, I_CHECKER, I_DARK, I_BEAM, I_WALL, I_BALCONY, I_STONE, I_STAIR_FILL, I_DUCT] + I_STAIR_TOP:
 		_poly(isrc, c, full, false)
+	isrc.get_tile_data(I_DUCT_END, isrc.create_alternative_tile(I_DUCT_END)).flip_h = true
 	_poly(isrc, I_COUNTER, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, -4), Vector2(-8, -4)]), true)
 	_poly(isrc, I_SHELF, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, -5), Vector2(-8, -5)]), true)
 	# pivnica – pašerácke tunely
 	var tsrc := TileSetAtlasSource.new()
 	tsrc.texture = load(ART + "tiles_tunnel.png")
 	tsrc.texture_region_size = Vector2i(T, T)
-	for y in 3:
+	for y in 4:
 		for x in 8:
 			tsrc.create_tile(Vector2i(x, y))
 	ts.add_source(tsrc, 2)
-	for c in [TN_BRICK[0], TN_BRICK[1], TN_FLOOR, TN_CEIL, TN_EARTH, TN_RUBBLE, TN_BARS, TN_STEP, TN_CRATE]:
+	for c in [TN_BRICK[0], TN_BRICK[1], TN_FLOOR, TN_CEIL, TN_EARTH, TN_RUBBLE, TN_BARS, TN_STEP, TN_CRATE, TN_STAIR_FILL, TN_STAIR_FLAT] + TN_STAIR_TOP:
 		_poly(tsrc, c, full, false)
 	_poly(tsrc, TN_PLANK, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, -3), Vector2(-8, -3)]), true)
 	_poly(tsrc, TN_GRATE, PackedVector2Array([Vector2(-8, -8), Vector2(8, -8), Vector2(8, -4), Vector2(-8, -4)]), true)
@@ -361,6 +379,8 @@ func _build_street() -> void:
 		for wx in range(b[0] + 2, b[1] - 1, 5):
 			for wy in range(-b[2] + 2, -6, 4):
 				var lit: bool = rng.randf() < 0.45
+				if wy == -10 and wx >= PZ and wx < PZ + 9:
+					continue   # nad pizzeriou je štít (randf sa volá aj tak, aby ostatné okná ostali rovnaké)
 				_sprite("window_lit.png" if lit else "window_dark.png", Vector2(wx * T, wy * T), null, "Window")
 				if lit:
 					_glow(Vector2(wx * T + 13, wy * T + 16), Color(1.0, 0.7, 0.35, 0.18), 0.9)
@@ -377,33 +397,34 @@ func _build_street() -> void:
 	_fill(solid, -44, -7, -42, -1, CRATES)          # zátarasa z debien (vykladal sa náklaďák) – dá sa len prejsť hore
 	_fill(solid, -30, -1, -30, -1, CRATES)
 	# holičstvo (zatvorené, roleta) s markízou
-	_sprite("shop_barbiere.png", Vector2(-24 * T + 8, -56), null, "Barbiere")
-	_fill(plats, -24, -4, -24, -4, AWN[0])
-	_fill(plats, -23, -4, -17, -4, AWN[1])
-	_fill(plats, -16, -4, -16, -4, AWN[2])
+	_sprite("shop_barbiere.png", Vector2(-24 * T + 8, -88), null, "Barbiere")
+	_fill(plats, -24, -6, -24, -6, AWN[0])
+	_fill(plats, -23, -6, -17, -6, AWN[1])
+	_fill(plats, -16, -6, -16, -6, AWN[2])
 	# --- pôvodná ulica
 	_fill(solid, 22, -1, 23, -1, CRATES)
 	_fill(solid, 23, -2, 23, -2, CRATES)
 	# pizzeria Don Vito: svieti, vnútri súkromná oslava, pred dverami vyhadzovač
-	_sprite("shopfront.png", Vector2(PZ * T + 8, -56), null, "Shopfront")
-	_fill(plats, PZ, -4, PZ, -4, AWN[0])
-	_fill(plats, PZ + 1, -4, PZ + 7, -4, AWN[1])
-	_fill(plats, PZ + 8, -4, PZ + 8, -4, AWN[2])
-	_glow(Vector2(PZ * T + 48, -30), Color(1.0, 0.7, 0.35, 0.45), 2.4)         # teplé svetlo z výkladu
-	_glow(Vector2(PZ * T + 112, -30), Color(1.0, 0.7, 0.35, 0.3), 1.4)
-	_sprite("sign_board.png", Vector2(PZ * T + 8, -114), null, "SignBoard")
+	# fasáda je 88 px vysoká – dvere (~80 px) musia byť vyššie ako vyhadzovač
+	_sprite("shopfront.png", Vector2(PZ * T + 8, -88), null, "Shopfront")
+	_fill(plats, PZ, -6, PZ, -6, AWN[0])
+	_fill(plats, PZ + 1, -6, PZ + 7, -6, AWN[1])
+	_fill(plats, PZ + 8, -6, PZ + 8, -6, AWN[2])
+	_glow(Vector2(PZ * T + 48, -44), Color(1.0, 0.7, 0.35, 0.45), 2.8)         # teplé svetlo z výkladu
+	_glow(Vector2(PZ * T + 112, -40), Color(1.0, 0.7, 0.35, 0.3), 1.6)
+	_sprite("sign_board.png", Vector2(PZ * T + 8, -146), null, "SignBoard")
 	for lx in [22, 98]:   # lampy nad štítom svietia naň
-		_glow(Vector2(PZ * T + 8 + lx + 8, -106), Color(1.0, 0.85, 0.55, 0.5), 1.0)
+		_glow(Vector2(PZ * T + 8 + lx + 8, -138), Color(1.0, 0.85, 0.55, 0.5), 1.0)
 	var neon := Sprite2D.new()
 	neon.set_script(load("res://world/fx/neon_flicker.gd"))
 	neon.set("on_texture", load(ART + "neon_blade_on.png"))
 	neon.set("off_texture", load(ART + "neon_blade_off.png"))
 	neon.texture = load(ART + "neon_blade_on.png")
 	neon.centered = false
-	neon.position = Vector2(PZ * T + 136, -150)
+	neon.position = Vector2(PZ * T + 136, -182)
 	_node(neon, "Neon", _props_root)
 	_glow(Vector2(14, 31), Color(1.0, 0.25, 0.25, 0.5), 1.8, neon)
-	_enemy("gangster_bruiser", Vector2((PZ + 9) * T + 4, 0), -1.0, {"passive": true, "stationary": true, "needs_light": false})
+	_enemy("gangster_bruiser", Vector2((PZ + 9) * T + 4, 0), -1.0, {"passive": true, "stationary": true, "needs_light": false, "kind": "bouncer"})
 	var bouncer := lvl.get_child(lvl.get_child_count() - 1)
 	bouncer.name = "Bouncer"
 	_trigger("BouncerTalk", Vector2((PZ + 4) * T, -30), Vector2(48, 60))
@@ -524,11 +545,11 @@ func _build_interior() -> void:
 	_fill(solid, 204, 0, 241, 0, I_CHECKER)
 	_fill(solid, 242, 0, STAIRS_X - 1, 0, I_WOOD)
 	_fill(solid, IX0 - 2, 1, STAIRS_X - 1, 12, I_UNDER)
-	# priečky s dverami (otvor 4 dlaždice) – z ďalšej miestnosti presvitá svetlo
+	# priečky s dverami (otvor 5 dlaždíc = 80 px, mafián s klobúkom má ~75 px) – z ďalšej miestnosti presvitá svetlo
 	for px in [202, 240]:
-		_fill(solid, px, TOP + 1, px + 1, -5, I_WALL)
-		_fill(back, px, -4, px + 1, -1, I_PASSAGE)
-		_sprite("door_frame.png", Vector2(px * T - 4, -70), null, "DoorFrame")
+		_fill(solid, px, TOP + 1, px + 1, -6, I_WALL)
+		_fill(back, px, -5, px + 1, -1, I_PASSAGE)
+		_sprite("door_frame.png", Vector2(px * T - 4, -86), null, "DoorFrame")
 		_glow(Vector2(px * T + 16, -30), Color(1.0, 0.72, 0.4, 0.22), 1.4)
 	# sklad → herňa: dvere dole aj otvor hore (lávka → balkón)
 	# sklad → herňa: len oceľové dvere dole (K2 – treba správne zaklopať), hore je priečka plná
@@ -537,6 +558,7 @@ func _build_interior() -> void:
 	_glow(Vector2(281 * T, -30), Color(1.0, 0.72, 0.4, 0.15), 1.2)
 	_build_dining()
 	_build_kitchen()
+	_build_vent()
 	_build_storage()
 	_build_casino()
 	_build_stairwell()
@@ -559,46 +581,53 @@ func _build_dining() -> void:
 	_fill(back, IX0 + 2, -3, 201, -3, I_WAINSCOT_TOP)
 	_fill(back, IX0 + 2, -2, 201, -1, I_WAINSCOT)
 	# okno, ktorým Ricco vliezol (svieti mesiac) – hore nad galériou
-	_sprite("window_night.png", Vector2(161 * T + 3, -14 * T), null, "Window")
-	_glow(Vector2(161 * T + 16, -12 * T), Color(0.45, 0.55, 1.0, 0.3), 1.8)
-	# tmavá cesta hore: galéria, trámy, zavesená polica
-	_fill(solid, IX0 + 2, DINE_GALLERY, 167, DINE_GALLERY, I_BALCONY)
-	_fill(back, IX0 + 2, DINE_GALLERY - 1, 167, DINE_GALLERY - 1, I_RAIL)
-	_fill(back, 165, DINE_GALLERY + 1, 165, -1, I_PILLAR)
-	for bm in [[171, 178], [186, 192]]:
+	_sprite("window_night.png", Vector2((IX0 + 3) * T + 3, -14 * T), null, "Window")
+	_glow(Vector2((IX0 + 3) * T + 16, -12 * T), Color(0.45, 0.55, 1.0, 0.3), 1.8)
+	# tmavá cesta hore: galéria → dlhý trám A → zavesená polica → trám B nad barom
+	# (trámy visia na stĺpikoch len na koncoch – nápisy kriedou sú na stene medzi nimi a nič ich nepreškrtne)
+	_fill(solid, IX0 + 2, DINE_GALLERY, IX0 + 9, DINE_GALLERY, I_BALCONY)
+	_fill(back, IX0 + 2, DINE_GALLERY - 1, IX0 + 9, DINE_GALLERY - 1, I_RAIL)
+	_fill(back, IX0 + 7, DINE_GALLERY + 1, IX0 + 7, -1, I_PILLAR)
+	for bm in [[155, 176], [184, 200]]:
 		_fill(solid, bm[0], DINE_BEAM, bm[1], DINE_BEAM, I_BEAM)
 		for px in [bm[0], bm[1]]:
 			_fill(back, px, TOP + 1, px, DINE_BEAM - 1, I_PILLAR)   # trám visí na stĺpikoch od stropu
-	_oneway(Vector2(181 * T, DINE_GALLERY * T), 48, "HangingShelf", "hanging_shelf.png", Vector2(0, -28))
+	_oneway(Vector2(179 * T, DINE_GALLERY * T), 48, "HangingShelf", "hanging_shelf.png", Vector2(0, -28))
+	_fill(back, 179, TOP + 1, 179, DINE_GALLERY - 3, I_PILLAR)
 	_fill(back, 181, TOP + 1, 181, DINE_GALLERY - 3, I_PILLAR)
-	_fill(back, 183, TOP + 1, 183, DINE_GALLERY - 3, I_PILLAR)
-	for i in 5:
-		_sprite("photo_%d.png" % (i % 2), Vector2((168 + i * 3) * T + 1, -8 * T), null, "Photo")
-	for gx in [160, 172, 184]:
-		_sprite("garland.png", Vector2(gx * T, (TOP + 3) * T), null, "Garland")
-	# dole: lampy (svetlo celého parketu), banketový stôl, hostia
-	for lx in [164, 175, 185]:
-		_pendant(Vector2(lx * T + 8, -170), true, (TOP + 1) * T)
-	_light(Rect2(IX0 * T + 32, -6 * T, (190 - IX0 - 2) * T, 6 * T))
-	var banquet := _sprite("banquet.png", Vector2(170 * T, -34), null, "Banquet")
+	for gx in [IX0 + 4, 177]:
+		_sprite("garland.png", Vector2(gx * T + 8, (TOP + 3) * T), null, "Garland")
+	for i in 6:
+		_sprite("photo_%d.png" % (i % 2), Vector2((157 + i * 3) * T + 1, -8 * T), null, "Photo")
+	# dole: lampy (pod trámom visia z trámu), svetlo celého parketu
+	_pendant(Vector2(153 * T + 8, -170), true, (TOP + 1) * T)
+	for lx in [161, 170]:
+		_pendant(Vector2(lx * T + 8, -150), true, (DINE_BEAM + 1) * T)
+	_pendant(Vector2(180 * T + 8, -136), true, DINE_GALLERY * T + 12)   # visí zo zavesenej police
+	_light(Rect2((IX0 + 2) * T, -6 * T, (189 - IX0 - 2) * T, 6 * T))
+	# hostia v skupinkách: pri stene, parket s harmonikárom, banket, kokteil pri polici
+	_guest("eat_04", Vector2((IX0 + 3) * T, 0), 1.0)   # pri stene na stoličke
+	_guest("stand_00", Vector2((IX0 + 6) * T, 0), 1.0)
+	_guest("stand_01", Vector2((IX0 + 8) * T, 0), -1.0)
+	_guest("stand_04", Vector2(153 * T, 0), 1.0)
+	_guest("dance", Vector2(156 * T + 8, 0), 1.0, true)
+	_guest("accordion", Vector2(160 * T + 8, 0), -1.0, true)
+	var banquet := _sprite("banquet.png", Vector2(163 * T, -34), null, "Banquet")
 	banquet.z_index = -2
-	for e in [[171, "eat_00", 1.0], [174, "eat_01", 1.0], [177, "eat_02", -1.0], [180, "eat_03", -1.0]]:
+	for e in [[164, "eat_00", 1.0], [166.5, "eat_05", 1.0], [169, "eat_01", 1.0], [171.5, "eat_02", -1.0], [174, "eat_03", -1.0]]:
 		_guest(e[1], Vector2(e[0] * T + 8, 0), e[2], false, -3)
-	_guest("stand_00", Vector2(161 * T + 8, 0), 1.0)
-	_guest("stand_01", Vector2(163 * T + 4, 0), -1.0)
-	_guest("dance", Vector2(167 * T + 8, 0), 1.0, true)
-	_guest("accordion", Vector2(183 * T + 8, 0), -1.0, true)
-	_guest("stand_02", Vector2(186 * T, 0), 1.0)
-	_guest("stand_03", Vector2(188 * T, 0), -1.0)
-	_guest("eat_04", Vector2(160 * T + 8, 0), 1.0)   # pri stene na stoličke
+	_guest("stand_02", Vector2(178 * T, 0), 1.0)
+	_guest("stand_05", Vector2(180 * T, 0), -1.0)
+	_guest("stand_03", Vector2(183 * T, 0), 1.0)
+	_guest("stand_06", Vector2(185 * T, 0), -1.0)
 	# bar pri kuchyni – mafián chrbtom k miestnosti, nad ním lampa (zhasnúť klobúkom!)
 	_sprite("bar_shelf.png", Vector2(194 * T, -116), null, "BarShelf")
 	_oneway(Vector2(194 * T, -44), 112, "Bar", "bar_counter.png")
 	for cx in [196, 199]:
 		_sprite("chianti_candle.png", Vector2(cx * T, -62), null, "Candle")
 		_glow(Vector2(cx * T + 4, -62), Color(1.0, 0.7, 0.35, 0.4), 0.7)
-	_hat_lamp(Vector2(198 * T + 8, -120), Rect2(191 * T + 8, -5 * T, 11 * T, 5 * T))
-	_enemy("gangster_tommy", Vector2(193 * T + 8, 0), 1.0, {"stationary": true})
+	_hat_lamp(Vector2(200 * T + 8, -120), Rect2(193 * T, -5 * T, 11 * T, 5 * T), (DINE_BEAM + 1) * T)   # šnúra vpravo od nápisu kriedou
+	_enemy("gangster_bruiser", Vector2(193 * T + 8, 0), 1.0, {"stationary": true, "kind": "dock"})
 
 
 ## Hosť na oslave (world/npc/guest.gd) – obrázok so 4 snímkami vedľa seba, stojí nohami na pos
@@ -618,9 +647,9 @@ func _guest(tex: String, pos: Vector2, face: float, loop: bool = false, z: int =
 
 
 ## Lampa, ktorú zhasne hodený klobúk (world/fx/hat_lamp.gd): telo na vrstve nepriateľov + kužeľ, žiara, svetlo
-func _hat_lamp(pos: Vector2, light: Rect2) -> void:
+func _hat_lamp(pos: Vector2, light: Rect2, top: float = (TOP + 1) * T) -> void:
 	var cord := Line2D.new()
-	cord.points = PackedVector2Array([Vector2(pos.x, (TOP + 1) * T), Vector2(pos.x, pos.y)])
+	cord.points = PackedVector2Array([Vector2(pos.x, top), Vector2(pos.x, pos.y)])
 	cord.width = 1.0
 	cord.default_color = Color8(30, 26, 26)
 	_node(cord, "Cord", _props_root)
@@ -689,11 +718,26 @@ func _build_kitchen() -> void:
 	_fill(plats, 214, -5, 231, -5, I_SHELF)
 	_sprite("jars.png", Vector2(216 * T, -5 * T - 12), null, "Jars")
 	_sprite("jars.png", Vector2(222 * T, -5 * T - 12), null, "Jars")
-	_enemy("gangster_coppola", Vector2(221 * T + 8, 0), 1.0, {"stationary": true, "look_back": Vector2(4.0, 7.0)})
+	_enemy("gangster_bruiser", Vector2(221 * T + 8, 0), 1.0, {"stationary": true, "look_back": Vector2(4.0, 7.0), "kind": "toro"})
 	# zadná časť: vrecia, sudy, druhý gangster si chodí sem a tam v tme
 	_sprite("flour_sacks.png", Vector2(234 * T, -18), null, "Flour")
 	_sprite("barrel.png", Vector2(238 * T, -24), null, "Barrel")
 	_enemy("gangster_bruiser", Vector2(235 * T, 0), -1.0, {"patrol_span": 40.0, "walk_speed": 22.0})
+
+
+## Vetracie potrubie pod stropom: z trámu B nad barom cez priečku do kuchyne (vnútro 32 px – Ricco sa musí
+## šmyknúť dnu a plaziť sa). Na konci v kuchyni vypadne na tmavú policu nad kuchárom – obíde bar aj dvere.
+func _build_vent() -> void:
+	_fill(solid, VENT_X0, VENT_Y - 1, VENT_X1, VENT_Y - 1, I_DUCT)   # plech hore (aj cez priečku)
+	_fill(solid, VENT_X0, VENT_Y + 2, VENT_X1, VENT_Y + 2, I_DUCT)   # dno (v jedálni nadväzuje na trám B)
+	for y in [VENT_Y, VENT_Y + 1]:
+		for x in range(VENT_X0, VENT_X1 + 1):
+			solid.erase_cell(Vector2i(x, y))
+			back.set_cell(Vector2i(x, y), 1, I_DUCT_IN)
+		back.set_cell(Vector2i(VENT_X0, y), 1, I_DUCT_END)
+		back.set_cell(Vector2i(VENT_X1, y), 1, I_DUCT_END, 1)
+	# vytrhnutá mriežka opretá na tráme pri vstupe
+	_sprite("vent_grille.png", Vector2((VENT_X0 - 1) * T + 2, (VENT_Y + 2) * T - 28), null, "VentGrille")
 
 
 ## Sklad – debny, sudy, polica s lampou pod ňou, strážca hliadkuje; vzadu veža z debien na lávku do herne
@@ -712,7 +756,7 @@ func _build_storage() -> void:
 	_sprite("flour_sacks.png", Vector2(260 * T, -5 * T - 18), null, "Flour")
 	_pendant(Vector2(257 * T + 8, -70), true, -5 * T + 3)
 	_light(Rect2(253 * T, -4 * T, 10 * T, 4 * T))
-	_enemy("gangster_tommy", Vector2(257 * T, 0), -1.0, {"patrol_span": 110.0, "walk_speed": 28.0})
+	_enemy("gangster_slugger", Vector2(257 * T, 0), -1.0, {"patrol_span": 110.0, "walk_speed": 28.0})
 	# police ako schody na lávku (jednosmerné – dole sa dá prejsť, mafián tade chodí k dverám herne)
 	_fill(plats, 265, -3, 266, -3, I_SHELF)
 	_fill(plats, 267, -6, 268, -6, I_SHELF)
@@ -742,7 +786,7 @@ func _speakeasy_door() -> void:
 	cs.position = Vector2(0, -40)
 	_node(cs, "Shape", d)
 	d.set("doorman_path", NodePath("../Doorman"))
-	d.set("messenger_scene", load("res://characters/gangster/gangster_coppola.tscn"))
+	d.set("messenger_scene", load("res://characters/gangster/gangster_bruiser.tscn"))
 	d.set("messenger_from", Vector2(251 * T, 0))   # za debnami pri dverách z kuchyne (mimo obrazovky)
 	d.set("hint_path", NodePath("../KnockHint"))
 	var h := Node2D.new()
@@ -757,8 +801,8 @@ func _speakeasy_door() -> void:
 func _build_casino() -> void:
 	_fill(back, CX0, TOP + 1, KX0 - 1, TOP + 1, I_PAPER_TOP)
 	_fill(back, CX0, TOP + 2, KX0 - 1, -4, I_PAPER)
-	_fill(back, CX0, -3, STAIRS_X - 1, -3, I_WAINSCOT_TOP)
-	_fill(back, CX0, -2, STAIRS_X - 1, -1, I_WAINSCOT)
+	_fill(back, CX0, -3, KX0 - 1, -3, I_WAINSCOT_TOP)   # obklad ide aj nad schodiskom (zadná stena herne pokračuje)
+	_fill(back, CX0, -2, KX0 - 1, -1, I_WAINSCOT)
 	# balkón (plný) so zábradlím a stĺpmi
 	_fill(solid, CX0 + 3, BALCONY_Y, BALCONY_X1, BALCONY_Y, I_BALCONY)
 	_fill(back, CX0 + 3, BALCONY_Y - 1, BALCONY_X1, BALCONY_Y - 1, I_RAIL)
@@ -766,11 +810,11 @@ func _build_casino() -> void:
 	_fill(plats, CX0, -3, CX0 + 1, -3, I_SHELF)
 	_fill(plats, CX0 + 1, -6, CX0 + 2, -6, I_SHELF)
 	_sprite("jars.png", Vector2(CX0 * T, -3 * T - 12), null, "Jars")
-	for px in [291, 300, 311]:
+	for px in [291, 300, 311, 322]:
 		_fill(back, px, BALCONY_Y + 1, px, -1, I_PILLAR)
 	# výzdoba na balkóne: portrét Dona, nástenné lampy (len žiara, nie svetlo – balkón je tmavý)
 	_sprite("don_portrait.png", Vector2(297 * T, (BALCONY_Y - 6) * T), null, "DonPortrait")
-	for sx in [289, 305]:
+	for sx in [289, 305, 320]:
 		_sprite("wall_sconce.png", Vector2(sx * T, (BALCONY_Y - 5) * T), null, "Sconce")
 		_glow(Vector2(sx * T + 5, (BALCONY_Y - 5) * T + 4), Color(1.0, 0.8, 0.5, 0.25), 0.9)
 	# bar vľavo pod balkónom (barman sa pozerá do herne)
@@ -780,13 +824,12 @@ func _build_casino() -> void:
 		_sprite("chianti_candle.png", Vector2(cx * T, -62), null, "Candle")
 		_glow(Vector2(cx * T + 4, -62), Color(1.0, 0.7, 0.35, 0.4), 0.7)
 	_light(Rect2(286 * T, -5 * T, 8 * T, 5 * T))
-	_enemy("gangster_bruiser", Vector2(290 * T, 0), 1.0, {"stationary": true})
 	# vyhadzovač hneď za dverami (pozerá na dvere, kým sa neotvoria)
-	_enemy("gangster_coppola", Vector2(CX0 * T + 40, 0), -1.0, {"stationary": true})
+	_enemy("gangster_bruiser", Vector2(CX0 * T + 40, 0), -1.0, {"stationary": true, "kind": "bouncer"})
 	lvl.get_child(lvl.get_child_count() - 1).name = "Doorman"
 	_speakeasy_door()
 	# stoly – každý pod zelenou lampou, okolo dvaja hráči otočení k stolu
-	for t in [[294, "card_table.png", 64], [305, "roulette.png", 72]]:
+	for t in [[294, "card_table.png", 64], [305, "roulette.png", 72], [316, "card_table.png", 64]]:
 		var tx: int = t[0]
 		var w: int = t[2]
 		var ty: int = -30 if w == 64 else -32
@@ -795,29 +838,78 @@ func _build_casino() -> void:
 		_pendant(Vector2(tx * T + w / 2.0, -90), true, (BALCONY_Y + 1) * T)
 		_light(Rect2(tx * T - 40, -5 * T, w + 80, 5 * T))
 	_smoke(Vector2(301 * T, -70))
-	_enemy("gangster_tommy", Vector2(293 * T, 0), 1.0, {"stationary": true})
-	_enemy("gangster_coppola", Vector2(299 * T + 4, 0), -1.0, {"stationary": true, "look_back": Vector2(5.0, 9.0)})
-	_enemy("gangster_bruiser", Vector2(304 * T - 4, 0), 1.0, {"stationary": true})
-	_enemy("gangster_tommy", Vector2(310 * T + 8, 0), -1.0, {"stationary": true})
+	_smoke(Vector2(318 * T, -70))
+	# hráči – každý pri inom stole, ďaleko od seba (nie na kope)
+	_enemy("gangster_bruiser", Vector2(293 * T, 0), 1.0, {"stationary": true, "kind": "toro"})
+	_enemy("gangster_bruiser", Vector2(310 * T + 8, 0), -1.0, {"stationary": true, "look_back": Vector2(5.0, 9.0), "kind": "dock"})
+	_enemy("gangster_bruiser", Vector2(321 * T + 8, 0), -1.0, {"stationary": true, "kind": "toro"})
 	# hliadka na balkóne
-	_enemy("gangster_tommy", Vector2(300 * T, BALCONY_Y * T), -1.0, {"patrol_span": 80.0, "walk_speed": 26.0})
+	_enemy("gangster_slugger", Vector2(300 * T, BALCONY_Y * T), -1.0, {"patrol_span": 80.0, "walk_speed": 26.0})
 	for i in 3:
-		_sprite("photo_%d.png" % (i % 2), Vector2((314 + i * 4) * T, -6 * T), null, "Photo")
+		_sprite("photo_%d.png" % (i % 2), Vector2((330 + i * 4) * T, -6 * T), null, "Photo")
 
 
 ## Schody dole z herne – tmavé schodisko; hore na ňom začne prechod do pivnice (samostatná mapa, levels/level1/cellar.tscn)
 func _build_stairwell() -> void:
 	for i in 6:
-		_fill(solid, STAIRS_X + i, i + 1, STAIRS_X + i, 12, I_STONE)
+		_fill(solid, STAIRS_X + i, i + 2, STAIRS_X + i, 12, I_STAIR_FILL)
+		solid.set_cell(Vector2i(STAIRS_X + i, i + 1), 1, I_STAIR_TOP[0])
+	for i in 7:
+		solid.set_cell(Vector2i(STAIRS_X + i, i), 1, I_NOSE[0])   # jemné schodíky presne po rampe (bez kolízie)
+	# šikmá rampa cez hrany schodov (45°) – po schodoch sa ide plynule, nie skokmi po 16 px
+	_stair_ramp(PackedVector2Array([Vector2(STAIRS_X * T, 0), Vector2((STAIRS_X + 7) * T, 7 * T), Vector2(STAIRS_X * T, 7 * T)]))
 	_fill(solid, STAIRS_X, 7, KX0 + 1, 12, I_UNDER)
 	_fill(solid, KX0, TOP, KX0 + 1, 6, I_WALL)
 	_fill(solid, KX0 + 2, TOP, KX1 + 2, 12, I_DARK)
-	_fill(back, STAIRS_X, 1, KX0 - 1, 6, I_STONE_BG)
-	_fill(back, STAIRS_X, -3, KX0 - 1, -1, I_STONE_BG)
+	_fill(back, STAIRS_X, 0, KX0 - 1, 6, I_STONE_BG)   # pod úrovňou podlahy kameň (aj riadok podlahy – inak tam bola diera)
 	# dole sa stráca v tme (čierny prechod cez spodné schody)
 	var fade := _sprite("stair_fade.png", Vector2((STAIRS_X + 2) * T, 1 * T), null, "StairFade")
 	fade.z_index = 3
 	_glow(Vector2((STAIRS_X + 3) * T, 4 * T), Color(1.0, 0.75, 0.45, 0.18), 1.6)   # slabé svetlo zdola (Donova žiarovka)
+
+
+## Neviditeľná šikmá rampa cez schody (Godot docs: classes/class_collisionpolygon2d). Postavy majú
+## floor_max_angle 50°, takže po 45° rampe chodia ako po zemi; schodíky sú len obrázok pod ňou.
+## Bežný postup v 2D plošinovkách – kolízia schodov ako svah, kresba ako schody.
+func _stair_ramp(pts: PackedVector2Array) -> void:
+	var b := StaticBody2D.new()
+	b.collision_layer = 1
+	b.collision_mask = 0
+	_node(b, "StairRamp", lvl)
+	var cp := CollisionPolygon2D.new()
+	cp.polygon = pts
+	_node(cp, "Shape", b)
+
+
+## Dlaždica schodu (znak ^): vnútro je kameň, vrchný blok pod schodíkmi má len posledný schodík,
+## najvyšší schod má rovný vrch
+func _stair_tile(x: int, y: int) -> Vector2i:
+	if _mz_solid(x, y - 1):
+		return TN_STAIR_FILL
+	if _mz(x - 1, y - 1) == "^":
+		return TN_STAIR_TOP[0]
+	if _mz(x + 1, y - 1) == "^":
+		return TN_STAIR_TOP[1]
+	return TN_STAIR_FLAT
+
+
+## Rampy cez schody v pivnici (znak ^): pri každom schode, za ktorým je o riadok nižšie ďalší schod
+## alebo zem, vyplní trojuholník nad nižším políčkom – spolu tvoria jeden 45° svah po hranách schodov.
+func _maze_ramps() -> void:
+	var tris: Array[PackedVector2Array] = []
+	for y in _maze.size():
+		for x in _maze[y].length():
+			if _mz(x, y) != "^" or _mz_solid(x, y - 1):
+				continue   # len vrchný schod v stĺpci
+			for dir in [1, -1]:
+				var nx: int = x + dir
+				if _mz_solid(nx, y) or not _mz_solid(nx, y + 1):
+					continue   # vedľa nie je o riadok nižšie povrch
+				var edge: float = (x + (1 if dir > 0 else 0)) * T   # hrana schodu
+				tris.append(PackedVector2Array([Vector2(edge, y * T), Vector2(edge + dir * T, (y + 1) * T), Vector2(edge, (y + 1) * T)]))
+				solid.set_cell(Vector2i(nx, y), 2, TN_NOSE[0 if dir > 0 else 1])   # kresba schodíkov presne po rampe
+	for t in tris:
+		_stair_ramp(t)
 
 
 ## Miesto, kde leží Don: kaluž krvi so špliechancami, kabát, klobúk, pištoľ, prevrátená stolička,
@@ -983,10 +1075,10 @@ func _hints() -> void:
 		[Vector2(114, -6), "S / CTRL  -  BELLY SLIDE"],
 		[Vector2(116, -13), "WALL JUMP:\nJUMP AT THE WALL,\nTHEN PRESS SPACE AGAIN"],
 		[Vector2(122, -24), "UP TO THE WINDOW!"],
-		[Vector2(160, -16), "NO GUN, NO CHANCE. STAY UP HERE IN THE DARK -\nDOWN IN THE LIGHT EVERYBODY SEES YOU."],
-		[Vector2(182.5, -16), "RIGHT MOUSE / E  -  THROW HAT\nPUT OUT THAT LAMP FIRST"],
-		[Vector2(186.5, -9.4), "HOLD C  -  SNEAK\nF  -  TAKE HIM DOWN FROM BEHIND"],
-		[Vector2(205, -13), "THEY DON'T SEE BEHIND THEM...\nUNTIL THEY TURN AROUND."],
+		[Vector2(156.3, -16.6), "NO GUN? STAY UP HERE IN THE DARK.\nDOWN IN THE LIGHT EVERYBODY SEES YOU."],
+		[Vector2(185.4, -16.6), "RIGHT MOUSE / E  -  THROW HAT\nPUT OUT THAT LAMP FIRST"],
+		[Vector2(182.3, -10.7), "{SNEAK}\nF  -  TAKE HIM DOWN FROM BEHIND"],
+		[Vector2(216, -14), "THEY DON'T SEE BEHIND THEM...\nUNTIL THEY TURN AROUND."],
 		[Vector2(243, -13), "THE HIGH ROAD IS DARKER."],
 		[Vector2(283, -15), "A HAT TO THE HEAD STUNS HIM.\nTHEN F  -  FINISH THE JOB."],
 	]
@@ -1066,15 +1158,21 @@ func _build_cellar_scene(ts: TileSet) -> void:
 				bgt = TN_BG_POST
 			if y <= 2 and x <= 2:
 				bgt = TN_VOID   # schodisko hore do herne – tma
+			if CATACOMB.has_point(cell):
+				var r := rng.randf()
+				bgt = TN_OSSUARY[0] if r < 0.55 else (TN_OSSUARY[1] if r < 0.75 else TN_BG[rng.randi() % 2])
 			back.set_cell(cell, 2, bgt)
 			match c:
-				"^": solid.set_cell(cell, 2, TN_STEP)
+				"^": solid.set_cell(cell, 2, _stair_tile(x, y))
 				"R": solid.set_cell(cell, 2, TN_RUBBLE)
 				"|": solid.set_cell(cell, 2, TN_BARS)
 				"x": solid.set_cell(cell, 2, TN_CRATE)
 				"=": plats.set_cell(cell, 2, TN_GRATE)
 				"-": plats.set_cell(cell, 2, TN_PLANK)
-				"~": water.set_cell(cell, 2, TN_WATER)
+				"~": water.set_cell(cell, 2, TN_SURFACE if _mz(x, y + 1) == "%" else TN_WATER)
+				"%": water.set_cell(cell, 2, TN_DEEP)
+	_maze_ramps()
+	_water_zone()
 	# objekty podľa znakov
 	for y in h:
 		for x in w:
@@ -1085,6 +1183,10 @@ func _build_cellar_scene(ts: TileSet) -> void:
 				"K": _marker("EnemySpawn", foot)
 				"b": _bulb(Vector2((x + 0.5) * T, y * T), _floor_below(x, y))
 				"o": _sprite("blood_drop.png", foot + Vector2(-3, -3), null, "Blood")
+				"c":
+					_sprite("chianti_candle.png", foot + Vector2(-4, -18), null, "Candle")
+					var cg := _glow(foot + Vector2(0, -16), Color(1.0, 0.65, 0.3, 0.5), 1.5)
+					cg.set_script(load("res://world/fx/flicker.gd"))
 				"r":
 					var rat := Sprite2D.new()
 					rat.set_script(load("res://world/npc/rat.gd"))
@@ -1097,8 +1199,8 @@ func _build_cellar_scene(ts: TileSet) -> void:
 					_sprite("still.png", foot + Vector2(-8, -48), null, "Still")
 					var sg := _glow(foot + Vector2(8, -4), Color(1.0, 0.55, 0.2, 0.5), 1.4)
 					sg.set_script(load("res://world/fx/flicker.gd"))
-				"G": _enemy("gangster_tommy", foot, 1.0, {"patrol_span": 150.0, "walk_speed": 26.0, "flashlight": true})
-				"g": _enemy("gangster_coppola", foot, 1.0, {"stationary": true, "look_back": Vector2(6.0, 10.0)})
+				"G": _enemy("gangster_bruiser", foot, 1.0, {"patrol_span": 150.0, "walk_speed": 26.0, "flashlight": true, "kind": "dock"})
+				"g": _enemy("gangster_slugger", foot, 1.0, {"stationary": true, "look_back": Vector2(6.0, 10.0)})
 				"X": _chalk(_props_root, Vector2(x * T, y * T), "X", 90)
 				"D": _cellar_don(x, y, foot)
 				"E":
@@ -1116,19 +1218,21 @@ func _build_cellar_scene(ts: TileSet) -> void:
 	# checkpoint dole v C (pod šachtou z B-vľavo)
 	_marker("TunnelSpawn", Vector2(6.5 * T, 26 * T))
 	_trigger("TunnelCheckpoint", Vector2(6.5 * T, 24 * T), Vector2(64, 64))
+	_trigger("CatacombsTrigger", Vector2(15.5 * T, 23 * T), Vector2(32, 64))   # pred zatopenou kostnicou – Ricco sa zháči
 	# nápisy kriedou
 	var hints := Node2D.new()
 	_node(hints, "Hints", lvl)
 	hints.z_index = -4
 	_chalk(hints, Vector2(16, 12.2) * T, "TOO LOW? S / CTRL -\nSLIDE UNDER THE ARCH", 81)
-	_chalk(hints, Vector2(58, 21) * T, "UP THE SHAFT:\nWALL JUMP, WALL JUMP...", 82)
+	_chalk(hints, Vector2(130, 21) * T, "UP THE SHAFT:\nWALL JUMP, WALL JUMP...", 82)
 	_chalk(hints, Vector2(53, 12) * T, "NO WAY THROUGH THE BARS.", 83)
+	_chalk(hints, Vector2(19.3, 20.6) * T, "S  -  DIVE\nUNDER WATER\nNOBODY SEES YOU", 84)
 	var fh := Node2D.new()
 	_node(fh, "FightHints", lvl)
 	fh.z_index = -4
 	fh.visible = false
-	_chalk(fh, Vector2(81.5, 12.2) * T, "LEFT MOUSE  -  SHOOT\nR  -  RELOAD", 41)
-	_chalk(fh, Vector2(84, 15.2) * T, "SHIFT  -  SLOW DOWN TIME\n(THE DON'S GHOST)", 42)
+	_chalk(fh, Vector2(153.5, 12.2) * T, "LEFT MOUSE  -  SHOOT\nR  -  RELOAD", 41)
+	_chalk(fh, Vector2(156, 15.2) * T, "SHIFT  -  SLOW DOWN TIME\n(THE DON'S GHOST)", 42)
 	var dark := CanvasModulate.new()
 	dark.color = Color(0.46, 0.42, 0.5)
 	_node(dark, "Darkness", lvl)
@@ -1142,6 +1246,39 @@ func _build_cellar_scene(ts: TileSet) -> void:
 	print("save cellar: ", ResourceSaver.save(scene, "res://levels/level1/cellar.tscn"))
 	lvl.free()
 	_src = 0
+
+
+## Hlboká voda (znak %) – stĺpce vody spojí do obdĺžnikov pre WaterZone (world/water/water_zone.gd).
+## Hladina (~) je v polovici políčka; pod nízkym stropom (sifón) voda siaha až po strop a hladina nie je.
+func _water_zone() -> void:
+	var cols: Array = []   # [x, hore px, dole px, má hladinu]
+	for x in _maze[0].length():
+		var y := 0
+		while y < _maze.size():
+			if _mz(x, y) in ["~", "%"]:
+				var y0 := y
+				var deep := false
+				while _mz(x, y) in ["~", "%"]:
+					deep = deep or _mz(x, y) == "%"
+					y += 1
+				if deep:
+					var open := _mz(x, y0) == "~" or not _mz_solid(x, y0 - 1)
+					cols.append([x, y0 * T + (8 if _mz(x, y0) == "~" else 0), y * T, open])
+			y += 1
+	var zone := Node2D.new()
+	zone.set_script(load("res://world/water/water_zone.gd"))
+	var rects: Array[Rect2] = []
+	var tops: Array[bool] = []
+	for c in cols:
+		var n := rects.size()
+		if n > 0 and rects[n - 1].end.x == c[0] * T and rects[n - 1].position.y == c[1] and rects[n - 1].end.y == c[2] and tops[n - 1] == c[3]:
+			rects[n - 1].size.x += T
+		else:
+			rects.append(Rect2(c[0] * T, c[1], T, c[2] - c[1]))
+			tops.append(c[3])
+	zone.set("rects", rects)
+	zone.set("open_top", tops)
+	_node(zone, "Water", lvl)
 
 
 func _marker(nm: String, pos: Vector2) -> void:
@@ -1187,7 +1324,7 @@ func _cellar_don(x: int, y: int, foot: Vector2) -> void:
 	top = yy
 	_build_don(foot, top * T)
 	_trigger("DonTrigger", foot + Vector2(-3 * T, -30), Vector2(24, 60))
-	for wx in [x - 2]:
+	for wx in [x - 6, x - 2, x + 2]:   # regály spolu za Donom – nie za policami (tie by cez ne prechádzali)
 		_sprite("wine_rack.png", Vector2(wx * T, foot.y - 88), null, "WineRack")
-	for b in [[x + 2, 0], [x + 3, 0], [x + 2.5, -1]]:
+	for b in [[x + 2, 0], [x + 3, 0], [x + 2.5, -1], [x + 10, 0], [x + 11.2, 0]]:
 		_sprite("barrel.png", Vector2(b[0] * T, foot.y - 24 + b[1] * 24), null, "Barrel")

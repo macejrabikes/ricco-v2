@@ -22,8 +22,9 @@ static var checkpoint: int = 0
 static var intro_done: bool = false
 ## Príchod do pivnice (zostup po schodoch + hláška) len raz
 static var cellar_arrived: bool = false
+## Hláška pri zatopených katakombách (pivnica) len raz
+static var catacombs_seen: bool = false
 
-const PORTRAIT_RICCO := preload("res://characters/don/portrait_ricco.png")
 const INTRO: Array[String] = [
 	"Don Vito rang me at midnight. 'Come to the pizzeria, kid. Back way. Nobody sees you.'",
 	"When the Don calls, you don't ask why. You just come.",
@@ -32,6 +33,8 @@ const INTRO: Array[String] = [
 
 const SPAWNS: Array[StringName] = [&"", &"InteriorSpawn", &"CasinoSpawn"]
 const CELLAR := "res://levels/level1/cellar.tscn"   ## pivnica – samostatná mapa (checkpoint 3+)
+const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
+const LoadingScreen := preload("res://ui/loading/loading_screen.gd")   ## prechod medzi scénami bez preblikovania
 
 var _ended: bool = false
 var _inside: bool = false
@@ -119,20 +122,14 @@ func _descend() -> void:
 	tw.parallel().tween_property(black, "color:a", 1.0, 1.1).set_delay(0.5)
 	await tw.finished
 	checkpoint = maxi(checkpoint, 3)
-	get_tree().change_scene_to_file(CELLAR)
+	LoadingScreen.go(get_tree(), CELLAR, 0.0)   # obraz je už čierny
 
 
-## Ricco na začiatku vysvetlí, prečo je tu (I1)
+## Ricco na začiatku vysvetlí, prečo je tu (I1) – ako myšlienky (ThoughtBox), hráč sa medzitým môže hýbať
 func _intro() -> void:
 	intro_done = true
-	player.set_cutscene(true)
 	await get_tree().create_timer(0.8).timeout
-	var box := DialogBox.new()
-	add_child(box)
-	for line in INTRO:
-		await box.say("RICCO", PORTRAIT_RICCO, line)
-	box.close()
-	player.set_cutscene(false)
+	ThoughtBox.think(self, INTRO)
 
 
 ## Vyhadzovač pred pizzeriou – dnu sa nedá, Ricco musí zadom (raz)
@@ -147,7 +144,8 @@ func _on_bouncer_talk(b: Node) -> void:
 	_bouncer_talked = true
 	speech(bouncer, "PRIVATE PARTY TONIGHT.\nBEAT IT, BIRD.", Color8(245, 235, 209), 3.0, -66.0)
 	await get_tree().create_timer(2.6).timeout
-	speech(player, "...BACK WAY IT IS.", Color8(245, 235, 209), 2.6, -72.0)
+	var back_way: Array[String] = ["...Back way it is."]
+	ThoughtBox.think(self, back_way)
 
 
 ## Krátka hláška nad postavou (nezastaví hru, sama zmizne)
@@ -233,7 +231,7 @@ func _ambience(inside: bool) -> void:
 			Sfx.loop(&"neon_buzz", _amb, neon.global_position + Vector2(10, 30), -8.0)
 	else:
 		Sfx.loop(&"rain_inside", _amb, Vector2.INF, -6.0)
-		Sfx.loop(&"crowd", _amb, Vector2(178 * 16, -60), 2.0)
+		Sfx.loop(&"crowd", _amb, Vector2(170 * 16, -60), 2.0)
 		Sfx.loop(&"kitchen", _amb, Vector2(216 * 16, -40), -2.0)
 
 
@@ -282,7 +280,7 @@ func chapter_end() -> void:
 	tw.tween_interval(3.0)
 	tw.tween_callback(func():
 		checkpoint = 0
-		get_tree().change_scene_to_file("res://ui/main_menu/main_menu.tscn"))
+		LoadingScreen.go(get_tree(), MAIN_MENU, 0.6))
 
 
 func _on_end(body: Node) -> void:

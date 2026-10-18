@@ -8,11 +8,11 @@ const ROWS := [
 	[["ĽAVÉ TL."], "streľba"],
 	[["PRAVÉ TL.", "E"], "hod klobúka"],
 	[["R"], "prebiť"],
-	[["1", "2", "3", "4"], "zbrane  (aj koliesko, Q = posledná)"],
+	[["1", "2", "3"], "bočná / hlavné zbrane  (aj koliesko, Q = posledná)"],
 	[["SHIFT"], "spomalenie – duch Dona"],
 	[["S", "CTRL"], "šmyk po bruchu  (aj šípka dole)"],
 	[["C", "ALT"], "zakrádanie (drž)"],
-	[["F"], "zneškodniť zozadu"],
+	[["F"], "zneškodniť zozadu, vymeniť zbraň zo zeme"],
 	[["ESC", "P"], "pauza"],
 	[["F2"], "štýl HUD"],
 	[["K", "H"], "TEST: zásah / vyliečiť"],
@@ -61,8 +61,21 @@ func _ready() -> void:
 		desc.add_theme_color_override(&"font_color", CREAM)
 		desc.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		grid.add_child(desc)
+		if row[1].begins_with("zakrádanie"):
+			_sneak_desc = desc
+	add_to_group(&"controls_help")
+	refresh()
 	_place.call_deferred()
 	get_viewport().size_changed.connect(_place)
+
+
+var _sneak_desc: Label
+
+## Popis zakrádania podľa nastavenia (drž / prepínaj) – volá ho aj menu po zmene (ui/pause_menu/menu_pages.gd)
+func refresh() -> void:
+	if _sneak_desc:
+		_sneak_desc.text = "zakrádanie (zapnúť / vypnúť)" if GameSettings.sneak_toggle else "zakrádanie (drž)"
+	_place.call_deferred()
 
 
 ## Retro klávesa: tmavé tlačidlo so spodnou hranou (vyzerá „vystúpene“)

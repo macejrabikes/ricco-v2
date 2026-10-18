@@ -5,8 +5,10 @@ extends Control
 ## Nadpis RICCO sa na začiatku rozsvieti ako neón. Menu vpravo, väčšie písmo, za ním tmavý prechod.
 ## Stránky nastavení a ovládania sú spoločné s pause menu (ui/pause_menu/menu_pages.gd).
 ##   START GAME – level 1 (Pizzeria Don Vito)
+##   ARSENAL – všetky zbrane a ich štatistiky (zamknuté sú zakryté)
 ##   DEBUG ROOM – testovacia miestnosť (gangstri, terče, všetky zbrane)
 
+const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const LEVEL_1 := "res://levels/level1/level1.tscn"
 const DEBUG_ROOM := "res://levels/test_room/test_room.tscn"
 const WINDOW_LIT := preload("res://levels/level1/art/window_lit.png")
@@ -57,7 +59,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		GameSettings.save()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"pause") and page != Page.MAIN:
-		_show_page(Page.SETTINGS if page == Page.AUDIO else Page.MAIN)
+		if pages.esc_back.is_valid():
+			pages.esc_back.call()   # o stránku späť (napr. DISPLAY → SETTINGS → hlavná)
+		else:
+			_show_page(Page.MAIN)
 		get_viewport().set_input_as_handled()
 
 
@@ -67,9 +72,9 @@ func _show_page(p: Page) -> void:
 		Page.MAIN:
 			pages.clear()
 			var first := pages.item("START GAME", _start.bind(LEVEL_1))
+			pages.item("ARSENAL", _open_arsenal)
 			pages.item("DEBUG ROOM", _start.bind(DEBUG_ROOM))
 			pages.item("SETTINGS", _show_page.bind(Page.SETTINGS))
-			pages.item("CONTROLS", _show_page.bind(Page.CONTROLS))
 			pages.item("QUIT", func(): get_tree().quit())
 			pages.hint("ENTER  SELECT     F11  FULLSCREEN")
 			pages.focus(first)
@@ -81,7 +86,18 @@ func _show_page(p: Page) -> void:
 			pages.controls_page(_show_page.bind(Page.MAIN))
 
 
-## Stmavne a prepne na level
+## Arsenal – stena so zbraňami (ui/arsenal/arsenal.gd), po zatvorení späť na hlavnú stránku
+func _open_arsenal() -> void:
+	pages.clear()
+	var a := Arsenal.new()
+	add_child(a)
+	move_child(a, fade.get_index())   # pod stmievaním
+	a.closed.connect(func():
+		a.queue_free()
+		_show_page(Page.MAIN))
+
+
+## Stmavne a prepne na level (čierna clona navrchu, načítanie na pozadí – ui/loading/loading_screen.gd)
 func _start(path: String) -> void:
 	if _leaving:
 		return
@@ -89,10 +105,9 @@ func _start(path: String) -> void:
 	Level1.checkpoint = 0   # nová hra začína na ulici
 	Level1.intro_done = false
 	Level1.cellar_arrived = false
+	Level1.catacombs_seen = false
 	get_viewport().gui_release_focus()
-	var tw := create_tween()
-	tw.tween_property(fade, "color:a", 1.0, 0.4)
-	tw.tween_callback(func(): get_tree().change_scene_to_file(path))
+	LoadingScreen.go(get_tree(), path, 0.4)
 
 
 # ---------------------------------------------------------------- živé pozadie

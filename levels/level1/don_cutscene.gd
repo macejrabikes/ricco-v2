@@ -14,8 +14,9 @@ const PORTRAIT_RICCO := preload("res://characters/don/portrait_ricco.png")
 const DON_DEAD := preload("res://characters/don/don_dead.png")
 const SWEAT := preload("res://characters/don/sweat.png")
 const DOOR_OPEN := preload("res://levels/level1/art/cellar_door_open.png")
-const PISTOL := preload("res://weapons/pistol/pistol.tres")
-const WAVE := ["gangster_tommy", "gangster_coppola", "gangster_bruiser"]
+const DERRINGER := preload("res://weapons/derringer/derringer.tres")   ## Donov skrytý derringer – prvá Riccova zbraň
+## Prvá prestrelka – v 1. leveli len bitkári (päste / palica), rôzne oblečení (Gangster.kind); derringer ich zloží na 2 rany
+const WAVE := ["dock", "slugger", "bouncer"]
 
 const DON := "DON VITO"
 const GHOST := "THE DON'S GHOST"
@@ -43,6 +44,7 @@ func _ready() -> void:
 	level = get_parent()
 	ghost.visible = false
 	ghost_glow.visible = false
+	gun.texture = DERRINGER.texture   # na zemi leží Donov derringer (scénu generuje tools/build_level1.gd)
 	var trig := level.get_node_or_null(^"DonTrigger") as Area2D
 	if trig:
 		trig.body_entered.connect(_on_trigger)
@@ -56,7 +58,7 @@ func _ready() -> void:
 		_skip_to_fight.call_deferred()
 
 
-## Checkpoint po cutscéne (Ricco zomrel v prestrelke): Don je mŕtvy, Ricco má pištoľ, gangstri prídu znova
+## Checkpoint po cutscéne (Ricco zomrel v prestrelke): Don je mŕtvy, Ricco má derringer, gangstri prídu znova
 func _skip_to_fight() -> void:
 	_played = true
 	player = get_tree().get_first_node_in_group(&"player") as Node2D
@@ -64,7 +66,7 @@ func _skip_to_fight() -> void:
 	coat.visible = false
 	gun.visible = false
 	player.global_position = Vector2(global_position.x - 40, global_position.y)
-	var list: Array[WeaponData] = [PISTOL]
+	var list: Array[WeaponData] = [DERRINGER]
 	player.set_loadout(list)
 	player.focus.unlocked = true
 	player.dark_area = false   # v prestrelke sa už neskrýva – nestmavne
@@ -143,8 +145,8 @@ func _play() -> void:
 	await box.say(GHOST, PORTRAIT_GHOST, "So I'll lend you a hand. Two of 'em. Now let's go teach these bums some manners.", true)
 	box.close()
 	await _ghost_merge()
-	# odteraz má Ricco pištoľ (drží ju ruka ducha) a spomalenie
-	var list: Array[WeaponData] = [PISTOL]
+	# odteraz má Ricco Donov derringer (drží ho ruka ducha) a spomalenie
+	var list: Array[WeaponData] = [DERRINGER]
 	player.set_loadout(list)
 	player.focus.unlocked = true
 	player.dark_area = false   # v prestrelke sa už neskrýva – nestmavne
@@ -288,7 +290,10 @@ func _start_fight() -> void:
 	await _wait(0.9)
 	var spawn := level.get_node(^"EnemySpawn") as Node2D
 	for i in WAVE.size():
-		var g: Node2D = load("res://characters/gangster/%s.tscn" % WAVE[i]).instantiate()
+		var scene := "gangster_slugger" if WAVE[i] == "slugger" else "gangster_bruiser"   # slugger má vlastné hodnoty (palica)
+		var g: Node2D = load("res://characters/gangster/%s.tscn" % scene).instantiate()
+		g.set("kind", WAVE[i])
+		g.set("max_health", 3)
 		g.set("respawn_time", 0.0)
 		g.set("start_facing", 1.0)
 		g.set("sight_range", 420.0)

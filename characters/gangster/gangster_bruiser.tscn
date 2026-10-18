@@ -4,7 +4,7 @@
 
 [node name="GangsterBruiser" type="CharacterBody2D"]
 script = ExtResource("1_g")
-kind = "bruiser"
+kind = "dock"
 max_health = 5
 walk_speed = 30.0
 run_speed = 105.0

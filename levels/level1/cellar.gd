@@ -6,7 +6,7 @@ extends Level1
 ##
 ## Checkpointy (Level1.checkpoint): 3 = príchod do pivnice, 4 = dolný tunel (C), 5 = po cutscéne (Ricco má pištoľ).
 
-const MAP := Rect2i(0, 0, 1600, 512)
+const MAP := Rect2i(0, 0, 3072, 512)
 
 
 func _ready() -> void:
@@ -36,6 +36,13 @@ func _ready() -> void:
 		cp.body_entered.connect(func(b: Node):
 			if b == player:
 				checkpoint = maxi(checkpoint, 4))
+	var cat := get_node_or_null(^"CatacombsTrigger") as Area2D
+	if cat:
+		cat.body_entered.connect(func(b: Node):
+			if b == player and not catacombs_seen:
+				catacombs_seen = true
+				var lines: Array[String] = ["Skulls...? Catacombs under a pizzeria.", "...And flooded. Good thing I'm a penguin."]
+				ThoughtBox.think(self, lines))
 	var tw := create_tween()
 	tw.tween_interval(0.3)
 	tw.tween_property(black, "color:a", 0.0, 0.8)
@@ -57,8 +64,7 @@ func _arrive() -> void:
 	await tw.finished
 	player.sprite.play(player._hat_anim(&"idle"))
 	await get_tree().create_timer(0.4).timeout
-	speech(player, "BOSS...? YOU DOWN HERE?", Color8(245, 235, 209), 2.4, -64.0)
-	await get_tree().create_timer(2.4).timeout
-	speech(player, "...BLOOD. HE'S HURT.\nI GOTTA FOLLOW IT.", Color8(245, 235, 209), 2.8, -64.0)
-	await get_tree().create_timer(0.6).timeout
+	var lines: Array[String] = ["Boss...? You down here?", "...Blood. He's hurt. I gotta follow it."]
+	ThoughtBox.think(self, lines)
+	await get_tree().create_timer(1.0).timeout
 	player.set_cutscene(false)

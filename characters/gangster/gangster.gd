@@ -8,11 +8,16 @@ extends CharacterBody2D
 ##   hliadka → zbadá Ricca (lúč bez steny, dosah, pozerá sa jeho smerom)
 ##   strelec: mieri (červená čiara – čas uskočiť / šmyknúť sa) → dávka → pauza → znova
 ##   bitkár:  beží k Riccovi → napriahne sa → úder → oddych
+##            noví bitkári (dock, toro, bouncer, slugger) majú ruky z dvoch častí (nadlaktie + predlaktie s päsťou)
+##            a pózy pokoj / kryt / náprah / úder; slugger drží palicu obomi rukami (dve kosti, IK k palici)
 ##   zásah: biely záblesk, krv, krátke zakolísanie; klobúk od Ricca ho omráči a zhodí mu klobúk
 ##   smrť: padne na chrbát, zbraň a klobúk odletia, vypadne krabička nábojov; v test room sa po chvíli objaví znova
+##   kamaráti: keď niekoho vedľa zložíš (aj potichu), blízky to počuje a ten, čo sa tam pozerá, to vidí → vie o Riccovi;
+##             ďalší v okolí (aj výstrel – Gangster.noise) sa s „?“ idú pozrieť (INVESTIGATE), potom sa vrátia na miesto
+##   nechodia cez seba: na hliadke sa pri kamarátovi otočia, pri behu za Riccom sa nezhlukujú
 ## Spomalenie času (Engine.time_scale) spomalí aj jeho a jeho guľky – netreba nič riešiť.
 
-enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, STUN, DEAD }
+enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, STUN, DEAD, INVESTIGATE }
 
 @export var kind: String = "tommy"                ## priečinok s časťami tela (characters/gangster/<kind>/)
 @export var weapon: WeaponData                    ## zbraň (obrázok, ústie); null = bije päsťami
@@ -41,6 +46,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var punch_range: float = 30.0
 @export var windup_time: float = 0.35
 @export var recover_time: float = 0.6
+@export var melee_damage: int = 1                 ## koľko životov vezme úder (palica 2)
 
 @export_group("Stealth")
 @export_range(-1.0, 1.0, 2.0) var start_facing: float = -1.0   ## -1 = doľava, 1 = doprava
@@ -58,6 +64,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 const BULLET := preload("res://weapons/pistol/bullet.tscn")
 const DROP := preload("res://weapons/pistol/magazine_drop.tscn")
 const AMMO := preload("res://props/ammo/ammo_pickup.tscn")
+const WEAPON_PICKUP := preload("res://weapons/weapon_pickup.gd")
 const FLASH := preload("res://weapons/pistol/muzzle_flash_big.png")
 
 ## Spoločné body kostry (nohy na y = 0, pozerá sa doprava)
@@ -74,16 +81,44 @@ const PIVOT_LEG := Vector2(4, 1)
 const PIVOT_HEAD := Vector2(7, 19)
 const PIVOT_ARM := Vector2(4, 4)
 const ARM_GRIP := Vector2(20, 3)
+## Ruka z dvoch častí (upper.png + fore.png): rameno v PIVOT_UPPER, lakeť o UPPER_LEN ďalej,
+## predlaktie má lakeť v PIVOT_FORE a stred päste o FORE_LEN ďalej
+const PIVOT_UPPER := Vector2(4, 4)
+const PIVOT_FORE := Vector2(3, 5)
+const UPPER_LEN := 8.0
+const FORE_LEN := 12.0
+const BAT_GRIP := Vector2(6, 4)                  ## úchop palice v bat.png
 const RIGS := {
 	"tommy": {"torso": Vector2(11, 26), "hat": Vector2(13, 10)},
 	"coppola": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},
 	"bruiser": {"torso": Vector2(14, 27)},
+	"dock": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},
+	"toro": {"torso": Vector2(14, 28)},
+	"bouncer": {"torso": Vector2(14, 28), "hat": Vector2(11, 8)},
+	"slugger": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},
 }
+## Pózy dvojdielnych rúk: [nadlaktie predné, predlaktie predné, nadlaktie zadné, predlaktie zadné, náklon px]
+## uhly sú v kostre otočenej doprava (0 = vpred, PI/2 = dole), predlaktie má globálny uhol
+const POSE_IDLE := [1.75, 1.35, 1.65, 1.3, 0.0]
+const POSE_GUARD := [0.95, -1.25, 0.45, -0.75, 0.0]     # päste pri brade
+const POSE_WINDUP := [2.9, -1.95, 0.55, -0.6, -2.0]     # ruka nad hlavou, zaklonený
+const POSE_PUNCH := [-0.05, -0.05, 2.3, -1.1, 3.0]      # vystretá ruka, naklonený vpred
+## Palica: [ruky voči prednému plecu, uhol palice, náklon px]
+const BAT_IDLE := [Vector2(9, 7), -2.55, 0.0]           # opretá o plece (jednou rukou)
+const BAT_GUARD := [Vector2(3, -3), -1.85, 0.0]         # postoj pálkara
+const BAT_WINDUP := [Vector2(-7, -7), -2.85, -2.0]      # zaklonená za hlavou
+const BAT_SWING := [Vector2(15, 5), 0.35, 3.0]          # švih šikmo dole (na Riccovu hlavu)
+const BAT_FOLLOW := [Vector2(10, -4), -0.9, 2.0]        # dotiahnutie
 
 static var _last_alert_ms: int = -10000   ## zvuk „!“ naraz len raz
 
+const HEAR_SCUFFLE := 64.0     ## px – zápas / pád kamaráta tesne vedľa počuje vždy (aj potichu zneškodneného)
+const SEE_BODY := 200.0        ## px – pád kamaráta vidí, ak sa tým smerom pozerá a nič nie je medzi nimi
+const HEAR_BODY := 150.0       ## px – pád kamaráta počuje → ide sa pozrieť
+const KEEP_APART := 22.0       ## px – takto blízko pri kamarátovi sa na hliadke otočí
+
 var state: State = State.PATROL
-var health: int
+var health: float   ## damage zbraní je desatinný (WeaponData.damage, pokles so vzdialenosťou)
 var facing: float = -1.0
 var walk_dir: float = -1.0
 var timer: float = 0.0
@@ -96,6 +131,9 @@ var look_timer: float = 0.0
 var _alert_mark: Label
 var goto_x: float = NAN   ## px – skriptovaný presun (napr. mafián ide zaklopať na dvere); NAN = normálne správanie
 var _aggro: float = 0.0   ## s – po zásahu klobúkom vie, kde Ricco je (vidí ho aj v tme a za chrbtom)
+var _investigate_x: float = 0.0   ## px – kam sa ide pozrieť (počul výstrel / pád kamaráta)
+var _investigate_phase: int = 0   ## 0 = zarazí sa, 1 = ide tam, 2 = obzerá sa, 3 = vracia sa
+var _question_mark: Label
 var spawn_pos: Vector2
 var player: Node2D
 
@@ -107,6 +145,13 @@ var head: Node2D
 var hat: Sprite2D
 var arm_front: Node2D
 var arm_back: Node2D
+var fore_front: Node2D   ## predlaktia (len dvojdielne ruky)
+var fore_back: Node2D
+var bat: Sprite2D
+var _segmented: bool = false
+var _lean: float = 0.0
+var _hand: Vector2 = BAT_IDLE[0]
+var _bat_angle: float = BAT_IDLE[1]
 var gun: Sprite2D
 var muzzle: Marker2D
 var flash: Sprite2D
@@ -119,6 +164,8 @@ func _ready() -> void:
 	spawn_pos = global_position
 	collision_layer = 4    # enemies
 	collision_mask = 1     # world
+	floor_max_angle = deg_to_rad(50.0)   # schody sú 45° rampa (tools/build_level1.gd – _stair_ramp)
+	floor_snap_length = 16.0
 	add_to_group(&"enemies")
 	var shape := CollisionShape2D.new()
 	var cap := CapsuleShape2D.new()
@@ -157,7 +204,12 @@ func _build_rig() -> void:
 	var r: Dictionary = RIGS.get(kind, RIGS["tommy"])
 	rig = Node2D.new()
 	add_child(rig)
-	arm_back = _part(rig, "arm_back", PIVOT_ARM, SHOULDER_BACK)
+	_segmented = weapon == null and ResourceLoader.exists("res://characters/gangster/%s/upper.png" % kind)
+	if _segmented:
+		arm_back = _part(rig, "upper_back", PIVOT_UPPER, SHOULDER_BACK)
+		fore_back = _part(arm_back, "fore_back", PIVOT_FORE, Vector2(UPPER_LEN, 0))
+	else:
+		arm_back = _part(rig, "arm_back", PIVOT_ARM, SHOULDER_BACK)
 	leg_back = _part(rig, "leg_back", PIVOT_LEG, LEG_BACK)
 	leg_front = _part(rig, "leg", PIVOT_LEG, LEG_FRONT)
 	torso = _part(rig, "torso", r["torso"], HIP)
@@ -169,7 +221,25 @@ func _build_rig() -> void:
 		hat.offset = -r["hat"]
 		hat.position = HAT_AT
 		rig.add_child(hat)
-	arm_front = _part(rig, "arm", PIVOT_ARM, SHOULDER_FRONT)
+	if _segmented:
+		arm_front = _part(rig, "upper", PIVOT_UPPER, SHOULDER_FRONT)
+		fore_front = _part(arm_front, "fore", PIVOT_FORE, Vector2(UPPER_LEN, 0))
+		var bat_path := "res://characters/gangster/%s/bat.png" % kind
+		if ResourceLoader.exists(bat_path):
+			bat = Sprite2D.new()
+			bat.texture = load(bat_path)
+			bat.centered = false
+			bat.offset = -BAT_GRIP
+			bat.position = Vector2(FORE_LEN, 0)
+			fore_front.add_child(bat)
+			fore_front.move_child(bat, 0)   # päsť ostane nad rúčkou
+	else:
+		arm_front = _part(rig, "arm", PIVOT_ARM, SHOULDER_FRONT)
+	if _segmented:   # hneď v pokoji (inak by prvý snímok trčali ruky dopredu)
+		_bend_arm(arm_front, fore_front, POSE_IDLE[0], POSE_IDLE[1], 1.0)
+		_bend_arm(arm_back, fore_back, POSE_IDLE[2], POSE_IDLE[3], 1.0)
+		if bat:
+			_animate_bat(1.0, 0.0)
 	muzzle = Marker2D.new()
 	if weapon:
 		gun = Sprite2D.new()
@@ -312,7 +382,7 @@ func _physics_process(delta: float) -> void:
 				velocity.x = 0.0
 				state = State.WINDUP
 				timer = windup_time
-			elif _ledge_ok(signf(dx)):
+			elif _ledge_ok(signf(dx)) and not _ally_ahead(signf(dx), 18.0, true):
 				velocity.x = signf(dx) * run_speed
 			else:
 				velocity.x = 0.0
@@ -342,6 +412,9 @@ func _physics_process(delta: float) -> void:
 				else: state = State.IDLE
 		State.DEAD:
 			velocity.x = move_toward(velocity.x, 0.0, 200.0 * delta)
+		State.INVESTIGATE:
+			if sees: _alert()
+			else: _investigate(delta)
 
 	if state not in [State.AIM]:
 		laser.visible = false
@@ -350,8 +423,10 @@ func _physics_process(delta: float) -> void:
 
 
 func _alert() -> void:
-	if state in [State.PATROL, State.IDLE, State.STUN]:
+	if state in [State.PATROL, State.IDLE, State.STUN, State.INVESTIGATE]:
 		_show_alert_mark()
+	if _question_mark:
+		_question_mark.visible = false
 	_face_player()
 	if run_speed > 0.0:
 		state = State.CHASE
@@ -423,7 +498,7 @@ func _patrol(delta: float) -> void:
 	if stationary:
 		_stand(delta)
 		return
-	if is_on_wall() or not _ledge_ok(walk_dir):
+	if is_on_wall() or not _ledge_ok(walk_dir) or _ally_ahead(walk_dir, KEEP_APART):
 		walk_dir = -walk_dir
 	elif patrol_span > 0.0 and (global_position.x - spawn_pos.x) * walk_dir > patrol_span:
 		walk_dir = -walk_dir
@@ -457,6 +532,128 @@ func _stand(delta: float) -> void:
 			look_timer = randf_range(look_back.x, look_back.y)
 
 
+# ---------------------------------------------------------------- kamaráti a hluk
+
+## Hluk (napr. Riccov výstrel): gangstri do vzdialenosti radius sa idú pozrieť, odkiaľ prišiel
+static func noise(pos: Vector2, radius: float) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	for n in tree.get_nodes_in_group(&"enemies"):
+		var g := n as Gangster
+		if g and g.global_position.distance_to(pos) < radius:
+			g.hear(pos)
+
+
+## Počul niečo na pos – zarazí sa („?“), ide sa tam pozrieť, obzrie sa a vráti sa
+func hear(pos: Vector2) -> void:
+	if passive or state not in [State.PATROL, State.IDLE, State.INVESTIGATE]:
+		return
+	_investigate_x = pos.x
+	_investigate_phase = 0
+	timer = 0.5
+	if state != State.INVESTIGATE:
+		_show_question_mark()
+	state = State.INVESTIGATE
+	if absf(pos.x - global_position.x) > 2.0:
+		_set_facing(signf(pos.x - global_position.x))
+
+
+## Zložili ho – kto to videl alebo počul tesne vedľa, vie o Riccovi; kto len počul, ide sa pozrieť
+func _notify_allies(quiet: bool) -> void:
+	var space := get_world_2d().direct_space_state
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var g := n as Gangster
+		if g == null or g == self or g.state == State.DEAD or g.passive:
+			continue
+		var d: float = g.global_position.distance_to(global_position)
+		var dx: float = global_position.x - g.global_position.x
+		var looking: bool = absf(dx) < 4.0 or signf(dx) == g.facing
+		var clear: bool = space.intersect_ray(PhysicsRayQueryParameters2D.create(
+				g.global_position + Vector2(0, -60), global_position + Vector2(0, -40), 1)).is_empty()
+		if clear and (d < HEAR_SCUFFLE or (looking and d < SEE_BODY)):
+			g._aggro = maxf(g._aggro, 4.0)   # videl to – vie, kde je Ricco (aj v tme)
+			g._set_facing(signf(dx) if dx != 0.0 else g.facing)
+			if g.state in [State.PATROL, State.IDLE, State.INVESTIGATE]:
+				g._show_alert_mark()
+		elif d < (HEAR_BODY * (0.6 if quiet else 1.0)):
+			g.hear(global_position)
+
+
+## Je pred ním (v smere dir) kamarát bližšie ako dist? chasing = počíta len toho, kto je bližšie k Riccovi
+func _ally_ahead(dir: float, dist: float, chasing: bool = false) -> bool:
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var g := n as Gangster
+		if g == null or g == self or g.state == State.DEAD:
+			continue
+		var dx: float = g.global_position.x - global_position.x
+		if signf(dx) == dir and absf(dx) < dist and absf(g.global_position.y - global_position.y) < 24.0:
+			if not chasing or g.state in [State.CHASE, State.WINDUP, State.PUNCH, State.RECOVER]:
+				return true
+	return false
+
+
+func _investigate(delta: float) -> void:
+	var low: float = 0.6 if facing > 0.0 else PI - 0.6
+	aim_angle = lerp_angle(aim_angle, low, minf(1.0, 6.0 * delta))
+	match _investigate_phase:
+		0:   # zarazí sa
+			velocity.x = move_toward(velocity.x, 0.0, 400.0 * delta)
+			if timer <= 0.0:
+				_investigate_phase = 1
+				timer = 6.0
+		1:   # ide tam (opatrne, trochu rýchlejšie ako na hliadke)
+			var dx: float = _investigate_x - global_position.x
+			if absf(dx) < 10.0 or timer <= 0.0 or is_on_wall() or not _ledge_ok(signf(dx)) or _ally_ahead(signf(dx), KEEP_APART):
+				velocity.x = 0.0
+				_investigate_phase = 2
+				timer = 2.4
+				look_timer = 0.8
+			else:
+				_set_facing(signf(dx))
+				velocity.x = signf(dx) * walk_speed * 1.3
+		2:   # obzerá sa
+			velocity.x = move_toward(velocity.x, 0.0, 400.0 * delta)
+			look_timer -= delta
+			if look_timer <= 0.0:
+				_set_facing(-facing)
+				look_timer = 0.8
+			if timer <= 0.0:
+				_investigate_phase = 3
+				timer = 8.0
+		3:   # vracia sa (stráž na svoje miesto, hliadka pokračuje)
+			var hx: float = spawn_pos.x - global_position.x
+			if not stationary or absf(hx) < 4.0 or timer <= 0.0 or is_on_wall() or not _ledge_ok(signf(hx)):
+				velocity.x = 0.0
+				if stationary:
+					_set_facing(home_facing)
+				if _question_mark:
+					_question_mark.visible = false
+				state = State.PATROL
+				timer = randf_range(patrol_time.x, patrol_time.y)
+			else:
+				_set_facing(signf(hx))
+				velocity.x = signf(hx) * walk_speed
+
+
+## „?“ nad hlavou – niečo počul, ešte nevie čo
+func _show_question_mark() -> void:
+	if _question_mark == null:
+		_question_mark = Label.new()
+		_question_mark.text = "?"
+		_question_mark.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
+		_question_mark.add_theme_font_size_override(&"font_size", 16)
+		_question_mark.add_theme_color_override(&"font_color", Color8(200, 200, 210))
+		_question_mark.add_theme_color_override(&"font_outline_color", Color8(14, 10, 12))
+		_question_mark.add_theme_constant_override(&"outline_size", 4)
+		_question_mark.position = Vector2(-4, -100)
+		_question_mark.z_index = 30
+		add_child(_question_mark)
+	_question_mark.visible = true
+	_question_mark.modulate.a = 1.0
+	Sfx.play(&"alert", global_position + Vector2(0, -60), -12.0, 0.02)
+
+
 ## Je pred ním zem? (lúč dole kúsok pred nohami) – aby nespadol z plošiny
 func _ledge_ok(dir: float) -> bool:
 	if not is_on_floor():
@@ -481,6 +678,8 @@ func _can_see_player() -> bool:
 		return false
 	if not _on_screen():
 		return false   # nestrieľa spoza obrazovky – hráč ho musí vidieť
+	if player.get(&"submerged"):
+		return false   # Ricco je pod hladinou – nevidno ho
 	var eye := global_position + Vector2(EYE.x * facing, EYE.y)
 	var target := _player_target()
 	var d: float = eye.distance_to(target)
@@ -495,6 +694,8 @@ func _can_see_player() -> bool:
 		var lit: bool = player.has_method(&"is_lit") and player.is_lit()
 		var sense: float = close_sense * (0.45 if player.get(&"sneaking") else 1.0)   # prikrčeného zacíti len celkom zblízka
 		var near: bool = absf(dx) < sense and absf(player.global_position.y - global_position.y) < 40.0   # tesne vedľa, na tej istej úrovni
+		if state == State.INVESTIGATE and absf(dx) < 70.0:
+			near = true   # pozorne sa obzerá – zblízka si ho všimne aj v tme
 		if not alerted and signf(dx) != facing and not near:
 			return false
 		if not lit and not near and not (alerted and d < 110.0):
@@ -564,17 +765,47 @@ func _fire() -> void:
 func _punch() -> void:
 	var dx: float = player.global_position.x - global_position.x
 	Sfx.play(&"punch_swing", global_position, -4.0)
+	if bat:
+		_bat_smear()
 	if signf(dx) == facing and absf(dx) < punch_range + 8.0 and absf(player.global_position.y - global_position.y) < 40.0:
 		Sfx.play(&"punch_hit", global_position)
 		if player.has_method("take_damage"):
-			player.take_damage(1, global_position + Vector2(0, -30))
+			player.take_damage(melee_damage, global_position + Vector2(0, -30))
 		Burst.spawn(get_tree().current_scene, player.global_position + Vector2(0, -22), Vector2(facing, -0.3), Color(1, 0.9, 0.5), 6, 80.0)
+
+
+## Šmuha za palicou pri švihu – oblúk od náprahu po úder, rýchlo zmizne
+func _bat_smear() -> void:
+	var c: Vector2 = SHOULDER_FRONT + Vector2(float(BAT_SWING[2]), 0.0) + (BAT_SWING[0] as Vector2)
+	var a0: float = BAT_WINDUP[1]
+	var a1: float = BAT_SWING[1]
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	var cols := PackedColorArray()
+	var n := 12
+	for i in n + 1:
+		var a: float = lerpf(a0, a1, float(i) / n)
+		outer.append(c + Vector2.from_angle(a) * 38.0)
+		inner.append(c + Vector2.from_angle(a) * (18.0 + 6.0 * i / n))
+	for i in n + 1:
+		cols.append(Color(1.0, 0.96, 0.88, 0.1 + 0.45 * i / n))
+	for i in range(n, -1, -1):
+		cols.append(Color(1.0, 0.96, 0.88, 0.1 + 0.45 * i / n))
+	inner.reverse()
+	var p := Polygon2D.new()
+	p.polygon = outer + inner
+	p.vertex_colors = cols
+	rig.add_child(p)
+	rig.move_child(p, arm_front.get_index())   # pod rukou s palicou
+	var tw := p.create_tween()
+	tw.tween_property(p, "modulate:a", 0.0, 0.16)
+	tw.tween_callback(p.queue_free)
 
 
 # ---------------------------------------------------------------- zásahy
 
 ## Guľka (alebo broky) od Ricca
-func take_hit(damage: int, dir: Vector2) -> void:
+func take_hit(damage: float, dir: Vector2) -> void:
 	if state == State.DEAD:
 		return
 	passive = false
@@ -602,7 +833,7 @@ func can_takedown(from_x: float) -> bool:
 	if state == State.STUN:
 		return true
 	var behind: bool = signf(from_x - global_position.x) != facing
-	return behind and _aggro <= 0.0 and state in [State.PATROL, State.IDLE]
+	return behind and _aggro <= 0.0 and state in [State.PATROL, State.IDLE, State.INVESTIGATE]
 
 
 ## Tiché zneškodnenie (Ricco ho omráči úderom krídla) – padne bez krvi, nad hlavou mu zakrúžia hviezdičky
@@ -614,7 +845,7 @@ func takedown(dir: Vector2) -> void:
 			Color(1.0, 0.86, 0.35), 8, 60.0, Vector2(0, 60), 0.6)
 	rig.modulate = Color(2, 2, 2)
 	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.15)
-	_die(dir)
+	_die(dir, true)
 
 
 ## Riccov hodený klobúk: omráči ho a zhodí mu klobúk
@@ -644,8 +875,11 @@ func _knock_hat(dir: Vector2) -> void:
 	d.spin = randf_range(-10.0, 10.0)
 
 
-func _die(dir: Vector2) -> void:
+func _die(dir: Vector2, quiet: bool = false) -> void:
 	state = State.DEAD
+	if _question_mark:
+		_question_mark.visible = false
+	_notify_allies(quiet)
 	Sfx.play(&"enemy_death", global_position, -2.0)
 	laser.visible = false
 	if _flash:
@@ -657,15 +891,16 @@ func _die(dir: Vector2) -> void:
 	var fall: float = signf(dir.x) if dir.x != 0.0 else -facing   # padá v smere strely
 	velocity = Vector2(fall * 80.0, -90.0)
 	_knock_hat(dir)
-	# zbraň vyletí z ruky
+	# zbraň vyletí z ruky a ostane ležať – Ricco ju môže zobrať (weapons/weapon_pickup.gd)
 	if gun:
-		var d := DROP.instantiate()
+		var d := WEAPON_PICKUP.new()
+		d.weapon = weapon
+		d.ammo = weapon.mag_size
 		d.texture = gun.texture
-		d.life = 3.0
-		get_tree().current_scene.add_child(d)
-		d.global_position = gun.global_position + Vector2(gun.texture.get_width() * 0.5 * facing, 4)
 		d.velocity = Vector2(fall * 70.0, -120.0)
 		d.spin = randf_range(-8.0, 8.0)
+		get_tree().current_scene.add_child.call_deferred(d)
+		d.position = gun.global_position + Vector2(gun.texture.get_width() * 0.5 * facing, 4)   # current_scene je v počiatku
 		gun.visible = false
 		for c in arm_front.get_children():
 			if c is Sprite2D and c != gun and c != flash:
@@ -710,6 +945,9 @@ func _respawn_or_free() -> void:
 func _animate(delta: float) -> void:
 	if state == State.DEAD:
 		return
+	# na schodoch (45° rampa) je spodok kapsuly ~4 px nad svahom a schodíky sú pod rampou ešte 0–4 px –
+	# postava ide o 6 px nižšie, aby stála na schodíkoch, nie nad nimi
+	rig.position.y = 6.0 if is_on_floor() and get_floor_normal().y > -0.9 else 0.0
 	var moving: bool = absf(velocity.x) > 5.0 and is_on_floor()
 	if moving:
 		walk_phase += absf(velocity.x) * delta / 9.0
@@ -735,6 +973,8 @@ func _animate(delta: float) -> void:
 			arm_back.rotation = _arm_rot((fg - sb).angle())
 		else:
 			arm_back.rotation = PI / 2.0 - 0.2 - swing * 0.6
+	elif _segmented:
+		_animate_arms(delta, swing)
 	else:
 		match state:
 			State.WINDUP:
@@ -746,3 +986,85 @@ func _animate(delta: float) -> void:
 				var guard: bool = state in [State.CHASE, State.RECOVER]
 				arm_front.rotation = lerp_angle(arm_front.rotation, (-0.5 if guard else PI / 2.0 - 0.3) + swing * 0.5, minf(1.0, 10.0 * delta))
 				arm_back.rotation = lerp_angle(arm_back.rotation, (-0.3 if guard else PI / 2.0 - 0.1) - swing * 0.5, minf(1.0, 10.0 * delta))
+
+
+## Dvojdielne ruky: pózy podľa stavu, plynulo k nim; palicu držia obe ruky (IK)
+func _animate_arms(delta: float, swing: float) -> void:
+	if bat:
+		_animate_bat(delta, swing)
+		return
+	var pose: Array = POSE_IDLE
+	var rate: float = 10.0
+	match state:
+		State.WINDUP:
+			pose = POSE_WINDUP
+			rate = 12.0
+		State.PUNCH:
+			pose = POSE_PUNCH
+			rate = 40.0
+		State.CHASE, State.RECOVER:
+			pose = POSE_GUARD
+	var sw: float = swing * (0.2 if pose == POSE_GUARD else 0.5)
+	var k: float = minf(1.0, rate * delta)
+	_bend_arm(arm_front, fore_front, pose[0] + sw, pose[1] + sw, k)
+	_bend_arm(arm_back, fore_back, pose[2] - sw, pose[3] - sw, k)
+	_set_lean(lerpf(_lean, pose[4], k))
+
+
+func _animate_bat(delta: float, swing: float) -> void:
+	var pose: Array = BAT_IDLE
+	var rate: float = 8.0
+	match state:
+		State.CHASE:
+			pose = BAT_GUARD
+		State.WINDUP:
+			pose = BAT_WINDUP
+			rate = 10.0
+		State.PUNCH:
+			pose = BAT_SWING
+			rate = 40.0
+		State.RECOVER:
+			pose = BAT_FOLLOW if timer > recover_time * 0.5 else BAT_GUARD
+	var k: float = minf(1.0, rate * delta)
+	_hand = _hand.lerp(pose[0], k)
+	_bat_angle = lerpf(_bat_angle, pose[1], k)   # bez zalomenia uhla – švih ide hore a cez hlavu
+	_set_lean(lerpf(_lean, pose[2], k))
+	var bend: float = 1.0 if _bat_angle > -1.5 else -1.0
+	var f: Array = _ik(_hand, bend)
+	arm_front.rotation = f[0]
+	fore_front.rotation = f[1] - f[0]
+	bat.rotation = _bat_angle - f[1]
+	if pose == BAT_IDLE:
+		_bend_arm(arm_back, fore_back, POSE_IDLE[2] - swing * 0.5, POSE_IDLE[3] - swing * 0.5, k)
+	else:
+		# zadná ruka chytí palicu kúsok bližšie k rúčke
+		var grip2: Vector2 = SHOULDER_FRONT - SHOULDER_BACK + _hand - Vector2.from_angle(_bat_angle) * 4.0
+		var b: Array = _ik(grip2, bend)
+		arm_back.rotation = b[0]
+		fore_back.rotation = b[1] - b[0]
+
+
+func _bend_arm(up: Node2D, fore: Node2D, a1: float, a2: float, k: float) -> void:
+	up.rotation = lerp_angle(up.rotation, a1, k)
+	fore.rotation = lerp_angle(fore.rotation, a2 - a1, k)
+
+
+## Dve kosti (nadlaktie + predlaktie) k bodu t voči plecu → [uhol nadlaktia, uhol predlaktia]
+func _ik(t: Vector2, bend: float) -> Array:
+	var d: float = clampf(t.length(), absf(UPPER_LEN - FORE_LEN) + 0.01, UPPER_LEN + FORE_LEN - 0.01)
+	var c: float = clampf((UPPER_LEN * UPPER_LEN + d * d - FORE_LEN * FORE_LEN) / (2.0 * UPPER_LEN * d), -1.0, 1.0)
+	var a1: float = t.angle() + acos(c) * bend
+	var elbow := Vector2.from_angle(a1) * UPPER_LEN
+	return [a1, (t - elbow).angle()]
+
+
+## Náklon tela (px): hlava a ramená sa posunú celé, trup napoly – na celé pixely
+func _set_lean(l: float) -> void:
+	_lean = l
+	var px: float = roundf(l)
+	torso.position.x = HIP.x + roundf(l * 0.5)
+	head.position.x = NECK.x + px
+	if hat:
+		hat.position.x = HAT_AT.x + px
+	arm_front.position.x = SHOULDER_FRONT.x + px
+	arm_back.position.x = SHOULDER_BACK.x + px
