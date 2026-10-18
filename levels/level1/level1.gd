@@ -34,6 +34,7 @@ const INTRO: Array[String] = [
 const SPAWNS: Array[StringName] = [&"", &"InteriorSpawn", &"CasinoSpawn"]
 const CELLAR := "res://levels/level1/cellar.tscn"   ## pivnica – samostatná mapa (checkpoint 3+)
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
+const LEVEL_2 := "res://levels/level2/level2.tscn"   ## kapitola II – cintorín
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")   ## prechod medzi scénami bez preblikovania
 
 var _ended: bool = false
@@ -247,7 +248,7 @@ func _fade_rect() -> ColorRect:
 	return r
 
 
-## Koniec kapitoly 1 – Ricco vyjde dverami z pivnice: titulok a návrat do úvodného menu
+## Koniec kapitoly 1 – Ricco vyjde dverami z pivnice: titulok a rovno kapitola II (cintorín, levels/level2)
 func chapter_end() -> void:
 	if _ended:
 		return
@@ -280,7 +281,8 @@ func chapter_end() -> void:
 	tw.tween_interval(3.0)
 	tw.tween_callback(func():
 		checkpoint = 0
-		LoadingScreen.go(get_tree(), MAIN_MENU, 0.6))
+		Level2.reset()
+		LoadingScreen.go(get_tree(), LEVEL_2, 0.6))
 
 
 func _on_end(body: Node) -> void:

@@ -47,6 +47,8 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var windup_time: float = 0.35
 @export var recover_time: float = 0.6
 @export var melee_damage: int = 1                 ## koľko životov vezme úder (palica 2)
+@export var hook: bool = false                    ## dokár s lodným hákom (<kind>/hook.png): úder Ricca zachytí a pritiahne k sebe
+@export var hook_pull: float = 260.0              ## px/s – najväčšia rýchlosť, ktorou ho hák pritiahne
 
 @export_group("Stealth")
 @export_range(-1.0, 1.0, 2.0) var start_facing: float = -1.0   ## -1 = doľava, 1 = doprava
@@ -88,6 +90,7 @@ const PIVOT_FORE := Vector2(3, 5)
 const UPPER_LEN := 8.0
 const FORE_LEN := 12.0
 const BAT_GRIP := Vector2(6, 4)                  ## úchop palice v bat.png
+const HOOK_GRIP := Vector2(3, 3)                 ## úchop rúčky v hook.png
 const RIGS := {
 	"tommy": {"torso": Vector2(11, 26), "hat": Vector2(13, 10)},
 	"coppola": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},
@@ -233,6 +236,16 @@ func _build_rig() -> void:
 			bat.position = Vector2(FORE_LEN, 0)
 			fore_front.add_child(bat)
 			fore_front.move_child(bat, 0)   # päsť ostane nad rúčkou
+		var hook_path := "res://characters/gangster/%s/hook.png" % kind
+		if hook and ResourceLoader.exists(hook_path):
+			var hk := Sprite2D.new()
+			hk.texture = load(hook_path)
+			hk.centered = false
+			hk.offset = -HOOK_GRIP
+			hk.position = Vector2(FORE_LEN, 0)
+			hk.rotation = -PI / 2.0   # rúčka v pästi, hák smeruje po predlaktí ďalej
+			fore_front.add_child(hk)
+			fore_front.move_child(hk, 0)
 	else:
 		arm_front = _part(rig, "arm", PIVOT_ARM, SHOULDER_FRONT)
 	if _segmented:   # hneď v pokoji (inak by prvý snímok trčali ruky dopredu)
@@ -771,6 +784,13 @@ func _punch() -> void:
 		Sfx.play(&"punch_hit", global_position)
 		if player.has_method("take_damage"):
 			player.take_damage(melee_damage, global_position + Vector2(0, -30))
+		if hook:
+			# hák zachytí Ricca a strhne ho k dokárovi (namiesto odhodenia) – presne pred neho, nie cez neho:
+			# rýchlosť, z ktorej ho trenie zastaví na ~22 px od dokára (v² = 2·trenie·dráha)
+			var fr: float = player.get(&"friction") if player.get(&"friction") != null else 1100.0
+			var v: float = minf(sqrt(2.0 * fr * maxf(absf(dx) - 22.0, 0.0)), hook_pull)
+			player.velocity = Vector2(-facing * v, -40.0 if v > 0.0 else 0.0)
+			Sfx.play(&"hook_catch", player.global_position, -3.0)
 		Burst.spawn(get_tree().current_scene, player.global_position + Vector2(0, -22), Vector2(facing, -0.3), Color(1, 0.9, 0.5), 6, 80.0)
 
 

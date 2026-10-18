@@ -26,16 +26,18 @@ Toto je odovzdávací súhrn pre nový chat / Claude Code. Prečítaj celý pred
 ```
 audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty), amb/*.ogg (slučky prostredia)
 characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/
-levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), test_room/
-world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door…), npc/ (guest, rat)
+levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav), test_room/
+world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka)
 weapons/      pistol/ (bullet, magazine_drop, záblesky), hat/ (hat_projectile – hod klobúka)
 ui/           hud, dialog, main_menu, pause_menu (menu_pages: nastavenia, AUDIO), cursor, fonts (Tiny5), retro_filter
 settings/     game_settings.gd (GameSettings – ukladá do user://settings.cfg, aj hlasitosti [audio])
-tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_ricco_frames.gd (SpriteFrames Ricca)
+tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_ricco_frames.gd (SpriteFrames Ricca)
 docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 ```
 - **Level 1 a pivnica sa generujú skriptom**, needitovať `.tscn` ručne:
   `godot --headless --path . --script res://tools/build_level1.gd`. Bludisko pivnice je textová mapa (const MAZE) v tom súbore.
+  Level 2 (cintorín) rovnako: `godot --headless --path . --script res://tools/build_level2.gd`,
+  prístav: `godot --headless --path . --script res://tools/build_docks.gd`.
 - Obrázky sú v **Git LFS**.
 
 ## Čo je hotové (kapitola I hrateľná)
@@ -46,6 +48,19 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   majú „!“ a privolajú mafiánov; hat_lamp; z trámu nad barom vedie **vetracie potrubie** – šmyk dnu, plazenie, vypadne na policu nad kuchárom) → kuchyňa, sklad → **herňa za oceľovými dverami s tajným klopaním** (mafián ukáže rytmus,
   Ricco klope F: KLOP KLOP … KLOP KLOP KLOP) → **pivnica = samostatná mapa, bludisko tunelov** (krv, potkany, baterky) → Donov úkryt, cutscéna, prvá prestrelka.
 - Checkpointy (`Level1.checkpoint`, ≥3 = pivnica).
+- **Kapitola II – Wharf Rats** (rozrobená): **level 2 = cintorín v noci, Donov pohreb**
+  (`levels/level2/level2.gd`, statické `Level2.checkpoint` atď., `Level2.reset()`). Koniec kapitoly I vedie rovno sem, v menu je aj CHAPTER II.
+  Ricco má derringer + spomalenie; celý cintorín je tma (`dark_area`). Hrobník s lampášom (úkryt v otvorenom hrobe), kôlňa s **revolverom .38**
+  (F výmena za derringer), mauzóleá ako plošiny, na streche duch komentuje vlastný pohreb (hlášky), mafián odhodí **zápalky Fontana Shipping – Pier 13**
+  (stopa; bez nej krypta nepustí), smútiaci (prefarbení hostia) a kňaz zvreskú na svetle, konáre duba ponad pohreb, strážnik s lampášom,
+  stráž s palicou pred kryptou. Krypta → pašerácky tunel → prístav. Prví strelci v hre majú revolvery.
+  **Prístav** (`levels/level2/docks.gd extends Level2`, `docks.tscn`, checkpointy 4–6, návrh A2 – móla v hmle): nábrežie s kanálom →
+  mólo 1 s **dokárom s hákom** (`Gangster.hook`: dlhší dosah, úder Ricca pritiahne) a lampášom → rybárska loďka (rybár s **luparou** –
+  zozadu zneškodniť, lupara = prvá hlavná zbraň, `Level2.has_lupara`) → mólo 2 so **psom na reťazi** (`world/npc/dog.gd`: cíti aj v tme,
+  pod vodou nie, štekot privolá mafiánov, klobúk ho omráči, guľka len vyľaká) a strelcami → **lúč majáka** (`world/fx/lighthouse_beam.gd`,
+  pohyblivá LightZone) → vlnolam s majákom (v diaľke loď S.S. Margaret, **Big Lou ako silueta za oknom mostíka**, duch ho spozná) →
+  Pier 13 → dvere skladu Fontana Shipping = koniec časti („NEXT: COLD STORAGE“, zatiaľ návrat do menu). Paluby mól sú jednosmerné
+  plošiny – z vody sa na ne vyskočí zospodu, pod palubou ťa nevidno; medzi mólami sú medzery na skok do vody.
 - **Plávanie:** v pivnici sú zatopené katakomby (kostnica ~113 dlaždíc: bazény, rošt nad vodou s hliadkou s baterkou – popod ňu sa dá preplávať,
   dlhý sifón, krypta so strážou chrbtom, dosky cez vodu). Hlboká voda je v MAZE znak `%`, build z nej spraví `WaterZone`
   (`world/water/water_zone.gd`). Ricco má stav SWIM: na hladine pláva, S = ponor, medzerník = hore / vyskočiť, k nízkemu okraju sa sám vyšvihne.

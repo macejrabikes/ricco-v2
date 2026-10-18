@@ -5,11 +5,13 @@ extends Control
 ## Nadpis RICCO sa na začiatku rozsvieti ako neón. Menu vpravo, väčšie písmo, za ním tmavý prechod.
 ## Stránky nastavení a ovládania sú spoločné s pause menu (ui/pause_menu/menu_pages.gd).
 ##   START GAME – level 1 (Pizzeria Don Vito)
+##   CHAPTER II – rovno kapitola II (cintorín, Donov pohreb)
 ##   ARSENAL – všetky zbrane a ich štatistiky (zamknuté sú zakryté)
 ##   DEBUG ROOM – testovacia miestnosť (gangstri, terče, všetky zbrane)
 
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const LEVEL_1 := "res://levels/level1/level1.tscn"
+const LEVEL_2 := "res://levels/level2/level2.tscn"
 const DEBUG_ROOM := "res://levels/test_room/test_room.tscn"
 const WINDOW_LIT := preload("res://levels/level1/art/window_lit.png")
 const GLOW := preload("res://levels/level1/art/glow.png")
@@ -72,6 +74,7 @@ func _show_page(p: Page) -> void:
 		Page.MAIN:
 			pages.clear()
 			var first := pages.item("START GAME", _start.bind(LEVEL_1))
+			pages.item("CHAPTER II", _start.bind(LEVEL_2))
 			pages.item("ARSENAL", _open_arsenal)
 			pages.item("DEBUG ROOM", _start.bind(DEBUG_ROOM))
 			pages.item("SETTINGS", _show_page.bind(Page.SETTINGS))
@@ -106,6 +109,7 @@ func _start(path: String) -> void:
 	Level1.intro_done = false
 	Level1.cellar_arrived = false
 	Level1.catacombs_seen = false
+	Level2.reset()
 	get_viewport().gui_release_focus()
 	LoadingScreen.go(get_tree(), path, 0.4)
 
