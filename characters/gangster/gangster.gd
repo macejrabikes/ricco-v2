@@ -63,6 +63,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export_group("Armor & cold")
 @export var vest: bool = false                    ## nepriestrelná vesta (dobová, plátovaná pod sakom) – do trupu len vest_factor damage, hlava a nohy nie
 @export_range(0.0, 1.0) var vest_factor: float = 0.2
+@export var trip_time: float = 2.2                ## s – ako dlho leží po podkopnutí (Riccov šmyk po bruchu)
 @export var cold_breath: bool = false             ## v mraziarni mu od úst stúpa para
 
 @export_group("Test room")
@@ -134,6 +135,7 @@ var timer: float = 0.0
 var shots_left: int = 0
 var aim_angle: float = PI           ## globálny uhol zbrane
 var walk_phase: float = 0.0
+var _tripped: bool = false          ## leží po podkopnutí (trip)
 var lost_sight: float = 0.0
 var home_facing: float = -1.0
 var look_timer: float = 0.0
@@ -434,7 +436,10 @@ func _physics_process(delta: float) -> void:
 					timer = randf_range(patrol_time.x, patrol_time.y)
 		State.STUN:
 			velocity.x = move_toward(velocity.x, 0.0, 300.0 * delta)
-			if timer <= 0.0:
+			if timer <= 0.0 and _tripped:
+				_stand_up()
+				timer = 0.4
+			elif timer <= 0.0:
 				if sees: _alert()
 				else: state = State.IDLE
 		State.DEAD:
@@ -901,6 +906,43 @@ func takedown(dir: Vector2) -> void:
 	_die(dir, true)
 
 
+## Podkopnutie: Ricco do neho vletí šmykom po bruchu – nohy mu podrazí, padne na chrbát (hlavou proti smeru šmyku),
+## klobúk mu odletí. Kým leží (trip_time), nestrieľa a dá sa zneškodniť (F). Potom sa postaví a ide po Riccovi.
+## Vráti true, ak ho naozaj zvalil.
+func trip(dir: float) -> bool:
+	if state == State.DEAD or _tripped:
+		return false
+	_tripped = true
+	passive = false
+	state = State.STUN
+	timer = trip_time
+	shots_left = 0
+	laser.visible = false
+	_aggro = 6.0
+	if _question_mark:
+		_question_mark.visible = false
+	velocity.x = dir * 50.0
+	_knock_hat(Vector2(dir, -1.0))
+	Sfx.play(&"takedown", global_position + Vector2(0, -20), -4.0)
+	Sfx.play(&"land", global_position, -2.0, 0.1)
+	Burst.spawn(get_tree().current_scene, global_position + Vector2(-dir * 20.0, -2), Vector2(-dir, -0.5),
+			Color(0.75, 0.75, 0.8, 0.6), 8, 50.0, Vector2(0, 40), 0.5)
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(rig, "rotation", -PI / 2.0 * dir * 0.94, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(leg_front, "rotation", -0.5 * dir * facing, 0.25)
+	tw.tween_property(leg_back, "rotation", -0.3 * dir * facing, 0.25)
+	tw.tween_property(arm_front, "rotation", -2.0, 0.3)
+	tw.tween_property(arm_back, "rotation", -2.3, 0.3)
+	return true
+
+
+## Po podkopnutí sa postaví (otočí sa späť okolo nôh)
+func _stand_up() -> void:
+	_tripped = false
+	var tw := create_tween()
+	tw.tween_property(rig, "rotation", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
 ## Riccov hodený klobúk: omráči ho a zhodí mu klobúk
 func hat_hit(damage: int, dir: Vector2) -> void:
 	if state == State.DEAD:
@@ -942,6 +984,9 @@ func _die(dir: Vector2, quiet: bool = false) -> void:
 		_flash.visible = false
 	collision_layer = 0   # guľky ním preletia
 	var fall: float = signf(dir.x) if dir.x != 0.0 else -facing   # padá v smere strely
+	if _tripped and rig.rotation != 0.0:
+		fall = signf(rig.rotation)   # už leží – ostane ležať na tú istú stranu
+	_tripped = false
 	velocity = Vector2(fall * 80.0, -90.0)
 	_knock_hat(dir)
 	# zbraň vyletí z ruky a ostane ležať – Ricco ju môže zobrať (weapons/weapon_pickup.gd)
@@ -997,6 +1042,9 @@ func _respawn_or_free() -> void:
 
 func _animate(delta: float) -> void:
 	if state == State.DEAD:
+		return
+	if _tripped:   # leží na chrbte (podkopnutý) – telo sa nehýbe
+		rig.position.y = -3.0
 		return
 	# na schodoch (45° rampa) je spodok kapsuly ~4 px nad svahom a schodíky sú pod rampou ešte 0–4 px –
 	# postava ide o 6 px nižšie, aby stála na schodíkoch, nie nad nimi

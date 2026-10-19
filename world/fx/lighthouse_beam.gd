@@ -1,9 +1,10 @@
 extends Node2D
-## Otáčajúci sa lúč majáka (prístav). Uzol je v strede lampy. Lúč sa točí dookola – zboku ho vidno ako kužeľ,
+## Otáčajúci sa lúč majáka (prístav). Uzol určuje, kam škvrna dopadá (x = stred dráhy škvrny); kužeľ sa kreslí
+## od lampy `source` (maják v diaľke na Parallax2D – jeho global_position už obsahuje posun), inak od uzla. Lúč sa točí dookola – zboku ho vidno ako kužeľ,
 ## ktorého svetelná škvrna prejde po móloch zďaleka až k majáku, na chvíľu zmizne (svieti na nás / od nás) a ide na druhú stranu.
 ## V škvrne je LightZone (world/stealth/light_zone.gd) – kto v nej stojí alebo pláva na hladine, toho mafiáni vidia.
 ## Pod hladinou (Ricco.submerged) ho nevidno ani v lúči.
-## Godot docs: classes/class_polygon2d, classes/class_area2d, classes/class_canvasitemmaterial
+## Godot docs: classes/class_polygon2d, classes/class_area2d, classes/class_canvasitemmaterial, classes/class_parallax2d
 
 @export var reach: float = 620.0         ## px vodorovne – najďalej, kam škvrna dopadne
 @export var ground_y: float = -16.0      ## globálne y, kde škvrna dopadá (paluba mól)
@@ -11,6 +12,8 @@ extends Node2D
 @export var phase: float = 0.0           ## rad – začiatočný uhol
 @export var zone_up: float = 80.0        ## px – svetlo nad škvrnou (postava na palube)
 @export var zone_down: float = 40.0      ## px – pod škvrnou (Ricco na hladine pod mólom)
+@export var source: NodePath             ## lampa, od ktorej sa kreslí kužeľ (prázdne = od tohto uzla)
+@export var source_scale: float = 1.0    ## veľkosť záblesku a hrúbka kužeľa pri lampe (vzdialený maják = menší)
 
 const GLOW := preload("res://levels/level1/art/glow.png")
 
@@ -20,10 +23,13 @@ var _flare: Sprite2D
 var _spot: Sprite2D
 var _zone: Area2D
 var _shape: RectangleShape2D
+var _src: Node2D
 
 
 func _ready() -> void:
 	angle = phase
+	if not source.is_empty():
+		_src = get_node_or_null(source) as Node2D
 	var add := CanvasItemMaterial.new()
 	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	_beam = Polygon2D.new()
@@ -69,15 +75,19 @@ func _update() -> void:
 	var toward: float = sin(angle)
 	var spot_x: float = global_position.x + reach * side
 	var w: float = 50.0 + 90.0 * absf(side)                  # škvrna je ďalej širšia
-	var drop: float = ground_y - global_position.y
-	var tip := Vector2(spot_x - global_position.x, drop)
+	var tip := Vector2(spot_x, ground_y) - global_position
+	var o := Vector2.ZERO                                     # lampa (v súradniciach tohto uzla)
+	if _src != null:
+		o = _src.global_position - global_position
+	var hw: float = 3.0 * source_scale
 	var a_tip: float = clampf(absf(side) * 1.6, 0.0, 1.0)      # kolmo na nás / od nás je kužeľ skrátený a slabší
-	_beam.polygon = PackedVector2Array([Vector2(0, -3), Vector2(0, 3), tip + Vector2(w * 0.5, 4), tip + Vector2(-w * 0.5, 4)])
+	_beam.polygon = PackedVector2Array([o + Vector2(0, -hw), o + Vector2(0, hw), tip + Vector2(w * 0.5, 4), tip + Vector2(-w * 0.5, 4)])
 	_beam.vertex_colors = PackedColorArray([Color(1.0, 0.9, 0.6, 0.38 * a_tip), Color(1.0, 0.9, 0.6, 0.38 * a_tip),
 			Color(1.0, 0.85, 0.5, 0.16 * a_tip), Color(1.0, 0.85, 0.5, 0.16 * a_tip)])
 	# záblesk lampy, keď lúč mieri k nám
 	var f: float = maxf(toward, 0.0) * (1.0 - absf(side))
-	_flare.scale = Vector2.ONE * (0.5 + 1.8 * f)
+	_flare.position = o
+	_flare.scale = Vector2.ONE * (0.5 + 1.8 * f) * source_scale
 	_flare.modulate.a = 0.45 + 0.5 * f
 	_spot.global_position = Vector2(spot_x, ground_y - 4.0)
 	_spot.scale = Vector2(w / 60.0, 0.45)

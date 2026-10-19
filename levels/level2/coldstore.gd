@@ -247,7 +247,7 @@ func _show_ledger_card() -> void:
 
 # ---------------------------------------------------------------- koniec časti
 
-## Vráta k lodi: bez knihy ešte nie – s ňou Ricco vyjde na mólo k S.S. Margaret (ďalšia časť: loď)
+## Vráta k lodi: bez knihy ešte nie – s ňou Ricco ide pásom do podpalubia S.S. Margaret (margaret.tscn, checkpoint 11)
 func _on_exit() -> void:
 	if _leaving:
 		return
@@ -265,14 +265,5 @@ func _on_exit() -> void:
 	tw.tween_property(player, "modulate:a", 0.0, 0.6)
 	tw.parallel().tween_property(black, "color:a", 1.0, 1.0)
 	await tw.finished
-	var title := _title_label("TO BE CONTINUED...", 16, Color8(245, 235, 209), -10)
-	var sub := _title_label("NEXT: THE S.S. MARGARET", 8, Color8(150, 230, 245), 14)
-	black.add_child(title)
-	black.add_child(sub)
-	var tw2 := create_tween()
-	tw2.tween_property(title, "modulate:a", 1.0, 0.8)
-	tw2.tween_property(sub, "modulate:a", 1.0, 0.6)
-	tw2.tween_interval(2.5)
-	tw2.tween_callback(func():
-		reset()
-		LoadingScreen.go(get_tree(), MAIN_MENU, 0.6))
+	checkpoint = 11
+	LoadingScreen.go(get_tree(), MARGARET, 0.6)

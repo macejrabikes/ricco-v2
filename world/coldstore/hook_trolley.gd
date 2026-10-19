@@ -4,4 +4,5 @@ extends Node2D
 
 var velocity: Vector2 = Vector2.ZERO   ## px/s – rýchlosť koľajnice (Ricco ju dostane, keď zoskočí)
 var carcass: Node2D                    ## mäso na háku (null = voľný hák, dá sa chytiť)
-var shown: bool = true                 ## false = vozík je práve „v stene“ (koniec slučky)
+var shown: bool = true                 ## false = vozík je práve „za zatáčkou“ v tme (koniec slučky)
+var track_x: float = 0.0               ## px – poloha na koľajnici (bez skrátenia v zatáčke)

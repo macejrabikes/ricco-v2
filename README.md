@@ -66,7 +66,7 @@ Along the way: a kitchen and a storage room full of guards, and a speakeasy door
 - [x] Movement, shooting, slow‑mo, the hat, health
 - [x] First enemies, stealth, takedowns
 - [x] **Chapter I** – street, restaurant, kitchen, storage, casino, tunnels, the Don
-- [ ] **Chapter II – Wharf Rats** (in progress) – the Don's funeral at the cemetery ✔, the foggy docks ✔, Big Lou's cold storage (meat hooks & ice) ✔, the S.S. Margaret next
+- [ ] **Chapter II – Wharf Rats** (in progress) – the Don's funeral at the cemetery ✔, the foggy docks ✔, Big Lou's cold storage (meat hooks & ice) ✔, the S.S. Margaret in a storm ✔, **boss fight with Big Lou** (3 phases: the bridge wing, the cargo crane, the burning ship) ✔, the escape next
 - [ ] More weapons & loadout (Tommy gun, lupara, revolver…), human shield
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
 - [ ] Style meter, secrets (swimming ✔, ice ✔)

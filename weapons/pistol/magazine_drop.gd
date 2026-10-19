@@ -5,6 +5,7 @@ var velocity: Vector2 = Vector2.ZERO
 var bounces: int = 0
 var life: float = 4.0
 var spin: float = 0.0
+var silent: bool = false   ## bez cinknutia pri dopade (napr. drevené triesky z debny)
 
 
 func _physics_process(delta: float) -> void:
@@ -25,7 +26,7 @@ func _physics_process(delta: float) -> void:
 		return
 	global_position = hit.position - Vector2(0, 3)
 	bounces += 1
-	if bounces == 1:
+	if bounces == 1 and not silent:
 		Sfx.play(&"mag_drop" if texture and texture.get_width() > 6 else &"casing_drop", global_position, -8.0, 0.15)
 	velocity = Vector2(velocity.x * 0.4, -velocity.y * 0.3)
 	spin *= 0.3

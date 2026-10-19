@@ -4,9 +4,9 @@ extends SceneTree
 ## Mapa je v dlaždiciach (16 px). Hladina vody je na y = 0, paluba mól o dlaždicu vyššie (y = −16), dno na y = 80.
 ## Ide sa zľava doprava:
 ##   nábrežie s pašeráckym kanálom (sem vedie tunel z krypty) → mólo 1 s dokárom s hákom a lampášom (popod mólo sa pláva) →
-##   rybárska loďka s lampášom (rybár s luparou – zozadu ho zložíš, lupara je tvoja) →
+##   rybárska loď s lampášom (rybár s luparou – zozadu ho zložíš, lupara je tvoja) →
 ##   mólo 2 so psom na reťazi (zacíti ťa, pod vodou nie) a dvoma strelcami; po móloch prechádza lúč majáka →
-##   vlnolam s majákom (v diaľke loď S.S. Margaret, za oknom mostíka Big Lou) →
+##   voda medzi mólom 2 a Pier 13 – na preplávanie (v diaľke maják na skale a loď S.S. Margaret, za oknom mostíka Big Lou) →
 ##   Pier 13: dokár s hákom, strelec pred skladom Fontana Shipping → dvere skladu = koniec časti.
 ## Udalosti (duch, lupara, Lou, koniec) sú v levels/level2/docks.gd.
 ## Godot docs: classes/class_tilemaplayer, class_parallax2d, class_packedscene, class_cpuparticles2d.
@@ -30,11 +30,11 @@ const DECK_Y := -16           ## px – vrch paluby mól
 const BED_ROW := 5            ## riadok dna (y = 80 px)
 const QUAY1 := 14             ## nábrežie na začiatku: x < 14
 const QUAY2 := 141            ## nábrežie na konci: x ≥ 141 (sklad Fontana Shipping)
-const BREAKWATER := Vector2i(101, 112)   ## vlnolam x 101–111 (stred 103–109 vyšší, na ňom maják)
 ## Mólá [od, do] v dlaždiciach – medzi nimi voda (tadiaľ sa skáče do vody; cez palubu sa dá len vyskočiť zospodu)
-const PIERS := [[16, 26], [28, 46], [62, 100], [113, 139]]
-const BOAT_X := 52            ## rybárska loďka (7 dlaždíc)
-const LIGHTHOUSE_X := 106     ## stred majáka (dlaždica)
+const PIERS := [[16, 26], [28, 40], [64, 100], [113, 139]]
+const BOAT_X := 44            ## rybárska loď (16 dlaždíc, 44–60), z oboch strán 4 dlaždice vody
+const LIGHTHOUSE_X := 106.5   ## odtiaľ (dlaždica) dopadá lúč majáka na móla – samotný maják je v diaľke (FarLighthouse)
+const LIGHTHOUSE_PARALLAX := 0.3   ## maják v diaľke sa posúva pomalšie ako loď
 const SHIP_PARALLAX := 0.45   ## loď v diaľke – vodorovne sa posúva pomalšie
 
 var rng := RandomNumberGenerator.new()
@@ -63,7 +63,7 @@ func _init() -> void:
 	_build_piers()
 	_build_boat()
 	_build_pier2()
-	_build_breakwater()
+	_build_lighthouse()
 	_build_pier13()
 	_water()
 	_fog()
@@ -215,7 +215,7 @@ func _block(nm: String, r: Rect2) -> void:
 	_node(cs, "Shape", b)
 
 
-## Jednosmerná plošina (paluba mólu, loďky) – z vody sa na ňu dá vyskočiť zospodu
+## Jednosmerná plošina (paluba mólu, lode) – z vody sa na ňu dá vyskočiť zospodu
 func _oneway(pos: Vector2, width: float, nm: String) -> void:
 	var b := StaticBody2D.new()
 	b.position = pos
@@ -330,7 +330,7 @@ func _sky() -> void:
 	_node(b, "Buoy", buoy_p)
 
 
-# ---------------------------------------------------------------- nábrežia, dno, vlnolam
+# ---------------------------------------------------------------- nábrežia, dno
 
 func _build_ground() -> void:
 	_fill(-4, BED_ROW, END_X + 4, BED_ROW, BED_TOP)
@@ -338,13 +338,6 @@ func _build_ground() -> void:
 	for x0x1 in [[-4, QUAY1 - 1], [QUAY2, END_X + 4]]:
 		_fill(x0x1[0], -1, x0x1[1], -1, QUAY_TOP)
 		_fill(x0x1[0], 0, x0x1[1], BED_ROW - 1, QUAY_WET)
-	# vlnolam: kraje nízko (vrch y = −16), stred vyššie (y = −32), na ňom maják
-	var b0: int = BREAKWATER.x
-	var b1: int = BREAKWATER.y - 1
-	_fill(b0, -1, b1, -1, ROCK_TOP)
-	_fill(b0, 0, b1, BED_ROW - 1, ROCK)
-	_fill(b0 + 2, -2, b1 - 2, -2, ROCK_TOP)
-	_fill(b0 + 2, -1, b1 - 2, -1, ROCK)
 	# okraje levelu – neviditeľná stena až hore
 	for x0 in [-2, END_X]:
 		_block("Edge", Rect2(x0 * T, -40 * T, 2 * T, 46 * T))
@@ -390,35 +383,37 @@ func _build_piers() -> void:
 	_crate("crate_whisky.png", 17 * T, DECK_Y)
 	_crate("crate_whisky.png", 19 * T, DECK_Y)
 	_crate("crate.png", 19 * T, DECK_Y - 20)
-	for bx in [22, 30, 38, 44]:
+	for bx in [22, 30, 38]:
 		_sprite("bollard.png", Vector2(bx * T, DECK_Y - 10), null, "Bollard")
-	_docker("Docker1", 32, 130.0)
+	_docker("Docker1", 32, 100.0)
 
 
-# ---------------------------------------------------------------- 2. rybárska loďka (rybár s luparou)
+# ---------------------------------------------------------------- 2. rybárska loď (rybár s luparou)
 
 func _build_boat() -> void:
 	var x0: float = BOAT_X * T
-	var s := _sprite("boat.png", Vector2(x0, -34), lvl, "Boat")
-	# kabínka je vľavo, korma vpravo – odtiaľ sa Ricco dostane k rybárovi zozadu
+	# obrázok 256×132: paluba na y = 108 → v hre −16 (ako mólá, z vody sa na ňu vyskočí), ponor na y = 124 → hladina
+	var s := _sprite("boat.png", Vector2(x0, -124), lvl, "Boat")
+	# kormidlovňa je vľavo, korma vpravo – odtiaľ sa Ricco dostane k rybárovi zozadu
 	s.z_index = -1
-	_oneway(Vector2(x0 + 2, -12), 106.0, "BoatDeck")
-	# lampáš na sťažni – svetlo okolo loďky aj na vode
-	var lamp := Vector2(x0 + 112 - 40, -31)
+	_oneway(Vector2(x0 + 4, DECK_Y), 248.0, "BoatDeck")
+	# lampáš na ramene sťažňa (v obrázku boat.png na x 128, y 20) – svetlo okolo lode aj na vode
+	var lamp := Vector2(x0 + 128, -124 + 20)
 	_glow(lamp, Color(1.0, 0.8, 0.45, 0.65), 1.2, null, true)
 	_glow(Vector2(lamp.x, 0), Color(1.0, 0.75, 0.45, 0.18), 2.4)
-	_light(Rect2(x0 - 4, -90, 104, 110))
-	# rybár (lupara) stojí na palube, pozerá na mólo 1 a chytá ryby (menej si všíma okolie) – zozadu (sprava) sa dá zložiť
-	_enemy("gangster_coppola", "Fisherman", Vector2(x0 + 4.5 * T, -12), -1.0, {"stationary": true, "look_back": Vector2(7.0, 11.0), "close_sense": 18.0})
+	_light(Rect2(x0 - 4, -130, 264, 150))
+	# rybár (lupara) stojí na korme pri sieťach, pozerá na mólo 1 a chytá ryby (menej si všíma okolie) –
+	# zozadu (sprava, z vody na korme) sa dá zložiť
+	_enemy("gangster_coppola", "Fisherman", Vector2(x0 + 196, DECK_Y), -1.0, {"stationary": true, "look_back": Vector2(7.0, 11.0), "close_sense": 18.0})
 
 
 # ---------------------------------------------------------------- 3. mólo 2: pes na reťazi, strelci, lúč majáka
 
 func _build_pier2() -> void:
-	_trigger("Checkpoint5", Vector2(63 * T, -40), Vector2(16, 200))
-	_marker("Spawn5", Vector2(63.5 * T, DECK_Y))
-	_trigger("LightBark", Vector2(64 * T, -40), Vector2(16, 200))
-	_trigger("DogBark", Vector2(66.5 * T, -40), Vector2(16, 200))
+	_trigger("Checkpoint5", Vector2(65 * T, -40), Vector2(16, 200))
+	_marker("Spawn5", Vector2(65.5 * T, DECK_Y))
+	_trigger("LightBark", Vector2(66 * T, -40), Vector2(16, 200))
+	_trigger("DogBark", Vector2(67.5 * T, -40), Vector2(16, 200))
 	var dog := CharacterBody2D.new()
 	dog.set_script(load("res://world/npc/dog.gd"))
 	_node(dog, "Dog", lvl)
@@ -430,24 +425,47 @@ func _build_pier2() -> void:
 	_crate("crate_whisky.png", 86 * T, DECK_Y)
 	_crate("crate.png", 86 * T, DECK_Y - 20)
 	_gunman("Gunman2", Vector2(93 * T, DECK_Y), 1.0, {"patrol_span": 70.0, "walk_speed": 30.0})
-	for bx in [66, 76, 90, 98]:
+	for bx in [67, 76, 90, 98]:
 		_sprite("bollard.png", Vector2(bx * T, DECK_Y - 10), null, "Bollard")
 
 
-# ---------------------------------------------------------------- 4. vlnolam s majákom (v diaľke loď s Lou)
+# ---------------------------------------------------------------- 4. voda pred Pier 13 (v diaľke maják na skale a loď s Lou)
 
-func _build_breakwater() -> void:
+func _build_lighthouse() -> void:
 	var lx: float = LIGHTHOUSE_X * T
-	var lh := _sprite("lighthouse.png", Vector2(lx - 24, -32 - 190), null, "Lighthouse")
-	lh.z_index = -4
+	# maják ďaleko na skalke pri obzore (y = −44) – menší, v hmle, posúva sa pomalšie (parallax)
+	var far := Parallax2D.new()
+	far.scroll_scale = Vector2(LIGHTHOUSE_PARALLAX, 1.0)
+	far.z_index = -29
+	_node(far, "FarLighthouse", lvl)
+	var rock := Polygon2D.new()
+	rock.polygon = PackedVector2Array([Vector2(546, -43), Vector2(552, -47), Vector2(560, -49), Vector2(572, -48),
+			Vector2(580, -45), Vector2(586, -43)])
+	rock.color = Color8(22, 28, 36)
+	_node(rock, "Rock", far)
+	var lh := Sprite2D.new()
+	lh.texture = load(ART + "lighthouse.png")
+	lh.centered = false
+	lh.scale = Vector2(0.4, 0.4)              # 48×190 → 19×76
+	lh.position = Vector2(565 - 9.6, -48 - 76)
+	lh.modulate = Color(0.46, 0.53, 0.62)     # v hmle – stmavený do modra ako druhá strana zálivu
+	_node(lh, "Tower", far)
+	var lamp := Marker2D.new()   # lampa majáka – odtiaľ vychádza lúč (Beam.source)
+	lamp.position = Vector2(565, -48 - 76 + 10)   # lampa v obrázku na (24, 26) × 0.4
+	_node(lamp, "Lamp", far)
+	_glow(lamp.position, Color(1.0, 0.9, 0.6, 0.45), 0.7, far)
+	# lúč: škvrna dopadá na móla okolo lx (svetlo, v ktorom ťa vidno), kužeľ sa kreslí od vzdialenej lampy
 	var beam := Node2D.new()
 	beam.set_script(load("res://world/fx/lighthouse_beam.gd"))
 	_node(beam, "Beam", lvl)
-	beam.position = Vector2(lx, -32 - 190 + 26)
-	_glow(Vector2(lx, -32 - 190 + 26), Color(1.0, 0.9, 0.6, 0.5), 1.4)
-	_trigger("Checkpoint6", Vector2(lx, -64), Vector2(3 * T, 64))
-	_marker("Spawn6", Vector2(lx - 2 * T, -32))
-	_trigger("LouView", Vector2(lx + T, -64), Vector2(4 * T, 64))
+	beam.position = Vector2(lx, -196)
+	beam.set("source", NodePath("../FarLighthouse/Lamp"))
+	beam.set("source_scale", 0.4)
+	# medzi mólom 2 a Pier 13 je len voda (13 dlaždíc) – preplávať, v lúči sa ponoriť. Uprostred plávania duch
+	# ukáže Lou na lodi v diaľke; checkpoint je tiež vo vode (na móle by Ricco ožil pri strážach)
+	_trigger("Checkpoint6", Vector2(lx, 16), Vector2(3 * T, 96))
+	_marker("Spawn6", Vector2(lx, 6))
+	_trigger("LouView", Vector2(lx, 16), Vector2(8 * T, 96))
 
 
 # ---------------------------------------------------------------- 5. Pier 13 a sklad Fontana Shipping (koniec)
@@ -479,9 +497,8 @@ func _water() -> void:
 	var zone := Node2D.new()
 	zone.set_script(load("res://world/water/water_zone.gd"))
 	var depth: float = BED_ROW * T
-	var rects: Array[Rect2] = [Rect2(QUAY1 * T, 0, (BREAKWATER.x - QUAY1) * T, depth),
-			Rect2(BREAKWATER.y * T, 0, (QUAY2 - BREAKWATER.y) * T, depth)]
-	var tops: Array[bool] = [true, true]
+	var rects: Array[Rect2] = [Rect2(QUAY1 * T, 0, (QUAY2 - QUAY1) * T, depth)]
+	var tops: Array[bool] = [true]
 	zone.set("rects", rects)
 	zone.set("open_top", tops)
 	_node(zone, "Water", lvl)

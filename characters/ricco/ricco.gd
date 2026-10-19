@@ -33,7 +33,8 @@ signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí�
 
 @export var max_speed: float = 140.0       ## px/s pri behu
 @export var sneak_speed: float = 58.0      ## px/s pri zakrádaní (C) – pomalšie, prikrčený, gangstri ho tak ľahko nezacítia
-@export var takedown_range: float = 30.0   ## px – takto blízko zozadu sa dá gangster potichu zneškodniť
+@export var slide_trip_speed: float = 90.0  ## px/s – od tejto rýchlosti šmyk po bruchu podkopne mafiána
+@export var takedown_range: float = 44.0   ## px – takto blízko zozadu sa dá gangster potichu zneškodniť
 @export var acceleration: float = 900.0    ## ako rýchlo sa rozbehne
 @export var friction: float = 1100.0       ## ako rýchlo zastaví, keď pustíš smer
 @export var jump_velocity: float = -320.0  ## záporné = hore (os Y ide v Godote dole)
@@ -107,7 +108,7 @@ signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí�
 @export_group("")
 
 @export_group("Meat hook")
-@export var hook_hang: float = 38.0       ## px – o koľko sú nohy pod úchytom háku
+@export var hook_hang: float = 49.0       ## px – o koľko sú nohy pod úchytom háku
 @export var hook_reach: float = 18.0      ## px – takto blízko pri úchyte sa hák chytí
 @export var hook_jump: float = -250.0     ## px/s – zoskok z háku (skok)
 @export var hook_regrab_time: float = 0.35  ## s – po pustení sa hneď znova nechytí
@@ -124,6 +125,7 @@ const HEIGHT := 38.0      ## výška kapsuly
 ## Animácia "climb" má framy 96×96 nakreslené tak, že roh hrany je v pixeli (40, 52).
 ## Tento posun spritu ho zarovná s rohom hrany v hre (rovnako ako pri "hang").
 const CLIMB_SPRITE_OFFSET := Vector2(19, -21)
+const HOOK_SPRITE_OFFSET := Vector2(-14, 0)   ## animácia hook má úchyt v plutve 14 px vpravo od stredu – hák je presne nad Riccom
 ## Kde stojí Ricco v poslednom frame "climb" – o koľko px za hranou (stred tela)
 const CLIMB_STAND_DISTANCE := 17.0
 
@@ -217,6 +219,7 @@ func _ready() -> void:
 	floor_constant_speed = true      # hore aj dole rovnako rýchlo
 	_add_takedown_anim()
 	_add_throw_walk_anim()
+	_add_hook_anim()
 	_takedown_hint = Label.new()
 	_takedown_hint.text = "F"
 	_takedown_hint.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
@@ -313,6 +316,22 @@ func _add_takedown_anim() -> void:
 		sf.add_frame(&"takedown", at)
 
 
+## Visenie na háku – jedna plutva hore na háku (sprites/hook.png, 2 snímky), úchyt je v obrázku na (46, 4)
+func _add_hook_anim() -> void:
+	var sf := sprite.sprite_frames
+	if sf.has_animation(&"hook"):
+		return
+	var tex: Texture2D = load("res://characters/ricco/sprites/hook.png")
+	sf.add_animation(&"hook")
+	sf.set_animation_loop(&"hook", true)
+	sf.set_animation_speed(&"hook", 3.0)
+	for i in 2:
+		var at := AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(i * 64, 0, 64, 64)
+		sf.add_frame(&"hook", at)
+
+
 ## Zakrádanie: kto drží C na zemi, ide pomaly a prikrčene. V režime TOGGLE (GameSettings.sneak_toggle)
 ## ho C zapne a ďalšie C vypne; vypne ho aj skok, šmyk, plávanie, visenie a cutscéna.
 func _update_sneak() -> void:
@@ -339,7 +358,7 @@ func _update_takedown() -> void:
 		if e == null or not e.has_method(&"can_takedown"):
 			continue
 		var dx: float = e.global_position.x - global_position.x
-		if absf(dx) < takedown_range and absf(e.global_position.y - global_position.y) < 20.0 and e.can_takedown(global_position.x):
+		if absf(dx) < takedown_range and absf(e.global_position.y - global_position.y) < 24.0 and e.can_takedown(global_position.x):
 			takedown_target = e
 			break
 	_takedown_hint.visible = takedown_target != null
@@ -1287,6 +1306,7 @@ func _process_slide(delta: float) -> void:
 	_update_weapons()
 	move_and_slide()
 	_update_ice()
+	_slide_trip()
 
 	if not is_on_floor():
 		if _can_stand():   # zišiel z hrany → normálny pád
@@ -1332,6 +1352,24 @@ func _process_slide(delta: float) -> void:
 
 
 ## Prach spod brucha – na ľade biele ľadové triesky
+## Podkopnutie: šmyk po bruchu do mafiána ho zvalí na chrbát (Gangster.trip) – kým leží, dá sa zneškodniť (F).
+## Šmyk sa pri tom trochu spomalí.
+func _slide_trip() -> void:
+	if absf(velocity.x) < slide_trip_speed or not is_on_floor():
+		return
+	var dir: float = signf(velocity.x)
+	for g in get_tree().get_nodes_in_group(&"enemies"):
+		var e := g as Node2D
+		if e == null or not e.has_method(&"trip"):
+			continue
+		var dx: float = e.global_position.x - global_position.x
+		if absf(dx) < 18.0 and signf(dx) == dir and absf(e.global_position.y - global_position.y) < 16.0:
+			if e.trip(dir):
+				velocity.x *= 0.7
+				shake_timer = 0.1
+				shake_strength = 2.0
+
+
 func _slide_dust_color(a: float) -> Color:
 	return Color(0.86, 0.95, 1.0, a) if on_ice else Color(0.78, 0.74, 0.68, a)
 
@@ -1788,9 +1826,9 @@ func grab_hook(h: Node2D) -> void:
 	_sneak_on = false
 	visual.position = Vector2.ZERO
 	visual.rotation = 0.0
-	sprite.offset = Vector2.ZERO
+	sprite.offset = HOOK_SPRITE_OFFSET
 	sprite.speed_scale = 1.0
-	sprite.play(&"hang")
+	sprite.play(&"hook")
 	Sfx.play(&"hook_grab", hook_hand(), -4.0, 0.1)
 
 
@@ -1800,6 +1838,7 @@ func release_hook(v: Vector2 = Vector2.ZERO) -> void:
 		return
 	_hook = null
 	state = State.NORMAL
+	sprite.offset = Vector2.ZERO
 	_hook_cooldown = hook_regrab_time
 	velocity = v
 	sprite.play(_hat_anim(&"jump" if v.y < 0.0 else &"fall"))
