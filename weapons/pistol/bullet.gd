@@ -13,7 +13,7 @@ extends Sprite2D
 const MIN_DAMAGE := 0.1   ## podiel damage na konci poklesu
 
 var _traveled: float = 0.0
-@export_flags_2d_physics var hit_mask: int = 1 | 4   ## world + enemies
+@export_flags_2d_physics var hit_mask: int = 1 | 4 | 32   ## world + enemies + kryt (visiace mäso, debny na páse)
 
 var direction: Vector2 = Vector2.RIGHT
 var shooter: CollisionObject2D = null
@@ -40,7 +40,9 @@ func _physics_process(delta: float) -> void:
 		return
 	global_position = hit.position
 	var target: Object = hit.collider
-	if target.has_method("take_hit"):
+	if target.has_method("take_hit_at"):
+		target.take_hit_at(damage * _falloff(), direction, hit.position)   # gangster vo veste rozlíši trup a hlavu
+	elif target.has_method("take_hit"):
 		target.take_hit(damage * _falloff(), direction)
 	else:
 		Burst.spawn(get_parent(), hit.position, hit.normal, Color(1.0, 0.85, 0.4), 6, 80.0)  # iskry od steny

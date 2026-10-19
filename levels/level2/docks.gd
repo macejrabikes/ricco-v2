@@ -3,7 +3,7 @@ extends Level2
 ## Časti (tools/build_docks.gd): nábrežie s pašeráckym kanálom → mólo 1 (dokár s hákom a lampášom, popod mólo sa pláva) →
 ##   rybárska loďka (rybár s luparou – zozadu ho zložíš a lupara je tvoja) → mólo 2 (pes na reťazi, strelci, lúč majáka) →
 ##   vlnolam s majákom (v diaľke loď S.S. Margaret, za oknom mostíka Big Lou – duch ho spozná) →
-##   Pier 13 (dokár s hákom, strelec) → dvere skladu Fontana Shipping = koniec časti.
+##   Pier 13 (dokár s hákom, strelec) → dvere skladu Fontana Shipping = ďalej mraziareň (coldstore.gd).
 ## Celý prístav je tma (player.dark_area): vidno ťa len v lúči majáka, pri lampáši loďky, dokárov a nad dverami skladu.
 ## Pod hladinou ťa nevidí nikto a pes ťa necíti.
 ## Checkpointy (Level2.checkpoint): 4 = príchod z tunela, 5 = mólo 2, 6 = vlnolam. Scénu generuje tools/build_docks.gd.
@@ -159,7 +159,7 @@ func _on_lou_view() -> void:
 	_lou_playing = false
 
 
-## Dvere skladu Fontana Shipping – koniec časti (ďalej mraziareň)
+## Dvere skladu Fontana Shipping – Ricco vojde dnu, ďalej mraziareň (coldstore.tscn)
 func _on_exit() -> void:
 	if _leaving:
 		return
@@ -171,14 +171,5 @@ func _on_exit() -> void:
 	tw.tween_property(player, "modulate:a", 0.0, 0.6)
 	tw.parallel().tween_property(black, "color:a", 1.0, 1.0)
 	await tw.finished
-	var title := _title_label("TO BE CONTINUED...", 16, Color8(245, 235, 209), -10)
-	var sub := _title_label("NEXT: COLD STORAGE", 8, Color8(150, 230, 245), 14)
-	black.add_child(title)
-	black.add_child(sub)
-	var tw2 := create_tween()
-	tw2.tween_property(title, "modulate:a", 1.0, 0.8)
-	tw2.tween_property(sub, "modulate:a", 1.0, 0.6)
-	tw2.tween_interval(2.5)
-	tw2.tween_callback(func():
-		reset()
-		LoadingScreen.go(get_tree(), MAIN_MENU, 0.6))
+	checkpoint = 7
+	LoadingScreen.go(get_tree(), COLDSTORE, 0.6)

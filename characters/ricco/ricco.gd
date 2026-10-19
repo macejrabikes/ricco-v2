@@ -19,9 +19,11 @@ extends CharacterBody2D
 ## krok 15: derringer a lupara (lámacie prebíjanie – hlavne sa vyklopia), rozptyl rastie pri streľbe za sebou (WeaponData Accuracy)
 ## krok 17: plávanie v hlbokej vode (world/water/water_zone.gd) – S = ponor, medzerník = hore / vyskočiť, pod vodou ho nevidno
 ## krok 16: pocit zásahu (silné zatrasenie, červené okraje obrazovky, hitstop), schody ako šikmá rampa, výstrel počujú gangstri
+## krok 18: ľad (dlaždica s vlastnými dátami "ice" alebo telo v skupine "ice") – kĺže sa, šmyk po bruchu je dlhší a rýchlejší;
+##          háky na mäso na koľajnici (world/coldstore/hook_rail.gd) – chytí sa vo vzduchu a vezie sa, dá sa pri tom strieľať
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
-enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM }
+enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM, HOOK }
 
 signal ammo_changed(mag: int, reserve: int, reloading: bool)
 signal weapon_changed(weapon: WeaponData)
@@ -97,6 +99,20 @@ signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí�
 @export var float_depth: float = 16.0      ## px – o koľko sú nohy pod hladinou, keď pláva na hladine
 @export_group("")
 
+@export_group("Ice")
+@export var ice_acceleration: float = 260.0   ## px/s² – rozbeh na ľade (nohy sa šmýkajú)
+@export var ice_friction: float = 120.0       ## px/s² – zastavenie na ľade (ešte kus sa kĺže)
+@export var ice_slide_friction: float = 36.0  ## px/s² – šmyk po bruchu na ľade (tučniak je doma – ide skoro donekonečna)
+@export var ice_slide_boost: float = 70.0     ## px/s navyše na začiatku šmyku na ľade
+@export_group("")
+
+@export_group("Meat hook")
+@export var hook_hang: float = 38.0       ## px – o koľko sú nohy pod úchytom háku
+@export var hook_reach: float = 18.0      ## px – takto blízko pri úchyte sa hák chytí
+@export var hook_jump: float = -250.0     ## px/s – zoskok z háku (skok)
+@export var hook_regrab_time: float = 0.35  ## s – po pustení sa hneď znova nechytí
+@export_group("")
+
 @export_group("Waddle")
 @export var waddle_angle_deg: float = 4.0  ## max. náklon do strany pri behu
 @export var waddle_bob: float = 1.0         ## o koľko px sa pri kroku nadvihne
@@ -159,6 +175,10 @@ var takedown_target: Node2D   ## gangster, ktorého sa dá práve zneškodniť (
 var _takedown_t: float = 0.0  ## s – prebieha úder
 var _slide_t: float = 0.0     ## s – ako dlho už šmyk trvá
 var submerged: bool = false   ## celý pod hladinou – gangstri ho nevidia
+var on_ice: bool = false      ## stojí (alebo sa šmýka) na ľade
+var _hook: Node2D             ## hák na mäso, na ktorom visí (world/coldstore/hook_rail.gd)
+var _hook_cooldown: float = 0.0
+var _hook_t: float = 0.0
 var _swim_cooldown: float = 0.0   ## s – po vyskočení z vody hneď znova nespadne do plávania
 var _bubble_t: float = 0.0
 var has_hat: bool = true            ## false = klobúk práve letí
@@ -386,6 +406,7 @@ func _physics_process(delta: float) -> void:
 		_bloom = maxf(_bloom - weapon.bloom_recover_deg * delta, 0.0)
 	_update_invulnerability(delta)
 	_swim_cooldown -= delta
+	_hook_cooldown -= delta
 	if state in [State.NORMAL, State.SLIDE] and _swim_cooldown <= 0.0 and _water_index(global_position + Vector2(0, -14)) >= 0:
 		_start_swim()
 	match state:
@@ -408,6 +429,9 @@ func _physics_process(delta: float) -> void:
 			return
 		State.SWIM:
 			_process_swim(delta)
+			return
+		State.HOOK:
+			_process_hook(delta)
 			return
 
 	# Gravitácia – get_gravity() berie hodnotu z Project Settings → Physics → 2D.
@@ -481,7 +505,7 @@ func _physics_process(delta: float) -> void:
 		var top_speed: float = sneak_speed if sneaking else max_speed
 		if sprite.animation in [&"slide_end", &"slide_end_nohat"] and sprite.is_playing():
 			top_speed *= 0.35   # ešte vstáva – nerozbehne sa hneď naplno
-		velocity.x = move_toward(velocity.x, direction * top_speed, acceleration * delta)
+		velocity.x = move_toward(velocity.x, direction * top_speed, (ice_acceleration if on_ice else acceleration) * delta)
 		if wall_sliding:
 			# pri šmýkaní sa Ricco pozerá OD steny (chrbtom k nej), ako Pedro
 			if facing != wall_normal_x:
@@ -489,7 +513,7 @@ func _physics_process(delta: float) -> void:
 		elif not aim_facing and signf(direction) != facing:
 			_turn(signf(direction))
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+		velocity.x = move_toward(velocity.x, 0.0, ground_friction() * delta)
 
 	# Zavesenie na okraj: vo vzduchu, pri páde (alebo tesne pri vrchole), keď hráč tlačí ku hrane
 	var grab_dir: float = signf(direction) if direction != 0.0 else (-_last_wall_x if ledge_near else 0.0)
@@ -506,6 +530,7 @@ func _physics_process(delta: float) -> void:
 	var was_air: bool = not is_on_floor()
 	var fall_vy: float = velocity.y
 	move_and_slide()
+	_update_ice()
 	if was_air and is_on_floor() and fall_vy > 220.0:
 		Sfx.play(&"land", Vector2.INF, -8.0 + minf(fall_vy / 100.0, 6.0))
 	_update_animation(direction)
@@ -783,7 +808,7 @@ func _update_aim() -> void:
 	var busy: bool = sprite.animation in [&"hat_throw", &"hat_throw_walk", &"hat_catch"] and sprite.is_playing()
 	aim.visible = not busy and weapon != null
 	# Ricco sa pozerá tam, kam mieri (okrem šmýkania po stene a hodu)
-	if aim_facing and state == State.NORMAL and not wall_sliding and not busy and wall_lock_timer <= 0.0:
+	if aim_facing and state in [State.NORMAL, State.HOOK] and not wall_sliding and not busy and wall_lock_timer <= 0.0:
 		var want: float = 1.0 if aim_dir.x >= 0.0 else -1.0
 		if want != facing:
 			_turn(want)
@@ -1234,7 +1259,7 @@ func _start_slide() -> void:
 	_slide_t = 0.0
 	state = State.SLIDE
 	var run_speed: float = absf(velocity.x) if signf(velocity.x) == dir else 0.0
-	velocity.x = dir * maxf(run_speed + slide_boost, slide_speed)
+	velocity.x = dir * maxf(run_speed + slide_boost + (ice_slide_boost if on_ice else 0.0), slide_speed)
 	velocity.y = 0.0
 	wall_sliding = false
 	facing = dir
@@ -1247,12 +1272,12 @@ func _start_slide() -> void:
 	sprite.play(_hat_anim(&"slide_start"))
 	Sfx.play(&"belly_slide", Vector2.INF, -2.0)
 	Burst.spawn(get_tree().current_scene, global_position + Vector2(-dir * 4.0, -1.0), Vector2(-dir, -0.5).normalized(),
-			Color(0.78, 0.74, 0.68, 0.8), 6, 45.0, Vector2(0, -25), 0.4)
+			_slide_dust_color(0.8), 6, 45.0, Vector2(0, -25), 0.4)
 
 
 func _process_slide(delta: float) -> void:
 	velocity += get_gravity() * delta
-	velocity.x = move_toward(velocity.x, 0.0, slide_friction * delta)
+	velocity.x = move_toward(velocity.x, 0.0, (ice_slide_friction if on_ice else slide_friction) * delta)
 	if Input.is_action_just_pressed("jump"):
 		jump_buffer_timer = jump_buffer_time
 	else:
@@ -1261,6 +1286,7 @@ func _process_slide(delta: float) -> void:
 	_update_aim()
 	_update_weapons()
 	move_and_slide()
+	_update_ice()
 
 	if not is_on_floor():
 		if _can_stand():   # zišiel z hrany → normálny pád
@@ -1275,7 +1301,8 @@ func _process_slide(delta: float) -> void:
 		return
 	_slide_t += delta
 	# šmyk trvá aspoň chvíľu (pustenie klávesy hneď po štarte ho neutne uprostred animácie)
-	var want_up: bool = absf(velocity.x) < slide_min_speed or (not Input.is_action_pressed(&"slide") and _slide_t > SLIDE_MIN_TIME)
+	# na ľade sa šmýka ďalej aj po pustení klávesy (zastaví ho až trenie, alebo vyskočí)
+	var want_up: bool = absf(velocity.x) < slide_min_speed or (not Input.is_action_pressed(&"slide") and _slide_t > SLIDE_MIN_TIME and not on_ice)
 	var room: bool = _can_stand()
 	if want_up and room:
 		_end_slide(true)
@@ -1300,8 +1327,13 @@ func _process_slide(delta: float) -> void:
 	if slide_dust_timer <= 0.0 and absf(velocity.x) > 60.0:
 		slide_dust_timer = 0.07
 		Burst.spawn(get_tree().current_scene, global_position + Vector2(-facing * 12.0, -1.0), Vector2(-facing, -0.6).normalized(),
-				Color(0.78, 0.74, 0.68, 0.6), 2, 30.0, Vector2(0, -20), 0.3)
+				_slide_dust_color(0.6), 2, 30.0, Vector2(0, -20), 0.3)
 	was_on_floor = true
+
+
+## Prach spod brucha – na ľade biele ľadové triesky
+func _slide_dust_color(a: float) -> Color:
+	return Color(0.86, 0.95, 1.0, a) if on_ice else Color(0.78, 0.74, 0.68, a)
 
 
 func _end_slide(get_up: bool) -> void:
@@ -1542,6 +1574,7 @@ func _update_invulnerability(delta: float) -> void:
 
 func _die() -> void:
 	state = State.DEAD
+	_hook = null
 	invulnerable_timer = 0.0
 	reloading = false
 	if focus.active:
@@ -1701,3 +1734,96 @@ func _splash(strength: float) -> void:
 	Burst.spawn(get_tree().current_scene, Vector2(global_position.x, y), Vector2.UP, Color(0.7, 0.85, 1.0, 0.85),
 			int(clampf(strength / 30.0, 5.0, 14.0)), clampf(strength * 0.6, 60.0, 160.0), Vector2(0, 420), 0.5)
 	Sfx.play(&"splash", Vector2.INF, -4.0)
+
+
+# ---------------------------------------------------------------- ľad
+
+## Stojí na ľade? Pozrie dlaždicu pod nohami (vlastné dáta "ice" v TileSete) alebo telo v skupine "ice" (zamrznutá debna).
+## Godot docs: classes/class_tilemaplayer (local_to_map), classes/class_tiledata (get_custom_data)
+func _update_ice() -> void:
+	on_ice = false
+	if not is_on_floor():
+		return
+	for i in get_slide_collision_count():
+		var c: KinematicCollision2D = get_slide_collision(i)
+		if c.get_normal().y > -0.7:
+			continue
+		var col: Object = c.get_collider()
+		if col is TileMapLayer:
+			var tl := col as TileMapLayer
+			if tl.tile_set == null or tl.tile_set.get_custom_data_layer_by_name("ice") < 0:
+				continue
+			# dlaždicu nájdeme podľa bodu dotyku (kúsok pod ním) – get_coords_for_body_rid vracia pri zlúčených
+			# fyzikálnych kvadrantoch len prvú dlaždicu kvadrantu (docs: classes/class_tilemaplayer#physics_quadrant_size)
+			var td: TileData = tl.get_cell_tile_data(tl.local_to_map(tl.to_local(c.get_position() + Vector2(0, 2))))
+			if td and td.get_custom_data(&"ice"):
+				on_ice = true
+		elif col is Node and (col as Node).is_in_group(&"ice"):
+			on_ice = true
+
+
+## Trenie pod nohami (na ľade menšie) – dokár s hákom podľa neho vypočíta, ako silno Ricca pritiahne
+func ground_friction() -> float:
+	return ice_friction if on_ice else friction
+
+
+# ---------------------------------------------------------------- hák na mäso (world/coldstore/hook_rail.gd)
+
+## Môže sa chytiť háku? Pýta sa koľajnica – len vo vzduchu a nie hneď po pustení.
+func can_grab_hook() -> bool:
+	return state == State.NORMAL and not is_on_floor() and _hook_cooldown <= 0.0 and not in_cutscene
+
+
+## Bod, ktorým sa drží háku (labky nad hlavou)
+func hook_hand() -> Vector2:
+	return global_position + Vector2(0, -hook_hang)
+
+
+func grab_hook(h: Node2D) -> void:
+	_hook = h
+	_hook_t = 0.0
+	state = State.HOOK
+	velocity = Vector2.ZERO
+	wall_sliding = false
+	_sneak_on = false
+	visual.position = Vector2.ZERO
+	visual.rotation = 0.0
+	sprite.offset = Vector2.ZERO
+	sprite.speed_scale = 1.0
+	sprite.play(&"hang")
+	Sfx.play(&"hook_grab", hook_hand(), -4.0, 0.1)
+
+
+## Pustí hák (skok, šmyk, koniec koľajnice). v = rýchlosť po pustení.
+func release_hook(v: Vector2 = Vector2.ZERO) -> void:
+	if state != State.HOOK:
+		return
+	_hook = null
+	state = State.NORMAL
+	_hook_cooldown = hook_regrab_time
+	velocity = v
+	sprite.play(_hat_anim(&"jump" if v.y < 0.0 else &"fall"))
+
+
+## Visí na háku a vezie sa s ním. Skok = zoskočí (aj s rýchlosťou koľajnice), šmyk (S) = pustí sa. Strieľa sa normálne
+## (zbraň drží ruka ducha).
+func _process_hook(delta: float) -> void:
+	if not is_instance_valid(_hook):
+		release_hook()
+		return
+	_hook_t += delta
+	var hv: Variant = _hook.get(&"velocity")
+	var v: Vector2 = hv if hv is Vector2 else Vector2.ZERO
+	global_position = _hook.global_position + Vector2(0, hook_hang)
+	velocity = v
+	aim.visible = weapon != null
+	if Input.is_action_just_pressed("jump"):
+		var dir: float = Input.get_axis("move_left", "move_right")
+		release_hook(Vector2(v.x + dir * 100.0, hook_jump))
+		Sfx.play(&"jump", Vector2.INF, -6.0)
+		return
+	if Input.is_action_just_pressed(&"slide"):
+		release_hook(Vector2(v.x, 0.0))
+		return
+	_update_aim()
+	_update_weapons()

@@ -26,18 +26,20 @@ Toto je odovzdávací súhrn pre nový chat / Claude Code. Prečítaj celý pred
 ```
 audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty), amb/*.ogg (slučky prostredia)
 characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/
-levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav), test_room/
-world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka)
+levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň), test_room/
+world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka),
+              coldstore/ (hook_rail – koľajnica s hákmi, carcass – visiace mäso = kryt, conveyor – pás)
 weapons/      pistol/ (bullet, magazine_drop, záblesky), hat/ (hat_projectile – hod klobúka)
 ui/           hud, dialog, main_menu, pause_menu (menu_pages: nastavenia, AUDIO), cursor, fonts (Tiny5), retro_filter
 settings/     game_settings.gd (GameSettings – ukladá do user://settings.cfg, aj hlasitosti [audio])
-tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_ricco_frames.gd (SpriteFrames Ricca)
+tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_coldstore.gd (mraziareň), build_ricco_frames.gd (SpriteFrames Ricca)
 docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 ```
 - **Level 1 a pivnica sa generujú skriptom**, needitovať `.tscn` ručne:
   `godot --headless --path . --script res://tools/build_level1.gd`. Bludisko pivnice je textová mapa (const MAZE) v tom súbore.
   Level 2 (cintorín) rovnako: `godot --headless --path . --script res://tools/build_level2.gd`,
-  prístav: `godot --headless --path . --script res://tools/build_docks.gd`.
+  prístav: `godot --headless --path . --script res://tools/build_docks.gd`,
+  mraziareň: `godot --headless --path . --script res://tools/build_coldstore.gd` (generuje aj `tiles_cold.tres` s vlastnými dátami „ice“).
 - Obrázky sú v **Git LFS**.
 
 ## Čo je hotové (kapitola I hrateľná)
@@ -59,8 +61,18 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   zozadu zneškodniť, lupara = prvá hlavná zbraň, `Level2.has_lupara`) → mólo 2 so **psom na reťazi** (`world/npc/dog.gd`: cíti aj v tme,
   pod vodou nie, štekot privolá mafiánov, klobúk ho omráči, guľka len vyľaká) a strelcami → **lúč majáka** (`world/fx/lighthouse_beam.gd`,
   pohyblivá LightZone) → vlnolam s majákom (v diaľke loď S.S. Margaret, **Big Lou ako silueta za oknom mostíka**, duch ho spozná) →
-  Pier 13 → dvere skladu Fontana Shipping = koniec časti („NEXT: COLD STORAGE“, zatiaľ návrat do menu). Paluby mól sú jednosmerné
+  Pier 13 → dvere skladu Fontana Shipping → mraziareň. Paluby mól sú jednosmerné
   plošiny – z vody sa na ne vyskočí zospodu, pod palubou ťa nevidno; medzi mólami sú medzery na skok do vody.
+  **Mraziareň** (`levels/level2/coldstore.gd extends Level2`, `coldstore.tscn`, checkpointy 7–10, návrh A – háky + ľad, ~312 dlaždíc):
+  príjem tovaru (whisky sa prebaľuje do rybích debien) → mraziareň 1 (ľad, koľajnica s hákmi, mafián vo veste) → chodba s potrubím
+  (len šmykom po ľade, para) → mraziareň 2 (regály, druhá koľajnica, lávka, rozbitá debna „tresky“ s whisky, lupara) → kancelária Lou na lávke
+  (**účtovná kniha** = stopa, `Level2.ledger_read`: S.S. Margaret odpláva o 2:00) → tunel (schody, pás do podpalubia) → vráta k lodi =
+  koniec časti („NEXT: THE S.S. MARGARET“, zatiaľ návrat do menu; bez knihy nepustí).
+  **Ľad:** dlaždica s vlastnými dátami `ice` (TileSet) alebo kolízia v skupine `ice` → `ricco.on_ice` (malé trenie, dlhý šmyk, `ground_friction()`).
+  **Háky:** `world/coldstore/hook_rail.gd` – vozíky idú po koľajnici (vzor `pattern`: C = mäso, H = voľný hák, - = nič); Ricco vo vzduchu
+  chytí voľný hák (stav HOOK = 6: vezie sa, strieľa, skok/šmyk = pustí sa, na konci koľajnice sa pustí sám). Mäso (`carcass.gd`, vrstva 32)
+  zastaví pohľad aj guľky, postavy prejdú. **Vesta:** `Gangster.vest` – do trupu len `vest_factor` damage (iskry, cink), hlava a nohy naplno
+  (`take_hit_at`). `Gangster.cold_breath` = para od úst; Riccovi ide para v mraziarňach (coldstore.gd).
 - **Plávanie:** v pivnici sú zatopené katakomby (kostnica ~113 dlaždíc: bazény, rošt nad vodou s hliadkou s baterkou – popod ňu sa dá preplávať,
   dlhý sifón, krypta so strážou chrbtom, dosky cez vodu). Hlboká voda je v MAZE znak `%`, build z nej spraví `WaterZone`
   (`world/water/water_zone.gd`). Ricco má stav SWIM: na hladine pláva, S = ponor, medzerník = hore / vyskočiť, k nízkemu okraju sa sám vyšvihne.

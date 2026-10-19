@@ -60,6 +60,11 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var flashlight: bool = false              ## svieti si baterkou pred seba – v kuželi Ricca vidno (pivnica)
 @export var passive: bool = false                 ## Ricca si nevšíma (napr. vyhadzovač pred pizzeriou) – kým ho Ricco nezasiahne
 
+@export_group("Armor & cold")
+@export var vest: bool = false                    ## nepriestrelná vesta (dobová, plátovaná pod sakom) – do trupu len vest_factor damage, hlava a nohy nie
+@export_range(0.0, 1.0) var vest_factor: float = 0.2
+@export var cold_breath: bool = false             ## v mraziarni mu od úst stúpa para
+
 @export_group("Test room")
 @export var respawn_time: float = 6.0             ## s po smrti, kým sa objaví znova (0 = nikdy)
 
@@ -91,6 +96,7 @@ const UPPER_LEN := 8.0
 const FORE_LEN := 12.0
 const BAT_GRIP := Vector2(6, 4)                  ## úchop palice v bat.png
 const HOOK_GRIP := Vector2(3, 3)                 ## úchop rúčky v hook.png
+const COVER_LAYER := 32                          ## vrstva 6: kryt, ktorý zastaví pohľad aj guľky, ale nie postavy (visiace mäso, debny na páse)
 const RIGS := {
 	"tommy": {"torso": Vector2(11, 26), "hat": Vector2(13, 10)},
 	"coppola": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},
@@ -137,6 +143,7 @@ var _aggro: float = 0.0   ## s – po zásahu klobúkom vie, kde Ricco je (vidí
 var _investigate_x: float = 0.0   ## px – kam sa ide pozrieť (počul výstrel / pád kamaráta)
 var _investigate_phase: int = 0   ## 0 = zarazí sa, 1 = ide tam, 2 = obzerá sa, 3 = vracia sa
 var _question_mark: Label
+var _breath_t: float = 0.0
 var spawn_pos: Vector2
 var player: Node2D
 
@@ -216,6 +223,13 @@ func _build_rig() -> void:
 	leg_back = _part(rig, "leg_back", PIVOT_LEG, LEG_BACK)
 	leg_front = _part(rig, "leg", PIVOT_LEG, LEG_FRONT)
 	torso = _part(rig, "torso", r["torso"], HIP)
+	var vest_path := "res://characters/gangster/%s/vest.png" % kind
+	if vest and ResourceLoader.exists(vest_path):
+		var vs := Sprite2D.new()
+		vs.texture = load(vest_path)
+		vs.centered = false
+		vs.offset = -r["torso"]
+		torso.add_child(vs)
 	head = _part(rig, "head", PIVOT_HEAD, NECK)
 	if r.has("hat"):
 		hat = Sprite2D.new()
@@ -433,6 +447,13 @@ func _physics_process(delta: float) -> void:
 		laser.visible = false
 	move_and_slide()
 	_animate(delta)
+	# para od úst v mraze
+	if cold_breath and state != State.DEAD:
+		_breath_t -= delta
+		if _breath_t <= 0.0:
+			_breath_t = randf_range(2.0, 3.6)
+			Burst.spawn(get_tree().current_scene, global_position + Vector2((EYE.x + 4.0) * facing, EYE.y + 6.0), Vector2(facing, -0.4),
+					Color(0.9, 0.96, 1.0, 0.35), 5, 16.0, Vector2(0, -8), 1.1)
 
 
 func _alert() -> void:
@@ -715,7 +736,7 @@ func _can_see_player() -> bool:
 			return false
 	elif not alerted and signf(dx) != facing and absf(dx) > 40.0:
 		return false   # nevidí za seba
-	var q := PhysicsRayQueryParameters2D.create(eye, target, 1)
+	var q := PhysicsRayQueryParameters2D.create(eye, target, 1 | COVER_LAYER)
 	return get_world_2d().direct_space_state.intersect_ray(q).is_empty()
 
 
@@ -763,7 +784,7 @@ func _fire() -> void:
 		b.shooter = self
 		b.speed = bullet_speed * (randf_range(0.85, 1.05) if pellets > 1 else 1.0)
 		b.lifetime = bullet_lifetime
-		b.hit_mask = 1 | 2     # svet + Ricco
+		b.hit_mask = 1 | 2 | COVER_LAYER     # svet + Ricco + kryt (mäso, debny)
 		b.modulate = Color(1.0, 0.6, 0.5)
 		b.global_position = muzzle.global_position
 		get_tree().current_scene.add_child(b)
@@ -787,7 +808,7 @@ func _punch() -> void:
 		if hook:
 			# hák zachytí Ricca a strhne ho k dokárovi (namiesto odhodenia) – presne pred neho, nie cez neho:
 			# rýchlosť, z ktorej ho trenie zastaví na ~22 px od dokára (v² = 2·trenie·dráha)
-			var fr: float = player.get(&"friction") if player.get(&"friction") != null else 1100.0
+			var fr: float = player.ground_friction() if player.has_method(&"ground_friction") else 1100.0
 			var v: float = minf(sqrt(2.0 * fr * maxf(absf(dx) - 22.0, 0.0)), hook_pull)
 			player.velocity = Vector2(-facing * v, -40.0 if v > 0.0 else 0.0)
 			Sfx.play(&"hook_catch", player.global_position, -3.0)
@@ -825,14 +846,26 @@ func _bat_smear() -> void:
 # ---------------------------------------------------------------- zásahy
 
 ## Guľka (alebo broky) od Ricca
-func take_hit(damage: float, dir: Vector2) -> void:
+## Zásah guľkou aj s miestom zásahu (weapons/pistol/bullet.gd). Vesta chráni trup (od krku po opasok) – iskry, zlomok damage.
+func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
+	var y: float = pos.y - global_position.y
+	if vest and state != State.DEAD and y > NECK.y + 2.0 and y < HIP.y + 6.0:
+		Burst.spawn(get_tree().current_scene, pos, -dir + Vector2(0, -0.4), Color(1.0, 0.85, 0.45), 7, 110.0)
+		Sfx.play(&"vest_hit", pos, -2.0, 0.1)
+		take_hit(damage * vest_factor, dir, false)
+		return
+	take_hit(damage, dir)
+
+
+func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 	if state == State.DEAD:
 		return
 	passive = false
 	health -= damage
-	Sfx.play(&"impact_body", global_position + Vector2(0, -40), -2.0)
-	Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -44), dir + Vector2(0, -0.3),
-			Color(0.62, 0.05, 0.05), 6, 90.0, Vector2(0, 520), 0.5)
+	if blood:
+		Sfx.play(&"impact_body", global_position + Vector2(0, -40), -2.0)
+		Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -44), dir + Vector2(0, -0.3),
+				Color(0.62, 0.05, 0.05), 6, 90.0, Vector2(0, 520), 0.5)
 	rig.modulate = Color(3, 3, 3)
 	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.12)
 	if health <= 0:

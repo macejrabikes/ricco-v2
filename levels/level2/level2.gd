@@ -13,6 +13,7 @@ extends Node2D
 const MAP := Rect2i(0, -304, 2240, 360)            ## hranice kamery (px) – zvisle presne jedna obrazovka
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
 const DOCKS := "res://levels/level2/docks.tscn"
+const COLDSTORE := "res://levels/level2/coldstore.tscn"
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const DERRINGER := preload("res://weapons/derringer/derringer.tres")
 const REVOLVER := preload("res://weapons/revolver/revolver.tres")
@@ -25,7 +26,7 @@ const FONT := preload("res://ui/fonts/tiny5.ttf")
 const NIGHT := Color(0.72, 0.8, 0.86)               ## mafiáni sú v mesačnom svetle tmavší (Ricco sa stmavuje sám)
 const BELL_POS := Vector2(1648, -60)                 ## kostol za pohrebom
 
-## 0 = brána, 1 = za kôlňou, 2 = strecha nad pohrebom, 3 = za pohrebom; 4–6 = prístav (docks.gd). Statické premenné prežijú smrť
+## 0 = brána, 1 = za kôlňou, 2 = strecha nad pohrebom, 3 = za pohrebom; 4–6 = prístav (docks.gd), 7–10 = mraziareň (coldstore.gd). Statické premenné prežijú smrť
 ## (reload scény), úvodné menu a koniec kapitoly I ich vynulujú (reset()).
 static var checkpoint: int = 0
 static var intro_done: bool = false
@@ -37,6 +38,9 @@ static var docks_arrived: bool = false
 static var has_lupara: bool = false
 static var lou_seen: bool = false
 static var docks_barks: Array[StringName] = []   ## hlášky ducha v prístave, ktoré už zazneli
+static var coldstore_arrived: bool = false
+static var ledger_read: bool = false             ## účtovná kniha Lou z kancelárie v mraziarni (stopa k lodi)
+static var cold_barks: Array[StringName] = []    ## hlášky ducha v mraziarni, ktoré už zazneli
 
 const INTRO: Array[String] = [
 	"Three days since they whacked the boss. Tonight they put him in the ground.",
@@ -68,6 +72,9 @@ static func reset() -> void:
 	has_lupara = false
 	lou_seen = false
 	docks_barks.clear()
+	coldstore_arrived = false
+	ledger_read = false
+	cold_barks.clear()
 
 
 func _ready() -> void:
