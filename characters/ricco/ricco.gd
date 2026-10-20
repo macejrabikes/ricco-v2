@@ -30,6 +30,7 @@ signal weapon_changed(weapon: WeaponData)
 signal health_changed(health: int, max_health: int)
 signal died
 signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí“)
+signal food_changed ## zobral alebo zjedol jedlo (HUD sloty – ui/food_slots.gd)
 
 @export var max_speed: float = 140.0       ## px/s pri behu
 @export var sneak_speed: float = 58.0      ## px/s pri zakrádaní (C) – pomalšie, prikrčený, gangstri ho tak ľahko nezacítia
@@ -196,6 +197,19 @@ var _reload_tween: Tween
 var _barrels: Sprite2D                ## hlavne lámacej zbrane počas prebíjania (dieťa Gun, otáča sa na pánte)
 var _bloom: float = 0.0               ## ° – rozptyl navyše zo streľby za sebou (WeaponData.spread_bloom_deg)
 var _swap_tween: Tween
+var holstered: bool = false           ## zbraň je schovaná (X) – nestrieľa, ruka ducha zmizne
+var _holstering: bool = false         ## práve ju schováva (animácia ešte beží, Aim je viditeľný)
+var _holster_tween: Tween
+var _takedown_frame: int = -1
+var _holster_after_reload: bool = false
+var eating: bool = false              ## práve je (V, props/food/food.gd) – nestrieľa, ide pomaly
+var _eat: RiccoEating                 ## animácie jedenia (characters/ricco/eating.gd)
+var _espresso_t: float = 0.0          ## s – po espresse behá rýchlejšie
+var in_cover: bool = false            ## drží C tesne pri nízkom kryte (debna, náhrobok, pult)
+var ducked: bool = false              ## skrčený za krytom – nízka kapsula, gangstri mieria nižšie (do krytu)
+var cover_side: float = 0.0           ## kde je kryt (+1 vpravo, -1 vľavo)
+var _cover_pop: float = 0.0           ## s – po výstrele z krytu je chvíľu vystrčený
+var cover_shape: CapsuleShape2D       ## nízka kapsula pri skrčení za krytom
 var mag_size: int:                    ## pre HUD – veľkosť zásobníka zbrane v ruke
 	get: return weapon.mag_size if weapon else 0
 var reload_time: float:
@@ -221,7 +235,7 @@ func _ready() -> void:
 	_add_throw_walk_anim()
 	_add_hook_anim()
 	_takedown_hint = Label.new()
-	_takedown_hint.text = "F"
+	_takedown_hint.text = KeyBindings.short(&"takedown")
 	_takedown_hint.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
 	_takedown_hint.add_theme_font_size_override(&"font_size", 8)
 	_takedown_hint.add_theme_color_override(&"font_color", Color8(255, 214, 90))
@@ -249,6 +263,14 @@ func _ready() -> void:
 	slide_shape.radius = 12.0
 	slide_shape.height = 36.0   # ležiaca kapsula (otočená o 90°), 24 px vysoká ako ležiaci Ricco
 	aim_base_y = aim.position.y
+	cover_shape = CapsuleShape2D.new()
+	cover_shape.radius = HALF_WIDTH
+	cover_shape.height = COVER_HEIGHT
+	_eat = RiccoEating.new()
+	visual.add_child(_eat)
+	_eat.setup(sprite)
+	_eat.gulped.connect(_on_gulped)
+	_eat.finished.connect(_on_eat_finished)
 
 
 func _process(delta: float) -> void:
@@ -258,26 +280,21 @@ func _process(delta: float) -> void:
 	visual.modulate = visual.modulate.lerp(shade, 1.0 - exp(-10.0 * delta))
 	aim.modulate = visual.modulate
 	# zatrasenie kamerou (offset sa po chvíli vráti na nulu)
+	var shake := Vector2.ZERO
 	if shake_timer > 0.0:
 		shake_timer -= delta
 		var fade: float = minf(1.0, shake_timer / 0.1)   # ku koncu doznieva
-		camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_strength * fade
-	else:
-		camera.offset = Vector2.ZERO
+		shake = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * shake_strength * fade
+	# spätný ráz: kamera cukne proti smeru streľby a pruží späť
+	_cam_kick = _cam_kick.lerp(Vector2.ZERO, 1.0 - exp(-14.0 * delta))
+	camera.offset = shake + _cam_kick
 	_update_hurt_overlay()
 
 
-## Akcie zakrádania a zneškodnenia pridá do Input Map za behu, ak ešte nie sú v project.godot
-## (Godot docs: classes/class_inputmap – add_action, action_add_event).
+## Všetky akcie (aj zakrádanie, zneškodnenie, holster, výber zbrane) a ich klávesy nastaví KeyBindings
+## (settings/key_bindings.gd, prestaviteľné v Settings → Controls → Keyboard).
 static func _ensure_actions() -> void:
-	for a in [[&"sneak", [KEY_C, KEY_ALT]], [&"takedown", [KEY_F]]]:
-		if InputMap.has_action(a[0]):
-			continue
-		InputMap.add_action(a[0])
-		for k in a[1]:
-			var e := InputEventKey.new()
-			e.physical_keycode = k
-			InputMap.action_add_event(a[0], e)
+	GameSettings.ensure_loaded()
 
 
 func _throwing() -> bool:
@@ -364,9 +381,10 @@ func _update_takedown() -> void:
 	_takedown_hint.visible = takedown_target != null
 	if takedown_target == null:
 		return
-	_takedown_hint.text = "F" if weapon != null else "F / LMB"
+	var key: String = KeyBindings.short(&"takedown")
+	_takedown_hint.text = key if weapon != null and not holstered else "%s / %s" % [key, KeyBindings.short(&"shoot")]
 	_takedown_hint.global_position = takedown_target.global_position + Vector2(-_takedown_hint.size.x / 2.0, -88 + sin(Time.get_ticks_msec() * 0.008) * 1.5)
-	var press: bool = Input.is_action_just_pressed(&"takedown") or (weapon == null and Input.is_action_just_pressed(&"shoot"))
+	var press: bool = Input.is_action_just_pressed(&"takedown") or ((weapon == null or holstered) and Input.is_action_just_pressed(&"shoot"))
 	if not press:
 		return
 	var dir: float = signf(takedown_target.global_position.x - global_position.x)
@@ -379,6 +397,7 @@ func _update_takedown() -> void:
 	shake_timer = 0.08
 	shake_strength = 1.5
 	takedown_target.takedown(Vector2(dir, -0.2))
+	_takedown_frame = Engine.get_physics_frames()   # to isté kliknutie už zbraň nevytiahne
 	Sfx.play(&"takedown", global_position)
 	takedown_target = null
 
@@ -386,10 +405,13 @@ func _update_takedown() -> void:
 ## Cutscéna: vypne ovládanie a fyziku (pohyb a animácie robí scéna), skryje zbraň
 func set_cutscene(on: bool) -> void:
 	in_cutscene = on
+	if on:
+		_cancel_eat()
+		_set_duck(false)
 	set_physics_process(not on)
 	velocity = Vector2.ZERO
 	visual.position = Vector2.ZERO
-	aim.visible = not on and weapon != null
+	aim.visible = not on and weapon != null and not holstered
 	if on:
 		sprite.speed_scale = 1.0
 		sprite.play(_hat_anim(&"idle"))
@@ -421,6 +443,7 @@ func _update_camera_lean(delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	ledge_cooldown -= delta
 	fire_timer -= delta
+	_espresso_t -= delta
 	if weapon:
 		_bloom = maxf(_bloom - weapon.bloom_recover_deg * delta, 0.0)
 	_update_invulnerability(delta)
@@ -491,6 +514,7 @@ func _physics_process(delta: float) -> void:
 		jump_buffer_timer = 0.0
 		coyote_timer = 0.0  # aby sa nedalo skočiť dvakrát z jedného coyote okna
 		_sneak_on = false   # skok zakrádanie vypne
+		_cancel_eat()
 		sprite.play(_hat_anim(&"jump"))
 		Sfx.play(&"jump", Vector2.INF, -6.0)
 	# Wall jump – vo vzduchu pri stene: odraz šikmo hore preč od steny
@@ -511,6 +535,8 @@ func _physics_process(delta: float) -> void:
 	# Šmyk po bruchu – len na zemi
 	if Input.is_action_just_pressed(&"slide") and is_on_floor() and jump_buffer_timer <= 0.0 \
 			and not _throwing() and _slide_room(_slide_dir()):
+		_cancel_eat()
+		_set_duck(false)
 		_start_slide()
 		return
 
@@ -522,6 +548,10 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, friction * delta)   # počas úderu stojí
 	elif direction != 0.0:
 		var top_speed: float = sneak_speed if sneaking else max_speed
+		if eating:
+			top_speed *= 0.45
+		elif _espresso_t > 0.0:
+			top_speed *= Food.ESPRESSO_SPEED
 		if sprite.animation in [&"slide_end", &"slide_end_nohat"] and sprite.is_playing():
 			top_speed *= 0.35   # ešte vstáva – nerozbehne sa hneď naplno
 		velocity.x = move_toward(velocity.x, direction * top_speed, (ice_acceleration if on_ice else acceleration) * delta)
@@ -541,10 +571,16 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_update_sneak()
+	_update_cover(delta)
 	_takedown_t -= delta
-	_update_takedown()
+	_update_eat()
+	if not eating:
+		_update_takedown()
+	else:
+		_takedown_hint.visible = false
 	_update_aim()
-	_update_weapons()
+	if not eating:
+		_update_weapons()
 
 	var was_air: bool = not is_on_floor()
 	var fall_vy: float = velocity.y
@@ -778,7 +814,7 @@ func _hat_anim(anim: StringName) -> StringName:
 
 ## Prikrčenie pri zakrádaní: obrázok sa zníži a mierne rozšíri, beh je pomalší a kolíše menej
 func _update_crouch(delta: float) -> void:
-	var want := Vector2(1.08, 0.84) if sneaking else Vector2.ONE
+	var want := Vector2(1.12, 0.62) if ducked else (Vector2(1.08, 0.84) if sneaking else Vector2.ONE)
 	var cur := Vector2(absf(visual.scale.x), visual.scale.y)
 	cur = cur.lerp(want, minf(1.0, 14.0 * delta))
 	visual.scale = Vector2(cur.x * facing, cur.y)
@@ -824,19 +860,32 @@ func _update_aim() -> void:
 			aim_dir = Vector2.from_angle(PI - max_down)
 	aim.rotation = aim_dir.angle()
 	gun.scale.y = -1.0 if aim_dir.x < 0.0 else 1.0
-	var busy: bool = sprite.animation in [&"hat_throw", &"hat_throw_walk", &"hat_catch"] and sprite.is_playing()
-	aim.visible = not busy and weapon != null
+	var busy: bool = sprite.animation in [&"hat_throw", &"hat_throw_walk", &"hat_catch"] and sprite.is_playing() or eating
+	aim.visible = not busy and weapon != null and (not holstered or _holstering)
 	# Ricco sa pozerá tam, kam mieri (okrem šmýkania po stene a hodu)
-	if aim_facing and state in [State.NORMAL, State.HOOK] and not wall_sliding and not busy and wall_lock_timer <= 0.0:
+	if aim_facing and state in [State.NORMAL, State.HOOK] and not wall_sliding and not busy:
 		var want: float = 1.0 if aim_dir.x >= 0.0 else -1.0
 		if want != facing:
 			_turn(want)
 
 
 func _update_weapons() -> void:
+	# Schovať / vytiahnuť zbraň (X); zo schovanej ju vytiahne aj streľba (prvé kliknutie nevystrelí)
+	if Input.is_action_just_pressed(&"holster") and weapon:
+		if holstered:
+			_draw_weapon()
+		elif _holster_after_reload:
+			_holster_after_reload = false   # rozmyslel si to počas prebíjania
+		else:
+			_holster()
+	if holstered:
+		if Input.is_action_just_pressed(&"shoot") and _takedown_frame != Engine.get_physics_frames():
+			_draw_weapon()
+		elif Input.is_action_just_pressed(&"reload"):
+			_draw_weapon()
 	# Streľba – samopal strieľa, kým držíš; ostatné zbrane každé kliknutie jeden výstrel
 	var pull: bool = false
-	if weapon:   # bez zbrane (začiatok levelu 1) sa len hádže klobúk
+	if weapon and not holstered:   # bez zbrane (začiatok levelu 1) sa len hádže klobúk
 		pull = Input.is_action_pressed("shoot") if weapon.automatic else Input.is_action_just_pressed("shoot")
 	if pull and fire_timer <= 0.0 and aim.visible and not reloading:
 		if ammo_in_mag > 0:
@@ -845,7 +894,7 @@ func _update_weapons() -> void:
 			if ammo_reserve <= 0 and not reloading:
 				Sfx.play(&"dry_fire")   # nič v zásobníku ani v zálohe – cvak
 			_start_reload()  # prázdny zásobník → automaticky prebije
-	if Input.is_action_just_pressed("reload"):
+	if Input.is_action_just_pressed("reload") and not holstered:
 		_start_reload()
 	# Hod klobúka – len keď ho má na hlave
 	if Input.is_action_just_pressed("throw_hat") and has_hat and state == State.NORMAL \
@@ -856,6 +905,9 @@ func _update_weapons() -> void:
 
 func _shoot() -> void:
 	fire_timer = weapon.fire_cooldown
+	if in_cover:
+		_cover_pop = COVER_POP_TIME   # vystrčí sa nad kryt a chvíľu ostane hore
+		_set_duck(false)
 	ammo_in_mag -= 1
 	_store_ammo()
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
@@ -890,16 +942,62 @@ func _shoot() -> void:
 		velocity.x -= aim_dir.x * 60.0   # lupara odtlačí Ricca
 	shake_timer = 0.08
 	shake_strength = weapon.shake
-	Gangster.noise(global_position, SHOT_NOISE)   # výstrel počuť – gangstri v okolí sa idú pozrieť
+	_cam_kick = -aim_dir * (1.5 + weapon.recoil_px * 0.9)
+	Gangster.gunshot(global_position, SHOT_NOISE)   # výstrel počuť ďaleko, záblesk vidno aj v tme
 	shot_fired.emit()
+
+
+# ---------------------------------------------------------------- schovanie zbrane
+
+## Ruka ducha so zbraňou sa stiahne k Riccovi a zmizne (počas prebíjania až keď dobije)
+func _holster() -> void:
+	if holstered or weapon == null:
+		return
+	if reloading:
+		_holster_after_reload = true
+		return
+	holstered = true
+	_holstering = true
+	if _holster_tween:
+		_holster_tween.kill()
+	_holster_tween = create_tween()
+	_holster_tween.tween_property(aim, "scale", Vector2(0.15, 0.15), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	_holster_tween.tween_callback(func():
+		_holstering = false
+		aim.visible = false
+		aim.scale = Vector2.ONE)
+	Sfx.play(&"mag_in", global_position, -10.0, 0.05)
+	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
+
+
+## Zbraň vyskočí z Ricca späť do ruky ducha
+func _draw_weapon(animate: bool = true) -> void:
+	if not holstered:
+		return
+	holstered = false
+	_holstering = false
+	if _holster_tween:
+		_holster_tween.kill()
+	aim.scale = Vector2.ONE
+	if weapon == null:
+		return
+	aim.visible = true
+	fire_timer = maxf(fire_timer, 0.12)
+	if animate:
+		aim.scale = Vector2(0.2, 0.2)
+		_holster_tween = create_tween()
+		_holster_tween.tween_property(aim, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		Sfx.play(&"slide_rack", global_position, -12.0, 0.05)
 
 
 # ---------------------------------------------------------------- záblesk z hlavne
 const FLASH_TEX := preload("res://weapons/pistol/muzzle_flash_big.png")
 const GLOW_TEX := preload("res://levels/level1/art/glow.png")
-const FLASH_SCALE := {"Derringer": 0.65, "Pistol": 0.8, "Revolver": 1.0, "Tommy gun": 0.75, "Lupara": 1.35}
+const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8}
 var _flash_glow: Sprite2D
+var _flash_light: PointLight2D   ## záblesk na okamih osvetlí okolie (aj v tme – CanvasModulate „Darkness“)
 var _recoil_tween: Tween
+var _cam_kick: Vector2 = Vector2.ZERO   ## px – spätný ráz kamery (_process ho vracia na nulu)
 
 func _setup_flash() -> void:
 	flash.texture = FLASH_TEX
@@ -917,6 +1015,14 @@ func _setup_flash() -> void:
 	_flash_glow.position = Vector2(6, 0)
 	_flash_glow.visible = false
 	muzzle.add_child(_flash_glow)
+	_flash_light = PointLight2D.new()
+	_flash_light.texture = GLOW_TEX
+	_flash_light.color = Color(1.0, 0.78, 0.45)
+	_flash_light.energy = 0.0
+	_flash_light.texture_scale = 2.4
+	_flash_light.position = Vector2(8, 0)
+	_flash_light.enabled = false
+	muzzle.add_child(_flash_light)
 
 
 func _muzzle_flash() -> void:
@@ -926,7 +1032,14 @@ func _muzzle_flash() -> void:
 	flash.frame = 0
 	flash.visible = true
 	_flash_glow.visible = true
-	_flash_glow.scale = Vector2.ONE * 0.55 * k
+	_flash_glow.scale = Vector2.ONE * 0.7 * k
+	# okolie sa na okamih rozsvieti (steny, mafiáni v tme)
+	_flash_light.enabled = true
+	_flash_light.energy = 1.1 + 0.3 * k
+	_flash_light.texture_scale = 2.0 + 1.4 * k
+	var lt := create_tween()
+	lt.tween_property(_flash_light, "energy", 0.0, 0.11).set_delay(0.03)
+	lt.tween_callback(func(): _flash_light.enabled = false)
 	var tw := create_tween()
 	tw.tween_interval(0.025)
 	tw.tween_callback(func(): flash.frame = 1)
@@ -935,7 +1048,8 @@ func _muzzle_flash() -> void:
 	tw.tween_interval(0.025)
 	tw.tween_callback(func(): flash.visible = false)
 	Burst.spawn(get_tree().current_scene, muzzle.global_position, aim_dir + Vector2(0, -0.4),
-			Color(0.75, 0.72, 0.7, 0.55), 3 if k < 1.0 else 6, 30.0, Vector2(0, -30), 0.6)   # dym z hlavne
+			Color(0.75, 0.72, 0.7, 0.55), 4 if k < 1.2 else 8, 40.0, Vector2(0, -30), 0.7)   # iskričky a sadze
+	GunSmoke.spawn(get_tree().current_scene, muzzle.global_position, aim_dir, k * (0.7 if weapon.automatic else 1.0))   # obláčiky dymu ostanú visieť
 
 
 ## Prebíjanie (ako naozaj): zbraň sa nakloní, starý zásobník (bubon, nábojnice, broky) vykĺzne a padne na zem,
@@ -1094,6 +1208,9 @@ func _finish_reload() -> void:
 	offhand.visible = weapon.two_handed
 	offhand.fade = 1.0
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
+	if _holster_after_reload:
+		_holster_after_reload = false
+		_holster()
 
 
 # ---------------------------------------------------------------- výbava (viac zbraní)
@@ -1118,6 +1235,9 @@ func _equip(i: int, animate: bool = true) -> void:
 	i = posmod(i, loadout.size())
 	if weapon and i == weapon_index:
 		return
+	if holstered:
+		_draw_weapon(false)   # nová zbraň (zdvihnutá zo zeme) je hneď v ruke
+	_holster_after_reload = false
 	if weapon:
 		last_weapon_index = weapon_index
 		_store_ammo()
@@ -1197,24 +1317,28 @@ func give_weapon(w: WeaponData) -> void:
 	_equip(i)
 
 
-## 1–3 = zbraň z výbavy (1 bočná, 2–3 hlavné), koliesko myši = ďalšia/predošlá, Q = posledná použitá
+## 1–3 = zbraň z výbavy (1 bočná, 2–3 hlavné), koliesko myši = ďalšia/predošlá, Q = posledná použitá (klávesy z KeyBindings)
 func _weapon_switch_input(event: InputEvent) -> void:
 	if state == State.DEAD:
 		return
-	var key := event as InputEventKey
-	if key and key.pressed and not key.echo:
-		var n: int = key.physical_keycode - KEY_1
-		if n >= 0 and n < mini(loadout.size(), 9):
+	for n in 3:
+		if event.is_action_pressed(StringName("weapon_%d" % (n + 1))) and n < loadout.size():
+			_draw_weapon()
 			_equip(n)
 			get_viewport().set_input_as_handled()
-		elif key.physical_keycode == KEY_Q:
-			_equip(last_weapon_index)
-			get_viewport().set_input_as_handled()
+			return
+	if event.is_action_pressed(&"weapon_last"):
+		_draw_weapon()
+		_equip(last_weapon_index)
+		get_viewport().set_input_as_handled()
+		return
 	var mb := event as InputEventMouseButton
 	if mb and mb.pressed:
 		if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			_draw_weapon()
 			_equip(weapon_index + 1)
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+			_draw_weapon()
 			_equip(weapon_index - 1)
 
 
@@ -1432,6 +1556,93 @@ func _only_platforms(hits: Array[Dictionary]) -> bool:
 	return true
 
 
+# ---------------------------------------------------------------- jedlo (V)
+
+## Zje prvé jedlo zo zásoby (Food.carried) – len na zemi, keď nie je celý zdravý a nič iné nerobí.
+## Počas jedenia nestrieľa a ide pomaly; skok, šmyk alebo zásah ho preruší (jedlo ostane v zásobe).
+func _update_eat() -> void:
+	if eating or not Input.is_action_just_pressed(&"eat"):
+		return
+	if Food.carried.is_empty():
+		return
+	if health >= max_health or not is_on_floor() or reloading or _throwing() or _takedown_t > 0.0:
+		Sfx.play(&"ui_back", Vector2.INF, -14.0, 0.0)   # teraz nie (je sýty alebo práve niečo robí)
+		return
+	eating = true
+	aim.visible = false
+	_eat.start(Food.carried[0])
+
+
+func _cancel_eat() -> void:
+	if not eating:
+		return
+	eating = false
+	_eat.cancel()
+
+
+func _on_gulped(kind: StringName) -> void:
+	var i: int = Food.carried.find(kind)
+	if i >= 0:
+		Food.carried.remove_at(i)
+	heal(Food.HEAL.get(kind, 2))
+	if kind == &"espresso":
+		_espresso_t = Food.ESPRESSO_TIME
+	food_changed.emit()
+	Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -34), Vector2.UP, Color(0.95, 0.35, 0.4), 6, 40.0, Vector2(0, -20), 0.6)
+
+
+func _on_eat_finished() -> void:
+	eating = false
+
+
+# ---------------------------------------------------------------- krytie (C pri nízkej prekážke)
+
+const COVER_REACH := 8.0      ## px – kryt môže byť takto ďaleko od kapsuly
+const COVER_MIN_H := 12.0     ## px – nižšie veci (schod) nie sú kryt
+const COVER_MAX_H := 32.0     ## px – vyššie sa dá schovať aj postojačky (stena), skrčenie netreba
+const COVER_HEIGHT := 22.0    ## px – výška kapsuly skrčeného Ricca
+const COVER_POP_TIME := 0.5   ## s – po výstrele ostane vystrčený nad krytom
+const COVER_LAYER := 32
+
+## Pri zakrádaní (C) tesne pri nízkej prekážke sa Ricco skrčí: nízka kapsula, guľky z druhej strany
+## zastaví kryt (gangstri mieria do výšky skrčeného – characters/gangster/gangster.gd _player_target).
+## Výstrel ho na chvíľu vystrčí nad kryt.
+func _update_cover(delta: float) -> void:
+	_cover_pop -= delta
+	var side: float = 0.0
+	if sneaking and is_on_floor() and state == State.NORMAL:
+		for s: float in [facing, -facing]:
+			if _cover_at(s):
+				side = s
+				break
+	in_cover = side != 0.0
+	cover_side = side
+	_set_duck(in_cover and _cover_pop <= 0.0)
+
+
+## Je na strane s nízka prekážka (vrch 12–32 px nad nohami)? Godot docs: classes/class_physicsdirectspacestate2d
+func _cover_at(s: float) -> bool:
+	var space := get_world_2d().direct_space_state
+	var from: Vector2 = global_position + Vector2(0, -6)
+	var hit := space.intersect_ray(PhysicsRayQueryParameters2D.create(from, from + Vector2(s * (HALF_WIDTH + COVER_REACH), 0), 1 | COVER_LAYER))
+	if hit.is_empty():
+		return false
+	var x: float = hit.position.x + s * 3.0
+	var top := space.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x, global_position.y - COVER_MAX_H - 12.0), Vector2(x, global_position.y - 2.0), 1 | COVER_LAYER))
+	if top.is_empty():
+		return false
+	var h: float = global_position.y - top.position.y
+	return h >= COVER_MIN_H and h <= COVER_MAX_H
+
+
+func _set_duck(on: bool) -> void:
+	if on == ducked or (not on and not _can_stand()):
+		return
+	ducked = on
+	body_shape.shape = cover_shape if on else stand_shape
+	body_shape.position = Vector2(0, -(COVER_HEIGHT if on else HEIGHT) / 2.0)
+
+
 # ---------------------------------------------------------------- zdravie
 
 ## Zásah: uberie zdravie, odhodí Ricca od zdroja (from), na chvíľu je nesmrteľný a bliká.
@@ -1441,6 +1652,7 @@ func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
 		return
 	health = maxi(health - amount, 0)
 	health_changed.emit(health, max_health)
+	_cancel_eat()
 	_blood_fx(from)
 	_hurt_fx(health == 0)
 	if health == 0:
@@ -1455,7 +1667,7 @@ func take_damage(amount: int = 1, from: Vector2 = Vector2.INF) -> void:
 		sprite.play(_hat_anim(&"hurt"))   # zľakne sa, klobúk poskočí a dopadne späť
 
 
-const SHOT_NOISE := 260.0   ## px – do tejto vzdialenosti gangstri počujú výstrel
+const SHOT_NOISE := 520.0   ## px – do tejto vzdialenosti gangstri počujú výstrel (skoro celá obrazovka na každú stranu)
 const HURT_SHADER := """
 shader_type canvas_item;
 // červené okraje obrazovky pri zásahu (a slabo pulzujúce, keď Riccovi zostáva málo zdravia)
@@ -1688,7 +1900,7 @@ func _end_swim() -> void:
 	_set_slide_shape(false)
 	sprite.offset = Vector2.ZERO
 	visual.rotation = 0.0
-	aim.visible = weapon != null
+	aim.visible = weapon != null and not holstered
 
 
 ## Na hladine pláva (nadnáša ho), S ho ponorí, pod vodou pláva na všetky strany (medzerník = hore).
@@ -1855,7 +2067,7 @@ func _process_hook(delta: float) -> void:
 	var v: Vector2 = hv if hv is Vector2 else Vector2.ZERO
 	global_position = _hook.global_position + Vector2(0, hook_hang)
 	velocity = v
-	aim.visible = weapon != null
+	aim.visible = weapon != null and not holstered
 	if Input.is_action_just_pressed("jump"):
 		var dir: float = Input.get_axis("move_left", "move_right")
 		release_hook(Vector2(v.x + dir * 100.0, hook_jump))

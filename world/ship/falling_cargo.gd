@@ -38,7 +38,7 @@ func _physics_process(delta: float) -> void:
 	# Lou (keď ho Ricco naláka pod sieť)
 	for b in tree.get_nodes_in_group(&"boss"):
 		var bn := b as Node2D
-		if bn and box.intersects(Rect2(bn.global_position + Vector2(-12, -104), Vector2(28, 30))) and bn.has_method(&"cargo_hit"):
+		if bn and box.intersects(Rect2(bn.global_position + Vector2(-12, -86), Vector2(28, 28))) and bn.has_method(&"cargo_hit"):
 			bn.cargo_hit(3.0)
 			_land(true)
 			return

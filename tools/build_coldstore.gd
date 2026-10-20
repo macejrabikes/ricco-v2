@@ -71,6 +71,7 @@ func _init() -> void:
 	_build_tunnel()
 	_frost()
 
+	_build_food()
 	var ricco: Node2D = load("res://characters/ricco/ricco.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	_node(ricco, "Ricco", lvl)
 	ricco.position = Vector2(3 * T, 0)
@@ -633,10 +634,10 @@ func _build_tunnel() -> void:
 		var cs := Sprite2D.new()
 		cs.texture = load(ART + ("crate_whisky.png" if k % 2 == 0 else "crate_fish.png"))
 		cs.centered = false
-		cs.z_index = -1
+		cs.z_index = -2   # za otvorom do podpalubia (HoldHatch, z −1) – debny v ňom zmiznú
 		_node(cs, "Sprite", c)
 	# otvor do podpalubia (debny v ňom zmiznú), rampa s vrátami k lodi
-	_sprite("hold_hatch.png", Vector2(BELT[1] * T - 4, -52), lvl, "HoldHatch", 2)
+	_sprite("hold_hatch.png", Vector2(BELT[1] * T - 4, -52), lvl, "HoldHatch", -1)   # za Riccom (z 0), pred debnami na páse
 	_lamp(Vector2(303 * T, -150), Rect2(298 * T, -140, 10 * T, 140 + DOCK_Y), R6[2] * T)
 	_gunman("Gunman8", Vector2(304 * T, DOCK_Y), -1.0, {"stationary": true, "look_back": Vector2(4.0, 7.0)})
 	_sprite("gangway.png", Vector2(305 * T, DOCK_Y - 128), null, "Gangway", -4)
@@ -686,3 +687,19 @@ func _frost() -> void:
 		f.position = Vector2(r[0] * T + w / 2.0, -10)
 		f.z_index = 6
 		_node(f, "FloorMist", lvl)
+
+
+# ---------------------------------------------------------------- jedlo a lekárničky (props/food/food_pickup.tscn)
+
+## [x, y, druh] – druh "" = jedlo podľa poradia (Food.next_kind – vždy iné), "medkit" = lekárnička. Za behu spadne na zem.
+## Rozmiestnenie: príjem, mraziareň, chodba, pred kanceláriou
+const FOOD := [[22 * T, -12.0, ""], [60 * T, -12.0, ""], [140 * T, -12.0, ""], [200 * T, -12.0, "medkit"]]
+
+func _build_food() -> void:
+	for i in FOOD.size():
+		var f: Array = FOOD[i]
+		var p: Node2D = load("res://props/food/food_pickup.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
+		_node(p, ("Medkit%d" if f[2] == "medkit" else "Food%d") % (i + 1), lvl)
+		p.position = Vector2(f[0], f[1])
+		if f[2] != "":
+			p.set(&"kind", StringName(f[2]))

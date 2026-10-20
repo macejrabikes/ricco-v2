@@ -78,8 +78,14 @@ func shatter(dir: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
-## Spodnú debnu rozbili – táto spadne o dy nižšie
+## Spodnú debnu rozbili – táto spadne o dy nižšie (a s ňou aj debna navrchu – veža z troch)
 func drop_down(dy: float) -> void:
+	for n in get_tree().get_nodes_in_group(&"ship_cover"):
+		var top := n as Node2D
+		if top and top != self and absf(top.global_position.x - global_position.x) < 6.0 \
+				and absf(top.global_position.y - (global_position.y - SIZE.y)) < 3.0 and top.has_method(&"drop_down"):
+			top.drop_down(dy)
+			break
 	var tw := create_tween()
 	tw.tween_property(self, "position:y", position.y + dy, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func(): Sfx.play(&"land", global_position, -4.0, 0.1))

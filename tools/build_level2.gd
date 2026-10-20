@@ -69,6 +69,7 @@ func _init() -> void:
 	_build_crypt()
 	_fog()
 
+	_build_food()
 	var ricco: Node2D = load("res://characters/ricco/ricco.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	_node(ricco, "Ricco", lvl)
 	ricco.position = Vector2(5 * T, 0)
@@ -471,3 +472,19 @@ func _fog() -> void:
 		p.position = Vector2((END_X - 4) * T / 2.0, spec[1])
 		p.z_index = spec[2]
 		_node(p, spec[0], lvl)
+
+
+# ---------------------------------------------------------------- jedlo a lekárničky (props/food/food_pickup.tscn)
+
+## [x, y, druh] – druh "" = jedlo podľa poradia (Food.next_kind – vždy iné), "medkit" = lekárnička. Za behu spadne na zem.
+## Rozmiestnenie: za hrobníkom, pri pohrebe, pred kryptou
+const FOOD := [[52 * T, -12.0, ""], [100 * T, -12.0, ""], [119 * T, -12.0, "medkit"]]
+
+func _build_food() -> void:
+	for i in FOOD.size():
+		var f: Array = FOOD[i]
+		var p: Node2D = load("res://props/food/food_pickup.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
+		_node(p, ("Medkit%d" if f[2] == "medkit" else "Food%d") % (i + 1), lvl)
+		p.position = Vector2(f[0], f[1])
+		if f[2] != "":
+			p.set(&"kind", StringName(f[2]))

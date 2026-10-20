@@ -1,8 +1,9 @@
 class_name BigLou
 extends CharacterBody2D
 ## Big Lou Fontana – boss kapitoly II na palube S.S. Margaret (levels/level2/margaret.gd). Mafiáni nehovoria – ani Lou.
-## Telo je z častí ako Gangster (cutout, Godot docs: tutorials/animation/cutout_animation), len ~1,4× väčšie:
-## krémový oblek, fedora, cigara, nepriestrelná vesta pod sakom a Thompson s bubnom (characters/lou/*.png).
+## Telo je z častí ako Gangster (cutout, Godot docs: tutorials/animation/cutout_animation), ~88 px:
+## „Don Lou“ – modrý prúžkovaný dvojradový oblek, biele kamaše, fúzy, cigara, krémová fedora s bordovou páskou,
+## nepriestrelná vesta pod sakom a Thompson s bubnom (characters/lou/*.png kreslí c4/make_lou_don.py).
 ## Zdravie je rozdelené na tri fázy (značky v páse ui/boss_bar.gd) – pri prechode je Lou chvíľu nezraniteľný.
 ##
 ## 1. fáza – krídlo mostíka:
@@ -75,25 +76,27 @@ const ART := "res://characters/lou/"
 const COVER_LAYER := 32
 
 # kostra (pri pohľade doprava, päty v počiatku)
-const HIP := Vector2(0, -32)
-const LEG_FRONT := Vector2(3, -33)
-const LEG_BACK := Vector2(-4, -33)
-const NECK := Vector2(5, -70)
-const HAT_AT := Vector2(5, -98)
-const SHOULDER_FRONT := Vector2(3, -66)
-const SHOULDER_BACK := Vector2(-3, -66)
-const EYE := Vector2(18, -86)
-const CIGAR := Vector2(28, -78)
-const PIVOT_LEG := Vector2(7, 1)
-const PIVOT_TORSO := Vector2(19, 40)
-const PIVOT_HEAD := Vector2(16, 32)
-const PIVOT_HAT := Vector2(20, 16)
+const HIP := Vector2(0, -18)
+const LEG_FRONT := Vector2(3, -21)
+const LEG_BACK := Vector2(-5, -21)
+const NECK := Vector2(4, -48)
+const HAT_AT := Vector2(4, -72)
+const SHOULDER_FRONT := Vector2(2, -46)
+const SHOULDER_BACK := Vector2(-4, -46)
+const EYE := Vector2(8, -64)
+const CIGAR := Vector2(23, -56)
+const PIVOT_LEG := Vector2(6, 1)
+const PIVOT_TORSO := Vector2(18, 38)
+const PIVOT_HEAD := Vector2(14, 30)
+const PIVOT_HAT := Vector2(21, 14)
 const PIVOT_ARM := Vector2(5, 5)
-const ARM_GRIP := Vector2(28, 5)
+const ARM_GRIP := Vector2(24, 5)
 const REST_AIM := 0.9      ## rad pod vodorovnou – Thompson v pokoji pri bruchu
-const DUCK_DEPTH := 30.0   ## px – o toľko sa v búdke skrčí (hlava za plechom)
-const LIE_BACK := -14.0    ## px – rig nad zemou, keď leží na chrbte (inak by chrbát trčal pod palubu)
-const LIE_FACE := -20.0    ## px – …na bruchu (veľké brucho)
+const DUCK_DEPTH := 24.0   ## px – o toľko sa v búdke skrčí (hlava za plechom)
+const PLATE_H := 46.0      ## px – výška predného plechu búdky (levels/level2/art/ship/booth_front.png)
+const HEAD_TOP := -84.0    ## px – vrch klobúka (Lou má ~88 px)
+const LIE_BACK := -13.0    ## px – rig nad zemou, keď leží na chrbte (inak by chrbát trčal pod palubu)
+const LIE_FACE := -17.0    ## px – …na bruchu (veľké brucho)
 
 var state: State = State.WAIT
 var phase: int = 1
@@ -170,10 +173,10 @@ func _ready() -> void:
 	add_to_group(&"boss")
 	var shape := CollisionShape2D.new()
 	var cap := CapsuleShape2D.new()
-	cap.radius = 14.0
-	cap.height = 96.0
+	cap.radius = 13.0
+	cap.height = 80.0
 	shape.shape = cap
-	shape.position = Vector2(4, -48)
+	shape.position = Vector2(3, -40)
 	add_child(shape)
 	_build_rig()
 	_set_facing(start_facing)
@@ -367,7 +370,7 @@ func setup_phase(p: int, at: Vector2) -> void:
 
 ## Je Lou na obrazovke? (nestrieľa spoza nej – hráč ho musí vidieť)
 func on_screen() -> bool:
-	var p: Vector2 = get_global_transform_with_canvas().origin + Vector2(0, -50)
+	var p: Vector2 = get_global_transform_with_canvas().origin + Vector2(0, -40)
 	return get_viewport_rect().grow(-12.0).has_point(p)
 
 
@@ -626,7 +629,7 @@ func _physics_process(delta: float) -> void:
 			Burst.spawn(get_tree().current_scene, global_position + Vector2((CIGAR.x + 10.0) * facing, CIGAR.y + _duck * DUCK_DEPTH),
 					Vector2(facing * 0.3, -1.0), Color(0.8, 0.8, 0.82, 0.45), 4, 14.0, Vector2(-10, -14), 1.0)
 		if _burnt and randf() < delta * 3.0:
-			Burst.spawn(get_tree().current_scene, global_position + Vector2(randf_range(-10.0, 14.0), randf_range(-80.0, -30.0)),
+			Burst.spawn(get_tree().current_scene, global_position + Vector2(randf_range(-10.0, 14.0), randf_range(-62.0, -22.0)),
 					Vector2(0, -1), Color(0.3, 0.28, 0.3, 0.45), 1, 14.0, Vector2(-8, -26), 1.0)
 	# vidí ho? (za debnou ho nevidí → po chvíli dynamit)
 	if active and ricco_ok and state != State.DEAD:
@@ -702,8 +705,10 @@ func _player_target() -> Vector2:
 	var h: float = 26.0
 	if player.get(&"state") == 4:
 		h = 12.0   # šmyk po bruchu – je nižšie
+	elif player.get(&"ducked"):
+		h = 10.0   # skrčený za krytom (debnou) – mieri do debny
 	elif player.get(&"sneaking"):
-		h = 18.0   # prikrčený za debnou
+		h = 18.0   # prikrčený
 	return player.global_position + Vector2(0, -h)
 
 
@@ -764,7 +769,7 @@ func _throw() -> void:
 	_throw_cd = throw_cooldown
 	_bursts = 0
 	_hidden_t = 0.0
-	var from := global_position + Vector2(-2.0 * facing, -84.0 + _duck * DUCK_DEPTH)
+	var from := global_position + Vector2(-2.0 * facing, HEAD_TOP + 18.0 + _duck * DUCK_DEPTH)
 	var offsets: Array[float] = [0.0]
 	if phase == 3:
 		offsets = [-40.0, 0.0, 40.0]
@@ -896,8 +901,9 @@ func _crane_tick(delta: float, ricco_ok: bool) -> void:
 	_face_player()
 	aim_angle = lerp_angle(aim_angle, _rest_angle() - 0.25 * facing, minf(1.0, 6.0 * delta))
 	var d: Vector2 = player.global_position - global_position
-	var low: float = 390.0
-	var high: float = 760.0
+	var r: Vector2 = crane.reach()
+	var low: float = r.x + 17.0    # kam až kladka chodí (kúsok od krajov dosahu)
+	var high: float = r.y - 19.0
 	var speed_k: float = 1.0 + clampf((24.0 - health) / 24.0, 0.0, 0.5)   # menej zdravia = rýchlejší žeriav
 	match _crane_mode:
 		Crane.TRACK:
@@ -1102,7 +1108,7 @@ func _charge(delta: float) -> void:
 func _crash() -> void:
 	velocity = Vector2(-facing * 60.0, -80.0)
 	Sfx.play(&"metal_crash", global_position + Vector2(facing * 20.0, -40.0), -2.0, 0.1)
-	Burst.spawn(get_tree().current_scene, global_position + Vector2(facing * 22.0, -50.0), Vector2(-facing, -0.5), Color(1, 0.9, 0.5), 12, 140.0)
+	Burst.spawn(get_tree().current_scene, global_position + Vector2(facing * 20.0, -40.0), Vector2(-facing, -0.5), Color(1, 0.9, 0.5), 12, 140.0)
 	_shake(0.35, 5.0, 500.0)
 	_dazed(1.8, false)
 
@@ -1184,7 +1190,7 @@ func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
 	if state == State.DEAD:
 		return
 	var y: float = pos.y - global_position.y - _duck * DUCK_DEPTH
-	if invulnerable or (_duck > 0.5 and pos.y > global_position.y - 64.0):
+	if invulnerable or (_duck > 0.5 and pos.y > global_position.y - PLATE_H):
 		# odrazí sa (prechod medzi fázami / skrčený za plechom búdky)
 		Burst.spawn(get_tree().current_scene, pos, -dir + Vector2(0, -0.4), Color(1.0, 0.85, 0.45), 4, 90.0)
 		Sfx.play(&"ricochet_1", pos, -6.0, 0.15)
@@ -1223,7 +1229,7 @@ func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 	health_changed.emit(health, max_health)
 	if blood:
 		Sfx.play(&"impact_body", global_position + Vector2(0, -60), -2.0)
-		Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -64 + _duck * DUCK_DEPTH), dir + Vector2(0, -0.3),
+		Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -50 + _duck * DUCK_DEPTH), dir + Vector2(0, -0.3),
 				Color(0.62, 0.05, 0.05), 7, 90.0, Vector2(0, 520), 0.5)
 	rig.modulate = Color(3, 3, 3)
 	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.12)
@@ -1505,7 +1511,7 @@ func _animate(delta: float) -> void:
 			arm_back.rotation = _arm_rot((fg - sb).angle())
 	# hviezdičky krúžia nad hlavou
 	if _stars.visible:
-		var c: Vector2 = head.global_position - global_position + Vector2(0, -40).rotated(rig.rotation)
+		var c: Vector2 = head.global_position - global_position + Vector2(0, HEAD_TOP - NECK.y + 2.0).rotated(rig.rotation)
 		var k: int = 0
 		for s in _stars.get_children():
 			var a: float = _t * 6.0 + k * TAU / 3.0

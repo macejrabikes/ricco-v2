@@ -13,7 +13,7 @@ extends Sprite2D
 const MIN_DAMAGE := 0.1   ## podiel damage na konci poklesu
 
 var _traveled: float = 0.0
-@export_flags_2d_physics var hit_mask: int = 1 | 4 | 32   ## world + enemies + kryt (visiace mäso, debny na páse)
+@export_flags_2d_physics var hit_mask: int = 1 | 4 | 32 | 64   ## world + enemies + kryt (visiace mäso, debny na páse) + nevinní (hostia – len Riccove guľky)
 
 var direction: Vector2 = Vector2.RIGHT
 var shooter: CollisionObject2D = null

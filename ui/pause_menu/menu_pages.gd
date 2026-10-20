@@ -7,12 +7,6 @@ const CREAM := MenuItem.CREAM
 const BRASS := MenuItem.BRASS
 const HINT := Color8(120, 112, 96)
 
-const CONTROLS := [
-	["MOVE", "A / D"], ["JUMP, WALL JUMP, CLIMB", "SPACE / W"], ["SHOOT", "LEFT MOUSE"],
-	["THROW HAT", "RIGHT MOUSE / E"], ["RELOAD", "R"], ["SWITCH WEAPON", "1-3 / WHEEL / Q"], ["SLOW-MO", "SHIFT"],
-	["BELLY SLIDE", "S / CTRL"], ["SNEAK", "C / ALT"], ["TAKEDOWN / SWAP WEAPON", "F"], ["PAUSE", "ESC / P"], ["FULLSCREEN", "F11"],
-]
-
 var column: VBoxContainer
 var on_apply: Callable      ## zavolá sa po každej zmene nastavení (uloženie, celá obrazovka…)
 var item_size: int = 8      ## veľkosť písma položiek (úvodné menu 16)
@@ -240,34 +234,89 @@ static func _vol_text(v: int) -> String:
 	return "%s%s  %3d%%" % ["|".repeat(v), ".".repeat(10 - v), v * 10]
 
 
-## Kategória OVLÁDANIE: zoznam kláves; pri zakrádaní sa dá vybrať HOLD (drž C) alebo TOGGLE (C zapne / vypne)
+## Kategória OVLÁDANIE: zakrádanie HOLD (drž C) / TOGGLE (C zapne / vypne) a stránka KEYBOARD s klávesmi
 func controls_page(back: Callable) -> MenuItem:
 	clear()
 	esc_back = back
 	title("CONTROLS")
-	# zoznam je hustejší než ostatné stránky (bez medzier medzi riadkami), inak by sa s veľkým písmom nezmestil
+	var reopen := func(): controls_page(back)
+	var first := choice("SNEAK", PackedStringArray(["HOLD", "TOGGLE"]), 1 if GameSettings.sneak_toggle else 0, func(i: int):
+		GameSettings.sneak_toggle = i == 1
+		_refresh_key_hints())
+	item("KEYBOARD", func(): keyboard_page(reopen))
+	spacer()
+	item("BACK", back)
+	hint("ENTER  SELECT     ESC  BACK")
+	focus(first)
+	return first
+
+
+## Stránka KEYBOARD: všetky akcie s klávesmi (settings/key_bindings.gd). Enter / klik → „PRESS A KEY“ →
+## stlačený kláves (aj tlačidlo myši) sa stane hlavným klávesom akcie; ESC zruší. Zoznam sa roluje (ScrollContainer).
+func keyboard_page(back: Callable) -> MenuItem:
+	clear()
+	esc_back = back
+	title("KEYBOARD")
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.follow_focus = true
+	scroll.custom_minimum_size.y = 11 * (item_size + 2)
+	column.add_child(scroll)
 	var list := VBoxContainer.new()
 	list.add_theme_constant_override(&"separation", 0)
-	column.add_child(list)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	var rows: Array[MenuItem] = []
 	var first: MenuItem
-	for row in CONTROLS:
-		if row[0] == "SNEAK":
-			first = choice("SNEAK  " + row[1], PackedStringArray(["HOLD", "TOGGLE"]), 1 if GameSettings.sneak_toggle else 0, func(i: int):
-				GameSettings.sneak_toggle = i == 1
-				column.get_tree().call_group(&"chalk_text", &"queue_redraw")   # nápisy kriedou „HOLD C – SNEAK“ (world/fx/chalk_text.gd)
-				column.get_tree().call_group(&"controls_help", &"refresh"))
-			first.reparent(list)
-			continue
-		var it := MenuItem.new(row[0], row[1])
-		it.selectable = false
+	for row in KeyBindings.ACTIONS:
+		var action: StringName = row[0]
+		var it := MenuItem.new(row[1], KeyBindings.text(action))
 		it.font_size = item_size
 		list.add_child(it)
 		it.custom_minimum_size.y = item_size + 2
+		it.changed.connect(func(_d: int): _capture_key(it, action, rows))
+		rows.append(it)
+		if first == null:
+			first = it
 	spacer()
+	item("RESET TO DEFAULTS", func():
+		KeyBindings.reset_all()
+		GameSettings.save()
+		_update_key_rows(rows)
+		_refresh_key_hints())
 	item("BACK", back)
-	hint("LEFT / RIGHT  CHANGE     ESC  BACK")
+	hint("ENTER  CHANGE KEY     ESC  BACK")
 	focus(first)
 	return first
+
+
+## Čaká na kláves pre akciu (KeyCapture beží aj počas pauzy a zachytí udalosť skôr, než ju dostane menu)
+func _capture_key(it: MenuItem, action: StringName, rows: Array[MenuItem]) -> void:
+	it.set_value("PRESS A KEY ...")
+	var cap := KeyCapture.new()
+	cap.done.connect(func(code: int):
+		if code != KeyCapture.CANCEL:
+			KeyBindings.rebind(action, code)
+			GameSettings.save()
+			_refresh_key_hints()
+		_update_key_rows(rows)
+		if is_instance_valid(it):
+			it.grab_focus())
+	column.add_child.call_deferred(cap)
+
+
+func _update_key_rows(rows: Array[MenuItem]) -> void:
+	for i in rows.size():
+		if is_instance_valid(rows[i]):
+			rows[i].set_value(KeyBindings.text(KeyBindings.ACTIONS[i][0]))
+
+
+## Nápisy kriedou, nápovedy a zoznam ovládania vľavo dole sa prepíšu podľa nových kláves
+func _refresh_key_hints() -> void:
+	var tree := column.get_tree()
+	tree.call_group(&"chalk_text", &"queue_redraw")   # nápisy kriedou „HOLD C – SNEAK“ (world/fx/chalk_text.gd)
+	tree.call_group(&"controls_help", &"refresh")
 
 
 static func _on_off(b: bool) -> String:

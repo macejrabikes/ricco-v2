@@ -1,6 +1,7 @@
 class_name GameSettings
 ## Nastavenia hry: štýl HUD, veľkosť HP plagátu, celá obrazovka, škálovanie, retro filter, zoznam ovládania,
-## zameriavač (štýl a veľkosť), hlasitosť (master, hudba, efekty, prostredie, menu), zakrádanie (držať / prepínať).
+## zameriavač (štýl a veľkosť), hlasitosť (master, hudba, efekty, prostredie, menu), zakrádanie (držať / prepínať),
+## klávesy (settings/key_bindings.gd).
 ## Ukladajú sa do user://settings.cfg cez ConfigFile (Godot docs: classes/class_configfile).
 ## Všetko je statické, takže netreba autoload – stačí GameSettings.hud_style kdekoľvek.
 ## Mení sa v pause menu → Settings (ui/pause_menu).
@@ -33,7 +34,9 @@ static func ensure_loaded() -> void:
 	_loaded = true
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) != OK:
+		KeyBindings.ensure()
 		return  # prvé spustenie – ostávajú predvolené hodnoty
+	KeyBindings.ensure(cfg)   # klávesy (settings/key_bindings.gd)
 	var style: int = cfg.get_value("hud", "style", HudStyle.NOIR)
 	hud_style = HudStyle.MINIMAL if style == HudStyle.MINIMAL else HudStyle.NOIR
 	portrait_scale = clampf(float(cfg.get_value("hud", "portrait_scale", portrait_scale)), 1.0, 2.0)
@@ -62,6 +65,7 @@ static func save() -> void:
 	cfg.set_value("controls", "sneak_toggle", sneak_toggle)
 	for k in volumes:
 		cfg.set_value("audio", k, volumes[k])
+	KeyBindings.save_to(cfg)
 	cfg.save(PATH)
 
 

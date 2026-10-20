@@ -5,8 +5,10 @@ extends SceneTree
 ## Mapa je v dlaždiciach (16 px), vrch paluby je na y = 0, pod ňou trup. Zľava doprava (návrh A + žeriav):
 ##   kajuta na korme (dvere z podpalubia – tadiaľ Ricco príde z mraziarne) → záchranný čln na davitoch (plošina) →
 ##   debny MAPLE SYRUP (kryt, world/ship/ship_crate.gd) a sudy ražnej whisky (vybuchnú, world/ship/ship_barrel.gd) →
-##   nákladný žeriav s ramenom a sieťou s nákladom (world/ship/crane.gd) a búdkou s pákou (2. fáza Lou) →
+##   vyvýšený nákladný poklop (plošina, za jej hranou kryt) → veža z troch debien →
+##   mohutný nákladný žeriav s ramenom a sieťou s nákladom (world/ship/crane.gd) a búdkou s pákou (2. fáza Lou) →
 ##   krídlo mostíka (tu stojí Big Lou s Thompsonom) → nadstavba s mostíkom a komínom → prova s navijakom.
+## Obrázky žeriavu, ramena a poklopu kreslí c4/make_crane.py, ostatné c2/make_ship_art.py.
 ## Búrka (blesky, hrom) je world/ship/storm.gd, hojdanie mora world/ship/roll.gd, udalosti levels/level2/margaret.gd.
 ## Godot docs: classes/class_tilemaplayer, class_parallax2d, class_packedscene, class_line2d.
 
@@ -22,16 +24,17 @@ const HULL_PORT := Vector2i(2, 0)
 const HULL_RED := Vector2i(3, 0)
 const HULL_DK := Vector2i(4, 0)
 
-const END_X := 73              ## pravý koniec paluby (dlaždice) = 1168 px
-const BRIDGE_X := 52           ## nadstavba s mostíkom od dlaždice 52 (288 px = 18 dlaždíc)
+const END_X := 98              ## pravý koniec paluby (dlaždice) = 1568 px
+const BRIDGE_X := 77           ## nadstavba s mostíkom od dlaždice 77 (288 px = 18 dlaždíc)
 const HOUSE_TOP := -96         ## px – strecha spodnej nadstavby = podlaha krídla mostíka
-const WHEEL := Rect2(856, -168, 192, 72)   ## kormidlovňa na streche nadstavby (pevná)
-const CRANE_X := 36            ## stĺp žeriavu (dlaždica)
-const CRANE_PIVOT := Vector2(576, -174)    ## čap ramena nad kabínou
-const BOOM_ANGLE := 0.35       ## rad – rameno mieri doľava hore
-const BOOM_LEN := 216.0        ## px od čapu po kladku
+const WHEEL := Rect2(1256, -168, 192, 72)  ## kormidlovňa na streche nadstavby (pevná)
+const CRANE_CX := 880.0        ## px – stred stĺpa žeriavu (obrázok 112×224, c4/make_crane.py)
+const CRANE_PIVOT := Vector2(880, -210)    ## čap ramena na A-ráme nad strojovňou
+const BOOM_LEN := 266.0        ## px od čapu po kladku (boom.png 282×20)
+const BOOM_ANGLE := 0.143      ## rad – rameno mieri doľava, mierne hore (kladka na y ≈ −248)
 const NET_Y := -150.0          ## px – očko siete (v pokoji)
-const BOOTH := Rect2(600, -64, 56, 64)      ## búdka s pákou žeriavu (Lou v 2. fáze)
+const BOOTH := Rect2(928, -46, 56, 46)      ## búdka s pákou žeriavu (Lou v 2. fáze; obrázky c4/make_lou_don.py)
+const PLATFORM := Rect2(420, -26, 140, 26)  ## vyvýšený nákladný poklop (hatch_big.png)
 
 var rng := RandomNumberGenerator.new()
 var lvl: Node2D
@@ -62,6 +65,7 @@ func _init() -> void:
 	_build_storm()
 	_build_lou()
 
+	_build_food()
 	var ricco: Node2D = load("res://characters/ricco/ricco.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	_node(ricco, "Ricco", lvl)
 	ricco.position = Vector2(72, 0)
@@ -300,19 +304,36 @@ func _build_stern() -> void:
 # ---------------------------------------------------------------- náklad: debny (kryt), sudy, poklop
 
 func _build_cargo() -> void:
-	_cover("crate_maple.png", 17 * T, 0)
-	_cover("crate_whisky.png", 20 * T, 0)
-	_cover("crate.png", 20 * T, -20)
-	_cover("crate_maple.png", 30 * T, 0)
-	_cover("crate_whisky.png", 32 * T, 0)
-	_cover("crate_maple.png", 32 * T, -20)
-	_cover("crate.png", 44 * T, 0)
-	var hatch := _sprite("hatch.png", Vector2(24 * T, -14), null, "Hatch")
+	_cover("crate_maple.png", 280, 0)
+	_cover("crate_whisky.png", 312, 0)
+	_cover("crate.png", 312, -20)
+	_platform()
+	_cover("crate_whisky.png", 470, PLATFORM.position.y)   # kryt aj navrchu poklopu
+	_cover("crate_maple.png", 600, 0)
+	# veža z troch debien pri žeriave
+	_cover("crate.png", 642, 0)
+	_cover("crate_whisky.png", 642, -20)
+	_cover("crate.png", 642, -40)
+	_cover("crate_maple.png", 1000, 0)
+	var hatch := _sprite("hatch.png", Vector2(1090, -14), null, "Hatch")
 	hatch.z_index = -2
 	# sudy whisky – stačí jedna guľka (Barrel1 stojí presne tam, kam dopadne zrútené rameno žeriavu)
-	_barrel("Barrel1", 449)
-	_barrel("Barrel2", 753)
-	_barrel("Barrel3", 250)
+	var land: Vector2 = CRANE_PIVOT + Vector2(-sqrt(BOOM_LEN * BOOM_LEN - CRANE_PIVOT.y * CRANE_PIVOT.y), -CRANE_PIVOT.y)
+	_barrel("Barrel1", roundf(land.x))
+	_barrel("Barrel2", 1060)
+	_barrel("Barrel3", 380)
+
+
+## Vyvýšený nákladný poklop: navrch sa dá vyskočiť (jednosmerná plošina), bočné hrany zastavia guľky (vrstva 32 = kryt)
+## a Ricco sa za ne schová ako za debnu. Popred poklop sa dá prejsť (je vzadu na palube) – aj Lou v 3. fáze.
+func _platform() -> void:
+	var s := _sprite("hatch_big.png", PLATFORM.position - Vector2(0, 2), null, "CargoHatch")
+	s.z_index = -2
+	_oneway(PLATFORM.position, PLATFORM.size.x, "CargoHatchTop")
+	for spec in [["CargoHatchEdgeL", PLATFORM.position.x], ["CargoHatchEdgeR", PLATFORM.end.x - 6]]:
+		var w := _block(spec[0], Rect2(spec[1], PLATFORM.position.y, 6, PLATFORM.size.y))
+		w.collision_layer = 32
+		w.collision_mask = 0
 
 
 ## Sud ražnej whisky: telo na vrstve 4 (Riccove guľky ho zasiahnu, Louove a pohyb prejdú), počiatok = stred spodku
@@ -341,10 +362,13 @@ func _barrel(nm: String, cx: float) -> void:
 # ---------------------------------------------------------------- nákladný žeriav (2. fáza: Lou v búdke hojdá sieťou)
 
 func _build_crane() -> void:
-	var c := _sprite("crane.png", Vector2(CRANE_X * T - 32, -176), null, "Crane")
+	# stĺp stojí vzadu na palube
+	var c := _sprite("crane.png", Vector2(CRANE_CX - 56, -224), null, "Crane")
 	c.z_index = -3
-	_block("CraneBase", Rect2(CRANE_X * T - 20, -12, 40, 12))
-	_glow(Vector2(CRANE_X * T, -150), Color(1.0, 0.85, 0.5, 0.3), 0.8)
+	# spodná doska podstavca je pevná – Ricco ju preskočí, Lou v rozbehu do nej narazí (omámený)
+	_block("CraneBase", Rect2(CRANE_CX - 46, -12, 92, 12))
+	_glow(Vector2(CRANE_CX - 42, -201), Color(1.0, 0.85, 0.5, 0.35), 0.8)      # lampa nad oknom kabíny
+	_glow(Vector2(CRANE_CX - 24, -188), Color(1.0, 0.85, 0.5, 0.25), 1.0)
 	# rameno, lano, sieť a tieň pod sieťou ovláda world/ship/crane.gd (otáča ramenom, hojdá sieťou, púšťa náklad)
 	var arm := Node2D.new()
 	arm.set_script(load("res://world/ship/crane.gd"))
@@ -356,7 +380,7 @@ func _build_crane() -> void:
 	var boom := Sprite2D.new()
 	boom.texture = load(ART + "boom.png")
 	boom.centered = false
-	boom.offset = Vector2(-223, -7)      # otáča sa okolo pravého konca (čap nad kabínou)
+	boom.offset = Vector2(-274, -10)     # otáča sa okolo pravého konca (čap na A-ráme)
 	boom.position = CRANE_PIVOT
 	boom.rotation = BOOM_ANGLE
 	boom.z_index = -3
@@ -448,3 +472,19 @@ func _build_lou() -> void:
 	lou.set("walk_span", Vector2(BRIDGE_X * T - 50, BRIDGE_X * T - 6))
 	lou.set("booth_x", BOOTH.get_center().x)
 	lou.set("deck_span", Vector2(124, BRIDGE_X * T - 20))
+
+
+# ---------------------------------------------------------------- jedlo a lekárničky (props/food/food_pickup.tscn)
+
+## [x, y, druh] – druh "" = jedlo podľa poradia (Food.next_kind – vždy iné), "medkit" = lekárnička. Za behu spadne na zem.
+## Rozmiestnenie: paluba (ďalšie jedlo vypadne z Lou počas boja)
+const FOOD := [[200.0, -12.0, ""], [535.0, -40.0, "medkit"], [760.0, -12.0, ""]]
+
+func _build_food() -> void:
+	for i in FOOD.size():
+		var f: Array = FOOD[i]
+		var p: Node2D = load("res://props/food/food_pickup.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
+		_node(p, ("Medkit%d" if f[2] == "medkit" else "Food%d") % (i + 1), lvl)
+		p.position = Vector2(f[0], f[1])
+		if f[2] != "":
+			p.set(&"kind", StringName(f[2]))

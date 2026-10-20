@@ -63,7 +63,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export_group("Armor & cold")
 @export var vest: bool = false                    ## nepriestrelná vesta (dobová, plátovaná pod sakom) – do trupu len vest_factor damage, hlava a nohy nie
 @export_range(0.0, 1.0) var vest_factor: float = 0.2
-@export var trip_time: float = 2.2                ## s – ako dlho leží po podkopnutí (Riccov šmyk po bruchu)
+@export var trip_time: float = 1.3                ## s – ako dlho leží po podkopnutí (Riccov šmyk po bruchu), potom vstáva (GETUP_TIME)
 @export var cold_breath: bool = false             ## v mraziarni mu od úst stúpa para
 
 @export_group("Test room")
@@ -136,6 +136,8 @@ var shots_left: int = 0
 var aim_angle: float = PI           ## globálny uhol zbrane
 var walk_phase: float = 0.0
 var _tripped: bool = false          ## leží po podkopnutí (trip)
+var _getting_up: bool = false       ## práve vstáva (pózy robí tween v _stand_up)
+var _getup_tween: Tween
 var lost_sight: float = 0.0
 var home_facing: float = -1.0
 var look_timer: float = 0.0
@@ -438,7 +440,7 @@ func _physics_process(delta: float) -> void:
 			velocity.x = move_toward(velocity.x, 0.0, 300.0 * delta)
 			if timer <= 0.0 and _tripped:
 				_stand_up()
-				timer = 0.4
+				timer = GETUP_TIME + 0.1
 			elif timer <= 0.0:
 				if sees: _alert()
 				else: state = State.IDLE
@@ -584,6 +586,37 @@ static func noise(pos: Vector2, radius: float) -> void:
 			g.hear(pos)
 
 
+## Riccov výstrel: kto má výhľad na ústie (pozerá sa tým smerom a nič nie je medzi nimi), uvidí záblesk aj v tme
+## a vie, kde Ricco je; ostatní do radius výstrel počujú a idú sa pozrieť
+static func gunshot(pos: Vector2, radius: float) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	for n in tree.get_nodes_in_group(&"enemies"):
+		var g := n as Gangster
+		if g == null or g.state == State.DEAD or g.passive:
+			continue
+		var d: float = g.global_position.distance_to(pos)
+		if d > radius:
+			continue
+		if g._sees_flash(pos):
+			g._aggro = maxf(g._aggro, 3.0)
+			if g.state in [State.PATROL, State.IDLE, State.INVESTIGATE]:
+				g._set_facing(signf(pos.x - g.global_position.x) if absf(pos.x - g.global_position.x) > 2.0 else g.facing)
+				g._show_alert_mark()
+		else:
+			g.hear(pos)
+
+
+func _sees_flash(pos: Vector2) -> bool:
+	var eye := global_position + Vector2(EYE.x * facing, EYE.y)
+	var dx: float = pos.x - global_position.x
+	if eye.distance_to(pos) > sight_range * 1.4 or (absf(dx) > 30.0 and signf(dx) != facing and state not in [State.INVESTIGATE]):
+		return false
+	var q := PhysicsRayQueryParameters2D.create(eye, pos + Vector2(0, -19), 1 | COVER_LAYER)
+	return get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+
+
 ## Počul niečo na pos – zarazí sa („?“), ide sa tam pozrieť, obzrie sa a vráti sa
 func hear(pos: Vector2) -> void:
 	if passive or state not in [State.PATROL, State.IDLE, State.INVESTIGATE]:
@@ -703,8 +736,12 @@ func _ledge_ok(dir: float) -> bool:
 
 
 func _player_target() -> Vector2:
-	# hruď/hlava Ricca; pri šmyku je nižšie
-	var h: float = 12.0 if player.get("state") == 4 else 26.0
+	# hruď/hlava Ricca; pri šmyku je nižšie, skrčený za krytom tiež (pohľad aj guľky zastaví kryt)
+	var h: float = 26.0
+	if player.get("state") == 4:
+		h = 12.0
+	elif player.get(&"ducked"):
+		h = 10.0
 	return player.global_position + Vector2(0, -h)
 
 
@@ -936,11 +973,59 @@ func trip(dir: float) -> bool:
 	return true
 
 
-## Po podkopnutí sa postaví (otočí sa späť okolo nôh)
+const GETUP_TIME := 0.72   ## s – vstávanie po podkopnutí (posadí sa → kľakne → postaví sa)
+
+## Po podkopnutí vstane: posadí sa a opiera sa rukami za sebou, pritiahne nohy a kľakne si, odrazí sa a postaví sa.
+## Kostra sa otáča okolo nôh, preto sa pri sede a kľaku posúva (bok ostane pri zemi). Uhly končatín sú v kostre
+## otočenej podľa facing (rig.scale.x) – svetový uhol = rotácia kostry + facing · uhol časti.
 func _stand_up() -> void:
+	var d: float = -signf(rig.rotation) if rig.rotation != 0.0 else facing   # smer k nohám (kam išiel Riccov šmyk)
+	var f: float = facing
 	_tripped = false
+	_getting_up = true
+	if _getup_tween:
+		_getup_tween.kill()
+	# 1) posadí sa – trup zaklonený, nohy vystreté po zemi, ruky za sebou opreté o zem
+	var r1: float = -d * 0.45
+	var arm1: float = _arm_local(PI / 2.0 + d * 0.64, r1, f)
+	# 2) kľakne si – predklon nad nohami, predná noha pokrčená vpred, zadné koleno na zemi, ruka na kolene
+	var r2: float = d * 0.25
+	var arm2: float = _arm_local(PI / 2.0 - d * 0.785, r2, f)
 	var tw := create_tween()
-	tw.tween_property(rig, "rotation", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_getup_tween = tw
+	tw.tween_property(rig, "rotation", r1, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(rig, "position", Vector2(-11.8 * d, 20.2), 0.22)
+	tw.parallel().tween_property(leg_front, "rotation", -0.95 * d * f, 0.22)
+	tw.parallel().tween_property(leg_back, "rotation", -1.1 * d * f, 0.22)
+	tw.parallel().tween_property(arm_front, "rotation", arm1, 0.18)
+	tw.parallel().tween_property(arm_back, "rotation", arm1 + 0.15, 0.18)
+	tw.parallel().tween_property(head, "rotation", d * f * 0.2, 0.22)   # hlava ešte ovisnutá
+	tw.tween_interval(0.08)
+	tw.tween_callback(func():
+		Sfx.play(&"land", global_position, -10.0, 0.1)
+		Burst.spawn(get_tree().current_scene, global_position + Vector2(-d * 10.0, -2), Vector2(0, -1),
+				Color(0.75, 0.75, 0.8, 0.5), 5, 30.0, Vector2(0, 30), 0.5))
+	tw.tween_property(rig, "rotation", r2, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.parallel().tween_property(rig, "position", Vector2(-14.9 * d, 11.1), 0.2)
+	tw.parallel().tween_property(leg_front, "rotation", -1.03 * d * f, 0.2)
+	tw.parallel().tween_property(leg_back, "rotation", 0.11 * d * f, 0.2)
+	tw.parallel().tween_property(arm_front, "rotation", arm2, 0.2)
+	tw.parallel().tween_property(arm_back, "rotation", arm2 + 0.3, 0.2)
+	tw.parallel().tween_property(head, "rotation", 0.0, 0.2)
+	# 3) odrazí sa a postaví (trochu prestrelí a dorovná sa)
+	tw.tween_property(rig, "rotation", 0.0, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(rig, "position", Vector2.ZERO, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(leg_front, "rotation", 0.0, 0.2)
+	tw.parallel().tween_property(leg_back, "rotation", 0.0, 0.2)
+	tw.tween_callback(func():
+		_getting_up = false
+		_getup_tween = null)
+
+
+## Uhol ruky v kostre pre svetový uhol w (0 = doprava, PI/2 = dole) pri rotácii kostry r – ruka smeruje po svojej osi x,
+## v zrkadlenej kostre (facing −1) sa jej uhol prevráti: svet = r + PI − uhol
+func _arm_local(w: float, r: float, f: float) -> float:
+	return (w - r) if f > 0.0 else (PI + r - w)
 
 
 ## Riccov hodený klobúk: omráči ho a zhodí mu klobúk
@@ -987,6 +1072,10 @@ func _die(dir: Vector2, quiet: bool = false) -> void:
 	if _tripped and rig.rotation != 0.0:
 		fall = signf(rig.rotation)   # už leží – ostane ležať na tú istú stranu
 	_tripped = false
+	if _getup_tween:   # zložený počas vstávania
+		_getup_tween.kill()
+		_getup_tween = null
+	_getting_up = false
 	velocity = Vector2(fall * 80.0, -90.0)
 	_knock_hat(dir)
 	# zbraň vyletí z ruky a ostane ležať – Ricco ju môže zobrať (weapons/weapon_pickup.gd)
@@ -1045,6 +1134,8 @@ func _animate(delta: float) -> void:
 		return
 	if _tripped:   # leží na chrbte (podkopnutý) – telo sa nehýbe
 		rig.position.y = -3.0
+		return
+	if _getting_up:   # vstáva – pózy robí tween (_stand_up)
 		return
 	# na schodoch (45° rampa) je spodok kapsuly ~4 px nad svahom a schodíky sú pod rampou ešte 0–4 px –
 	# postava ide o 6 px nižšie, aby stála na schodíkoch, nie nad nimi

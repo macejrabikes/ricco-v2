@@ -182,7 +182,16 @@ func _sweep() -> void:
 
 # ---------------------------------------------------------------- blesk ho zlomí
 
-## Rameno sa zrúti na palubu (kladka dopadne asi na x 447), sieť sa utrhne a padne
+## Kam dopadne kladka zrúteného ramena (na palubu y = 0; tam stojí sud Barrel1, tools/build_margaret.gd)
+func landing() -> Vector2:
+	return pivot + _landing_dir()
+
+
+func _landing_dir() -> Vector2:
+	return Vector2(-sqrt(maxf(length * length - pivot.y * pivot.y, 0.0)), -pivot.y)
+
+
+## Rameno sa zrúti na palubu (kladka dopadne na landing()), sieť sa utrhne a padne
 func collapse() -> void:
 	if _broken:
 		return
@@ -197,7 +206,7 @@ func collapse() -> void:
 	rope_line.visible = false
 	Sfx.play(&"metal_crash", pivot, 0.0, 0.0)
 	boom.scale = Vector2(boom.scale.x, 1.0)
-	var end_rot: float = Vector2(-129, 173).angle() - PI   # kladka na palube
+	var end_rot: float = _landing_dir().angle() - PI   # kladka na palube
 	boom.rotation = wrapf(boom.rotation, end_rot - PI, end_rot + PI)
 	var tw := create_tween()
 	tw.tween_property(boom, "scale:x", 1.0, 0.25)
@@ -218,7 +227,7 @@ func wrecked() -> void:
 	lethal = false
 	rope_line.visible = false
 	boom.scale = Vector2.ONE
-	boom.rotation = Vector2(-129, 173).angle() - PI
+	boom.rotation = _landing_dir().angle() - PI
 	net.rotation = 0.0
 	net.scale = Vector2(1.15, 0.55)
 	net.modulate = Color(0.55, 0.5, 0.48)

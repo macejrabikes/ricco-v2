@@ -33,7 +33,7 @@ world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lam
               ship/ (storm – blesky a hrom, roll – hojdanie mora a mrakov, ship_crate – debna/kryt, ship_barrel – sud whisky,
               deck_fire – oheň na palube, crane – žeriav so sieťou, falling_cargo – debna zo siete)
 weapons/      pistol/ (bullet, magazine_drop, záblesky), hat/ (hat_projectile – hod klobúka)
-props/        ammo/ (krabička nábojov), pizza/ (kúsok pizze +2 zdravie), target/
+props/        ammo/ (krabička nábojov), food/ (jedlo so sebou + lekárnička, food.gd = Food), target/
 ui/           hud, boss_bar (pás zdravia bossa, značky fáz), dialog, main_menu, pause_menu (menu_pages: nastavenia, AUDIO), cursor, fonts (Tiny5), retro_filter
 settings/     game_settings.gd (GameSettings – ukladá do user://settings.cfg, aj hlasitosti [audio])
 tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_coldstore.gd (mraziareň), build_margaret.gd (loď), build_ricco_frames.gd (SpriteFrames Ricca)
@@ -77,16 +77,20 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   (len šmykom po ľade, para) → mraziareň 2 (regály, druhá koľajnica, lávka, rozbitá debna „tresky“ s whisky, lupara) → kancelária Lou na lávke
   (**účtovná kniha** = stopa, `Level2.ledger_read`: S.S. Margaret odpláva o 2:00) → tunel (schody, pás do podpalubia) → vráta k lodi =
   pás do podpalubia lode (bez knihy nepustí) → `margaret.tscn`, checkpoint 11.
-  **Loď S.S. Margaret – finále** (`levels/level2/margaret.gd extends Level2`, `margaret.tscn`, checkpoint 11, návrh A + žeriav, Big Lou
-  v bielom obleku – vybrané): paluba v búrke (lejak, blesky `world/ship/storm.gd` so signálom `flashed`, hrom, hojdanie mora `roll.gd`,
+  **Loď S.S. Margaret – finále** (`levels/level2/margaret.gd extends Level2`, `margaret.tscn`, checkpoint 11, návrh A + žeriav; paluba
+  1568 px – aréna predĺžená o 400 px): paluba v búrke (lejak, blesky `world/ship/storm.gd` so signálom `flashed`, hrom, hojdanie mora `roll.gd`,
   vlny cez zábradlie – zatiaľ len efekt). Kajuta na korme (príchod) → záchranný čln (plošina −48) → debny = kryt (`CoverN`, skupina
-  `ship_cover`, `world/ship/ship_crate.gd` – guľky ich postupne rozbijú, horná debna spadne, niekedy vypadnú náboje) a sudy RYE
+  `ship_cover`, `world/ship/ship_crate.gd` – guľky ich postupne rozbijú, horné debny spadnú, niekedy vypadnú náboje; obrázky debien
+  s vypálenými značkami kreslí `c4/make_crates.py` mimo repa), vyvýšený nákladný poklop (`CargoHatch`, jednosmerná plošina −26, hrany
+  `CargoHatchEdgeL/R` na vrstve 32 = kryt, Lou popred neho prejde), veža z troch debien a sudy RYE
   (`Barrel1–3`, `world/ship/ship_barrel.gd`, vrstva 4 – jedna Riccova guľka a vybuchne, Louove ním prejdú; 4 HP Louovi, potom horí)
-  → žeriav (`CraneArm` = `world/ship/crane.gd` s `Boom`, `Rope`, `Net`, `Shadow`; búdka `BoothBack`/`BoothFront`/`Lever`/`BoothLamp`,
-  steny `BoothWallL/R` na vrstve 32, `BoothSpot` x 628) → krídlo mostíka (`WingFloor`, `LouSpot`, y −96) →
+  → mohutný žeriav (stĺp 112×224 a rameno 282×20 kreslí `c4/make_crane.py` mimo repa, stred x 880, pevná len spodná doska `CraneBase` 12 px;
+  `CraneArm` = `world/ship/crane.gd` s `Boom`, `Rope`, `Net`, `Shadow`, `landing()` = kam dopadne zrútené rameno = `Barrel1`;
+  búdka 56×46 `BoothBack`/`BoothFront`/`Lever`/`BoothLamp`, steny `BoothWallL/R` na vrstve 32, `BoothSpot` x 956) → krídlo mostíka (`WingFloor`, `LouSpot`, y −96) →
   nadstavba (strecha −96, na hranu sa dá chytiť) s mostíkom → prova. Dvere na lodi sú 80 px (mafián ~75 px).
-  **Big Lou** (`characters/lou/big_lou.gd`, `class_name BigLou`, `big_lou.tscn`, časti tela v `characters/lou/`, ~108 px = ~1,4× mafián
-  ako na vybranom návrhu; samostatný skript, nie Gangster – iné rozmery kostry): krémový oblek, fedora, cigara (dym), vesta
+  **Big Lou** (`characters/lou/big_lou.gd`, `class_name BigLou`, `big_lou.tscn`, časti tela v `characters/lou/`, ~88 px, návrh A „Don Lou“
+  z `c4/make_lou_don.py` mimo repa; samostatný skript, nie Gangster – iné rozmery kostry): modrý prúžkovaný dvojradový oblek, biele kamaše,
+  fúzy, krémová fedora s bordovou páskou, cigara (dym), vesta
   (`vest_factor` 0,25 do trupu, hlava a nohy naplno, signál `vest_hit`), Thompson s bubnom (`thompson_drum.png`, dáta `tommy.tres`).
   Signály `health_changed`, `vest_hit`, `threw`, `stage(name)` (réžia pre level), `died`. Pás zdravia hore v strede:
   `ui/boss_bar.gd` (`track(meno, boss)`, `notches` = značky fáz). **36 HP, tri fázy po 12** – pod hranicu fázy nejde, najprv
@@ -105,7 +109,7 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   Ricco mimo dosahu (x < ~390, záchranný čln) → Thompson / dynamit; zblízka úder pažbou cez plech; 3 zásahy do hlavy za 2,5 s → skrčí
   sa (1,5 s, guľky cinknú o plech); debna zo siete na hlavu = 3 HP. Kyvadlo siete poháňa zrýchlenie kladky (`x_accel`).
   **Prechod 2→3** (`stage(&"lightning")`, réžiu robí `margaret.gd _lightning()`): žeriav sa vymkne k zádi → blesk (zubatá čiara)
-  do kabíny, výbuch, kabína horí → rameno sa zrúti (kladka na x ~447 – Barrel1, výbuch, stály oheň + dva dočasné) → sieť spadne a
+  do kabíny, výbuch, kabína horí → rameno sa zrúti (kladka na x ~717 – Barrel1, výbuch, stály oheň + dva dočasné) → sieť spadne a
   roztrhne sa (2× náboje, pizza) → výbuch búdky vyhodí Lou (`blown`), padne na chrbát, leží, vstane **pripálený** (`*_burnt.png`,
   zúrivá tvár), rev (dupne 2×, para z uší). Loď horí: ohne na mostíku/kajute/člne, iskry (CPUParticles2D za kamerou), oranžový nádych.
   **3. fáza – na palube** (`deck_span` 124–812, vesta 0,5, mierenie 0,5 s): kráča k Riccovi (debny v ceste rozbije, cez pätu žeriavu
@@ -129,7 +133,33 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 - **Schody:** kolízia je neviditeľná 45° rampa, kresba sú jemné 4 px schodíky presne po rampe (dlaždice „nos“ v 4. riadku atlasov).
   Postavy majú `floor_snap_length = 16` (na hrane schodov nevyskočia) a na svahu sa obrázok posunie o 4 px nižšie (spodok kapsuly).
 - Menu: hlavné menu, pauza, nastavenia (kurzor, zameriavače, HUD štýly, retro filter), **AUDIO** (Master, Music, SFX, Ambience, UI; 0–10),
-  **CONTROLS** (zoznam kláves + SNEAK HOLD / TOGGLE – `GameSettings.sneak_toggle`; nápisy kriedou s `{SNEAK}` sa podľa toho prepíšu).
+  **CONTROLS** (SNEAK HOLD / TOGGLE – `GameSettings.sneak_toggle` + stránka **KEYBOARD**: všetky akcie, Enter → „PRESS A KEY“ → nový
+  hlavný kláves, RESET TO DEFAULTS). Klávesy sú v `settings/key_bindings.gd` (`KeyBindings.ACTIONS`, uložené v settings.cfg [keys],
+  akcie mimo project.godot – holster, weapon_1–3, weapon_last – pridá za behu; nový kláves inej akcie sa vymení). Nápovedy v hre
+  (`KeyBindings.short(&"takedown")`), zoznam vľavo dole aj nápisy kriedou (`{SNEAK}`, „F -“, „SHIFT -“) sa prepíšu podľa nich.
+  `ui/pause_menu/key_capture.gd` zachytí kláves (beží aj počas pauzy).
+- **Schovanie zbrane** (X, akcia `holster`): ruka ducha so zbraňou sa stiahne k Riccovi (`ricco.holstered`); streľba / R / výber zbrane
+  ju vytiahne (prvé kliknutie nevystrelí, ľavé tlačidlo pri mafiánovi = zneškodnenie). Počas prebíjania sa schová až po dobití.
+- **Streľba – pocit:** spätný ráz kamery (`_cam_kick` proti smeru streľby), záblesk na okamih osvetlí okolie (`PointLight2D` v ústí –
+  funguje aj s tmou CanvasModulate), väčšia hviezda (`FLASH_SCALE`), dym ostane visieť (`effects/gun_smoke.gd`, `effects/art/smoke_puff.png`).
+  Výstrel počuť do 520 px (`SHOT_NOISE`, `Gangster.gunshot`): kto má výhľad na ústie, vidí záblesk aj v tme (`_aggro`), ostatní sa idú pozrieť.
+- **Nevinní:** hostia / smútiaci (`world/npc/guest.gd`) majú telo na vrstve 64 (`INNOCENT_LAYER`, `guest_body.gd`) – zasiahne ich len
+  Riccova guľka (`bullet.gd hit_mask` 1|4|32|64): padne, krv, ostatní zvreskú (poplach), duch Ricca zvozí („OI! WE DON'T DO THAT…“, `bark`).
+- **Podkopnutý mafián** leží `trip_time` 1,3 s, potom vstane (`Gangster._stand_up`: posadí sa s rukami za sebou → kľakne → postaví sa).
+- **Čítanie dokumentov:** `world/fx/interact_spot.gd` (nápoveda „F - READ“, signál `used`) + `ui/dialog/read_card.gd`
+  (`await ReadCard.open(self, tex).closed` – pauza, stmavnutie, obrázok v strede, F / ESC zavrie). Účtovná kniha Lou má text priamo
+  v obrázku (`ledger_big.png` 300×184, generuje `c3/make_read_art.py` mimo repa).
+- **Jedlo so sebou** (`props/food/food.gd` = `Food`): Ricco unesie 3 kusy (`Food.carried`, static – ostane medzi časťami levelu,
+  `Level2.reset()` ho vyprázdni), zje prvé klávesom **V** (akcia `eat`) – len na zemi a keď nie je celý zdravý. Druhy sa striedajú
+  (`Food.next_kind`): pizza +2, sardinky +2, cannoli +2, espresso +1 a 6 s rýchlejší beh, saláma +2, spumoni +2, sleď v pohári +3.
+  Animácie sú tweeny v `characters/ricco/eating.gd` (`RiccoEating`, dieťa Visual – záklon hlavy otáča obrázok okolo nôh, `gulped` = vylieči).
+  Počas jedenia nestrieľa a ide pomaly; skok, šmyk, zásah ho prerušia (jedlo ostane). Na zemi: `props/food/food_pickup.tscn`
+  (`kind` "" = podľa poradia, "medkit" = lekárnička → hneď celé zdravie); plná zásoba + zranený = zje hneď. HUD: `ui/food_slots.gd`
+  (3 políčka naľavo od nábojov). Rozmiestnenie: `const FOOD` v každom `tools/build_*.gd`. Obrázky `food.png` (16×16 políčka) a zvuky
+  (chomp, gulp, can_peel, slurp, lid_pop, medkit) generujú `c4/make_food_art.py` a `c4/make_food_audio.py` mimo repa.
+- **Krytie:** pri zakrádaní (C) tesne pri nízkej prekážke (vrch 12–32 px nad nohami, vrstva 1 alebo 32 – debny, náhrobky, pult) sa Ricco
+  skrčí (`ricco.ducked`, nízka kapsula 22 px, `_update_cover`). Gangstri aj Lou potom mieria do výšky 10 px (`_player_target`) → pohľad aj
+  guľky zastaví kryt, mafián ho stratí. Výstrel ho na 0,5 s vystrčí nad kryt (`COVER_POP_TIME`).
 - **Prechody medzi scénami** idú cez `ui/loading/loading_screen.gd` (`LoadingScreen.go(get_tree(), path)`, preload, nie class_name):
   čierna clona úplne navrchu (layer 128), skrytý kurzor, scéna sa načíta na pozadí a clona sa zdvihne až po pár snímkach novej scény.
   Nové `change_scene_to_file` už nepoužívať – ísť cez LoadingScreen.
@@ -174,7 +204,7 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
    style meter, tajomstvá, plávanie a ľad, malé 3D retro preteky (pocta istej mafiánskej hre z 2002).
 
 ## Užitočné
-- Ovládanie: A/D pohyb, Space/W skok, S/Ctrl šmyk, C/Alt plíženie, F zneškodnenie/klopanie, pravé tlačidlo/E klobúk, ľavé tlačidlo streľba,
+- Ovládanie: A/D pohyb, Space/W skok, S/Ctrl šmyk, C/Alt plíženie (pri debne kryt), V zjesť jedlo, X schovať zbraň, F zneškodnenie/klopanie, pravé tlačidlo/E klobúk, ľavé tlačidlo streľba,
   R prebíjanie, Shift spomalenie, Esc pauza.
 - Fasády obchodov na ulici sú 128×88 px (dvere ~80 px) – mafián s klobúkom má ~75 px, dvere a otvory musia byť vyššie.
 - README je v angličtine s bannermi z `docs/media/h_*.png` (bez gifov). Pri nových zdrojoch (zvuky, hudba, fonty) doplniť sekciu Credits.

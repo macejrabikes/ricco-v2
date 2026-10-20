@@ -22,7 +22,7 @@ const ARRIVE: Array[String] = [
 	"Somewhere in here Lou keeps his books.",
 ]
 
-var _ledger: Area2D
+var _ledger: InteractSpot
 var _say_queue: Array[String] = []
 var _say_busy: float = 0.0
 var _breath_t: float = 1.5
@@ -160,14 +160,14 @@ func _once(key: StringName, t: String) -> void:
 
 # ---------------------------------------------------------------- účtovná kniha (stopa)
 
-## Kniha leží na stole Lou – lesklá, keď cez ňu Ricco prejde, zoberie ju
+## Kniha leží na stole Lou – lesklá; Ricco pri nej stlačí F (použiť) a prečíta si ju (world/fx/interact_spot.gd)
 func _spawn_ledger() -> void:
 	var spot := get_node_or_null(^"LedgerSpot") as Node2D
 	if spot == null:
 		return
-	_ledger = Area2D.new()
-	_ledger.collision_layer = 0
-	_ledger.collision_mask = 2
+	_ledger = InteractSpot.new()
+	_ledger.verb = "READ"
+	_ledger.hint_offset = Vector2(0, -26)
 	add_child(_ledger)
 	_ledger.global_position = spot.global_position
 	var cs := CollisionShape2D.new()
@@ -187,9 +187,7 @@ func _spawn_ledger() -> void:
 	var tw := shine.create_tween().set_loops()
 	tw.tween_property(shine, "modulate:a", 0.08, 0.7)
 	tw.tween_property(shine, "modulate:a", 0.35, 0.7)
-	_ledger.body_entered.connect(func(b: Node):
-		if b == player:
-			_read_ledger())
+	_ledger.used.connect(_read_ledger)
 
 
 ## Stopa: Lou posiela dnes v noci 400 debien whisky na S.S. Margaret – po Donových trasách
@@ -199,7 +197,7 @@ func _read_ledger() -> void:
 	ledger_read = true
 	Sfx.play(&"pickup_ammo")
 	_ledger.queue_free()
-	_show_ledger_card()
+	await ReadCard.open(self, LEDGER_BIG).closed   # hra stojí, kým si ju Ricco nedočíta (ui/dialog/read_card.gd)
 	var lines: Array[String] = ["Lou's books. 'S.S. Margaret. Sails two a.m.'"]
 	await ThoughtBox.think(self, lines).finished
 	_ghost_show(true)
@@ -209,40 +207,6 @@ func _read_ledger() -> void:
 	_ghost_show(false)
 	var next: Array[String] = ["Lou's shippin' tonight. Two a.m. on the Margaret.", "Then I got a boat to catch."]
 	ThoughtBox.think(self, next)
-
-
-func _show_ledger_card() -> void:
-	var layer := CanvasLayer.new()
-	layer.layer = 33
-	add_child(layer)
-	var root := Control.new()
-	root.position = Vector2(640 - 170 - 16, 40)
-	root.modulate.a = 0.0
-	layer.add_child(root)
-	var img := TextureRect.new()
-	img.texture = LEDGER_BIG
-	root.add_child(img)
-	var ink := Color8(40, 44, 70)
-	var red := Color8(160, 30, 30)
-	# [text, farba, strana (0 = ľavá, 1 = pravá), riadok] – písmo sedí na linajkách knihy (každých 9 px od y = 20)
-	for spec in [["FONTANA", ink, 0, 0], ["SHIPPING CO.", ink, 0, 1], ["S.S. MARGARET", ink, 0, 3], ["HALIFAX-N.Y.", ink, 0, 4],
-			["OCT. 19", ink, 0, 6],
-			["SAILS 2 A.M.", red, 1, 0], ["400 CS. RYE", ink, 1, 1], ["PIER 13", ink, 1, 3], ["VITO'S ROUTES", ink, 1, 5],
-			["OURS NOW", red, 1, 6]]:
-		var l := Label.new()
-		l.text = spec[0]
-		l.add_theme_font_override(&"font", FONT)
-		l.add_theme_font_size_override(&"font_size", 8)
-		l.add_theme_color_override(&"font_color", spec[1])
-		l.position = Vector2(27 if spec[2] == 0 else 103, 9 + spec[3] * 9)
-		l.size = Vector2(58, 10)
-		root.add_child(l)
-	var tw := create_tween()
-	tw.tween_property(root, "modulate:a", 1.0, 0.3)
-	tw.parallel().tween_property(root, "position:y", 32.0, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(5.0)
-	tw.tween_property(root, "modulate:a", 0.0, 0.5)
-	tw.tween_callback(layer.queue_free)
 
 
 # ---------------------------------------------------------------- koniec časti

@@ -4,7 +4,8 @@ extends Node2D
 ## Nápis kriedou na stene – každé písmeno je trochu inak natočené a posunuté (ako keď to niekto
 ## naozaj písal rukou), krieda je nerovnomerná (slabší druhý ťah, prach okolo) a pod prvým riadkom
 ## je rýchlo načmáraná čiara. Kreslí sa v _draw (Godot docs: classes/class_canvasitem – draw_char).
-## {SNEAK} v texte sa nahradí podľa nastavenia zakrádania („HOLD C“ alebo „C … ON / OFF“, GameSettings.sneak_toggle).
+## {SNEAK} v texte sa nahradí podľa nastavenia zakrádania („HOLD C“ alebo „C … ON / OFF“, GameSettings.sneak_toggle),
+## klávesy F / SHIFT / SPACE v nápise sa prepíšu podľa prestaveného ovládania (settings/key_bindings.gd).
 
 @export_multiline var text: String = "CHALK":
 	set(v):
@@ -28,10 +29,18 @@ func _ready() -> void:
 
 
 func _shown_text() -> String:
-	if not text.contains("{SNEAK}"):
-		return text
 	GameSettings.ensure_loaded()
-	return text.replace("{SNEAK}", "C  -  SNEAK ON / OFF" if GameSettings.sneak_toggle else "HOLD C  -  SNEAK")
+	var t := text
+	if t.contains("{SNEAK}"):
+		var c := KeyBindings.main(&"sneak")
+		t = t.replace("{SNEAK}", ("%s  -  SNEAK ON / OFF" % c) if GameSettings.sneak_toggle else ("HOLD %s  -  SNEAK" % c))
+	# klávesy napísané kriedou podľa aktuálneho ovládania (Settings → Controls → Keyboard)
+	for pair in [["F  -", &"takedown"], ["F -", &"takedown"], ["SHIFT  -", &"focus"], ["PRESS SPACE", &"jump"]]:
+		var key: String = pair[0]
+		if t.contains(key):
+			var word := key.get_slice(" ", 0) if not key.begins_with("PRESS") else "SPACE"
+			t = t.replace(key, key.replace(word, KeyBindings.main(pair[1])))
+	return t
 
 
 func _draw() -> void:

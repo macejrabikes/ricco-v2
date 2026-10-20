@@ -82,6 +82,7 @@ static func reset() -> void:
 	margaret_arrived = false
 	lou_revealed = false
 	lou_phase = 1
+	Food.reset()   # nesené jedlo (props/food/food.gd)
 
 
 func _ready() -> void:

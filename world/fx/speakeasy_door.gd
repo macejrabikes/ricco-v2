@@ -38,7 +38,7 @@ func _ready() -> void:
 	_shape = $Shape
 	doorman = get_node_or_null(doorman_path) as Node2D
 	_hint = Label.new()
-	_hint.text = "F  -  KNOCK"
+	_hint.text = "%s  -  KNOCK" % KeyBindings.short(&"takedown")
 	_hint.add_theme_font_override(&"font", FONT)
 	_hint.add_theme_font_size_override(&"font_size", 8)
 	_hint.add_theme_color_override(&"font_color", Color8(245, 235, 209))

@@ -11,13 +11,12 @@ extends Level2
 ## Checkpointy: Level2.checkpoint 11 = paluba lode, Level2.lou_phase = fáza boja (po smrti začne v búdke / na horiacej palube).
 ## Scénu generuje tools/build_margaret.gd. Godot docs: classes/class_tween, classes/class_parallax2d, classes/class_cpuparticles2d
 
-const SHIP_MAP := Rect2i(0, -304, 1168, 360)     ## hranice kamery (px) – paluba na y = 0, dole kúsok trupu a vlny
+const SHIP_MAP := Rect2i(0, -304, 1568, 360)     ## hranice kamery (px) – paluba na y = 0, dole kúsok trupu a vlny
 const LUPARA := preload("res://weapons/lupara/lupara.tres")
 const BOSS_BAR := preload("res://ui/boss_bar.gd")
 const FIRE := preload("res://world/ship/deck_fire.gd")
-const PIZZA := preload("res://props/pizza/pizza_slice.tscn")
+const PIZZA := preload("res://props/food/food_pickup.tscn")   ## jedlo (striedajú sa druhy) – Ricco ho vezme do zásoby
 const AMMO := preload("res://props/ammo/ammo_pickup.tscn")
-const CAB := Vector2(576, -160)                  ## kabína žeriavu (sem udrie blesk)
 
 const ARRIVE: Array[String] = [
 	"Two A.M. on the dot. The Margaret's pullin' out and I'm aboard.",
@@ -121,7 +120,7 @@ func _process(delta: float) -> void:
 	_splash_t -= delta
 	if _splash and _splash_t <= 0.0:
 		_splash_t = randf_range(6.0, 11.0)
-		_wave_over(clampf(player.global_position.x + randf_range(-200.0, 200.0), 40.0, 800.0))
+		_wave_over(clampf(player.global_position.x + randf_range(-200.0, 200.0), 40.0, 1200.0))
 	_say_busy -= delta
 	if _say_busy <= 0.0 and not _say_queue.is_empty():
 		_say_busy = 3.4
@@ -200,45 +199,57 @@ func _on_lou_stage(n: StringName) -> void:
 func _resume_phase() -> void:
 	if lou_phase == 2:
 		var spot := get_node_or_null(^"BoothSpot") as Node2D
-		_lou.setup_phase(2, spot.global_position if spot else Vector2(628, 0))
+		_lou.setup_phase(2, spot.global_position if spot else Vector2(_booth_x(), 0))
 		_booth_lamp(true)
 	elif lou_phase == 3:
-		_lou.setup_phase(3, Vector2(680, 0))
+		_lou.setup_phase(3, Vector2(_booth_x() - 70.0, 0))   # pred stĺpom žeriavu
 		if _crane:
 			_crane.wrecked()
 		var b1 := get_node_or_null(^"Barrel1")
 		if b1:
 			b1.queue_free()
 		_wreck_booth(false)
-		_crash_fires(Vector2(447, 0), false)
+		_crash_fires(_crane.landing() if _crane else Vector2(717, 0), false)
 		_start_burning(false)
 
 
 ## Prechod 2 → 3: blesk do kabíny, rameno sa zrúti, výbuch búdky odhodí Lou, loď začne horieť
 func _lightning() -> void:
 	await _wait(1.1)   # Lou v panike, žeriav sa sám otáča k zádi
-	_bolt(CAB)
+	var cab: Vector2 = _cab()
+	_bolt(cab)
 	(get_node(^"Storm") as Node).call(&"strike", 1.0)
-	Sfx.play(&"lightning_strike", CAB, 4.0, 0.0)
-	Explosion.spawn(self, CAB + Vector2(0, 14), 1.0, 0, 0.0, 24.0)
+	Sfx.play(&"lightning_strike", cab, 4.0, 0.0)
+	Explosion.spawn(self, cab + Vector2(0, 14), 1.0, 0, 0.0, 24.0)
 	var cab_fire := FIRE.new()
 	cab_fire.width = 34.0
 	cab_fire.big = true
 	cab_fire.harmful = false
 	cab_fire.z_index = -2
 	add_child(cab_fire)
-	cab_fire.position = Vector2(576, -174)
+	cab_fire.position = cab + Vector2(0, -22)   # na streche kabíny
 	bark("LOOK OUT!")
 	await _wait(0.45)
 	if _crane:
 		_crane.collapse()
 	await _wait(0.4)
 	# trosky z kabíny padnú do búdky – výbuch vyhodí Lou von
-	Explosion.spawn(self, Vector2(628, -34), 1.3, 0, 0.0, 30.0)
+	Explosion.spawn(self, Vector2(_booth_x(), -34), 1.3, 0, 0.0, 30.0)
 	_wreck_booth(true)
 	_lou.blown(1.0)
 	await _wait(0.6)
 	_start_burning(true)
+
+
+## Kabína žeriavu (sem udrie blesk) – kúsok pod čapom ramena (world/ship/crane.gd)
+func _cab() -> Vector2:
+	return (_crane.get(&"pivot") as Vector2) + Vector2(-6, 26) if _crane else Vector2(874, -184)
+
+
+## Stred búdky s pákou (marker BoothSpot z tools/build_margaret.gd)
+func _booth_x() -> float:
+	var spot := get_node_or_null(^"BoothSpot") as Node2D
+	return spot.global_position.x if spot else 956.0
 
 
 ## Zubatý blesk z neba do bodu (dve čiary – žiara a biele jadro), zmizne s bliknutím
@@ -300,7 +311,7 @@ func _wreck_booth(fx: bool) -> void:
 	f.sound = false
 	f.z_index = -6
 	add_child(f)
-	f.position = Vector2(628, 0)
+	f.position = Vector2(_booth_x(), 0)
 
 
 func _on_boom_landed(at: Vector2) -> void:
@@ -344,8 +355,8 @@ func _start_burning(fx: bool) -> void:
 	if _burning:
 		return
 	_burning = true
-	for spec in [[Vector2(910, -168), 48.0, true, -5], [Vector2(186, -60), 30.0, false, -3], [Vector2(36, -96), 34.0, false, -5],
-			[Vector2(1010, -96), 40.0, true, -5]]:
+	for spec in [[Vector2(1310, -168), 48.0, true, -5], [Vector2(186, -60), 30.0, false, -3], [Vector2(36, -96), 34.0, false, -5],
+			[Vector2(1410, -96), 40.0, true, -5]]:
 		var f := FIRE.new()
 		f.width = spec[1]
 		f.big = spec[2]

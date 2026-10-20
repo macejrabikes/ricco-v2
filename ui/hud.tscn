@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://ui/hud.gd" id="1_hud"]
 [ext_resource type="Script" path="res://ui/ammo_panel.gd" id="2_ammo"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://ui/pause_menu/pause_menu.tscn" id="7_pause"]
 [ext_resource type="PackedScene" path="res://ui/retro_filter/retro_filter.tscn" id="8_retro"]
 [ext_resource type="Script" path="res://ui/cursor/cursor_controller.gd" id="9_cursor"]
+[ext_resource type="Script" path="res://ui/food_slots.gd" id="10_food"]
 
 [node name="HUD" type="CanvasLayer"]
 layer = 10
@@ -34,6 +35,13 @@ layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("4_health")
+
+[node name="FoodSlots" type="Control" parent="."]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+script = ExtResource("10_food")
 
 [node name="ControlsHelp" type="PanelContainer" parent="."]
 theme = ExtResource("6_theme")

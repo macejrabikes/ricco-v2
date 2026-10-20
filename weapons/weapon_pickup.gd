@@ -33,7 +33,7 @@ func _ready() -> void:
 	shape.shape = rect
 	add_child(shape)
 	_hint = Label.new()   # rovnaký štýl ako nápoveda zneškodnenia nad gangstrom
-	_hint.text = "F"
+	_hint.text = KeyBindings.short(&"takedown")
 	_hint.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
 	_hint.add_theme_font_size_override(&"font_size", 8)
 	_hint.add_theme_color_override(&"font_color", Color8(255, 214, 90))
