@@ -10,7 +10,7 @@
 <p align="center">
   <img alt="Godot 4.7" src="https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white">
   <img alt="GDScript" src="https://img.shields.io/badge/GDScript-static%20typed-355570">
-  <img alt="Status" src="https://img.shields.io/badge/status-chapter%20I%20playable-c79947">
+  <img alt="Status" src="https://img.shields.io/badge/status-chapters%20I%E2%80%93II%20playable-c79947">
   <img alt="Platform" src="https://img.shields.io/badge/platform-PC-555">
 </p>
 
@@ -30,46 +30,80 @@ A prologue without a gun – sneak, hide in the dark, and find out who got the D
 | | |
 |---|---|
 | <img src="docs/media/ch1_street.png" alt="Rainy street in front of Pizzeria Don Vito"> | <img src="docs/media/ch1_party.png" alt="Private party in the restaurant, Ricco hiding up on the gallery"> |
-| **The street** – rain, neon, a bouncer at the door. Learn to move, jump, grab ledges, slide and wall jump. | **The restaurant** – a private party. Stay up in the dark; if a guest sees you, they scream for the goons. |
+| **The street** – rain, neon, a bouncer at the door. Learn to move, jump, grab ledges, slide and wall jump. | **The restaurant** – a private party. Stay up in the dark; if a guest sees you, they scream for the goons. Crawl through the air duct above the bar. |
 | <img src="docs/media/ch1_tunnels.png" alt="Smugglers' tunnels with a flashlight patrol"> | <img src="docs/media/ch1_don.png" alt="The Don lying in his hideout"> |
-| **The tunnels** – a maze of old prohibition tunnels. Follow the blood, avoid the flashlights. | **The Don's hideout** – a dying Don, his ghost, and Ricco's first gunfight. |
+| **The tunnels** – a maze of old prohibition tunnels and flooded catacombs. Follow the blood, avoid the flashlights, swim under the patrols. | **The Don's hideout** – a dying Don, his ghost, and Ricco's first gunfight. |
 
 Along the way: a kitchen and a storage room full of guards, and a speakeasy door that only opens to the right knock.
 
+### Chapter II – Wharf Rats
+
+The Don is buried, and the trail leads to the waterfront – and to **Big Lou**.
+
+- **The cemetery** – the Don's funeral at night. A gravedigger with a lantern, mourners who scream when they see you,
+  a .38 revolver in the shed, and the ghost commenting on his own funeral from the mausoleum roof.
+  A matchbook from *Fontana Shipping – Pier 13* is the first clue.
+- **The docks** – piers in the fog, a dockworker with a cargo hook, a fishing boat with a **lupara** on board, a dog on a chain
+  that smells you even in the dark, and a lighthouse beam sweeping over the water. Swim the last stretch to Pier 13.
+- **The cold storage** – Fontana Shipping's freezer: whisky hidden in fish crates, ice you slide on, meat hooks on rails you can ride
+  while shooting, and Lou's ledger that says when the ship leaves.
+- **The S.S. Margaret** – a cargo ship in a storm: rain, lightning, rolling sea, crates that break apart under fire and barrels of rye that explode.
+- **Boss: Big Lou** – a big man in a pinstripe suit with a drum‑fed Thompson, a vest and a lot of dynamite. Three phases:
+  the **bridge wing**, the **cargo crane** (a swinging net that sweeps the deck and drops crates) and, after a lightning strike,
+  the **burning ship** – where he charges at you, reloads his drum and throws dynamite three at a time.
+
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
-- **Tight platforming** – coyote time, jump buffering, variable jump, ledge grab, wall jump, penguin belly slide
-- **Stealth** – light and darkness, sneaking, silent takedowns from behind, a hat throw that stuns (or puts out a lamp)
-- **The Don's ghost** – a spectral hand holds the pistol and reloads it; slow‑mo turns the screen ghost‑blue
-- **Real ammo** – limited magazines, empty mags drop and bounce
-- **Mafia goons** built from body parts, with patrols, flashlights and different weapons; party guests with randomized faces
-- **Dialogue & cutscenes** – typewriter dialogue box with portraits
-- **Settings** – custom cursor and crosshairs (with live previews), HUD styles, a retro filter
+- **Tight platforming** – coyote time, jump buffering, variable jump, ledge grab, wall jump, penguin belly slide (slide into a goon to trip him)
+- **Stealth** – light and darkness, sneaking, ducking behind low cover, silent takedowns from behind, a hat throw that stuns (or puts out a lamp)
+- **The Don's ghost** – a spectral hand holds the gun and reloads it; slow‑mo turns the screen ghost‑blue
+- **Period weapons** – Don's derringer, a .38 revolver, the lupara, the Thompson. One sidearm + two primaries, pick up from the ground or swap with `F`
+- **Real ammo** – limited magazines and reserves, empty mags and shells drop and bounce, every gun has its own reload animation (the derringer breaks open)
+- **Fire modes** – the Tommy gun switches between full auto and semi, the lupara can fire both barrels at once
+- **Gunfeel** – spread and bloom, damage falloff with distance, muzzle flash that lights up the dark, lingering smoke, camera kick; enemies hear shots
+- **Food to go** – carry up to 3 snacks (pizza, sardines, cannoli, espresso…) and eat one to heal; medkits heal fully
+- **Swimming and ice** – Ricco is a penguin: he swims (no breath meter), dives under patrols and slides far on ice
+- **Mafia goons** built from body parts, with patrols, flashlights, vests and different weapons; party guests with randomized faces (don't shoot them – the ghost will tell you off)
+- **A boss fight** with a health bar, phases and a lot of explosions
+- **Arsenal** – a wall of weapons in the main menu; each gun unlocks the first time Ricco picks it up
+- **Shooting range** – the *Fontana Gun Club*: try every weapon on moving targets, pop‑up targets (best score), cans and live goons
+- **Dialogue & cutscenes** – typewriter dialogue box with portraits, readable documents
+- **Settings** – custom cursor and crosshairs (with live previews), HUD styles, a retro filter, audio volumes, sneak hold/toggle and **fully rebindable keys**
 
 <p align="center"><img src="docs/media/h_controls.png" alt="Controls" width="100%"></p>
+
+All keys can be changed in **Settings → Controls → Keyboard**. Defaults:
 
 | Key | Action |
 |---|---|
 | `A` `D` / arrows | move |
 | `Space` / `W` | jump, wall jump, climb a ledge |
-| `S` / `Ctrl` | belly slide |
-| `C` / `Alt` | sneak |
-| `F` | takedown from behind · knock on a door |
+| `S` / `Ctrl` | belly slide · dive (in water) |
+| `C` / `Alt` | sneak · duck behind low cover |
+| `F` | takedown from behind · interact (knock, read, swap weapon) |
 | Right mouse / `E` | throw the hat |
 | Left mouse | shoot |
 | `R` | reload |
+| `X` | holster / draw |
+| `V` | eat (heal) |
+| `1` `2` `3` / mouse wheel | sidearm / primary weapons |
+| `Q` | last weapon |
+| `B` | fire mode (Tommy auto/semi, lupara one or both barrels) |
 | `Shift` | slow‑mo (the Don's ghost) |
-| `Esc` | pause menu & settings |
+| `Esc` / `P` | pause menu & settings |
+| `F11` | fullscreen |
 
 <p align="center"><img src="docs/media/h_roadmap.png" alt="Roadmap" width="100%"></p>
 
 - [x] Movement, shooting, slow‑mo, the hat, health
-- [x] First enemies, stealth, takedowns
+- [x] First enemies, stealth, takedowns, cover
 - [x] **Chapter I** – street, restaurant, kitchen, storage, casino, tunnels, the Don
-- [ ] **Chapter II – Wharf Rats** (in progress) – the Don's funeral at the cemetery ✔, the foggy docks ✔, Big Lou's cold storage (meat hooks & ice) ✔, the S.S. Margaret in a storm ✔, **boss fight with Big Lou** (3 phases: the bridge wing, the cargo crane, the burning ship) ✔, the escape next
-- [ ] More weapons & loadout (Tommy gun, lupara, revolver…), human shield
+- [x] **Chapter II – Wharf Rats** – the Don's funeral at the cemetery, the foggy docks, Big Lou's cold storage, the S.S. Margaret in a storm, **boss fight with Big Lou**
+- [ ] Chapter II ending – escape from the burning ship and a cliffhanger
+- [x] Weapons: derringer, revolver, lupara, Tommy gun, fire modes, Arsenal, shooting range
+- [ ] More period weapons (Colt 1911, Winchester 1897, Mauser C96…), human shield, loadout screen with weapon stats between levels
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
-- [ ] Style meter, secrets (swimming ✔, ice ✔)
+- [ ] Style meter, more secrets (swimming ✔, ice ✔, meat hooks ✔)
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)
 
 <p align="center"><img src="docs/media/h_tech.png" alt="Tech" width="100%"></p>
@@ -79,22 +113,35 @@ Along the way: a kitchen and a storage room full of guards, and a speakeasy door
 - Addons: [Phantom Camera](https://github.com/ramokz/phantom-camera), [Aseprite Wizard](https://github.com/viniciusgerevini/godot-aseprite-wizard), [LimboAI](https://github.com/limbonaut/limboai), [Dialogic 2](https://github.com/dialogic-godot/dialogic)
 
 ```
-characters/   Ricco (player), gangsters, the Don
-levels/       level1 (street → restaurant → casino) + cellar (tunnels), level2 (cemetery + docks + cold storage), test room
-world/        stealth (light zones), effects, NPCs (guests, rats, the dog), doors, cold storage (hook rails, conveyor)
-weapons/      pistol, bullets, magazines, hat
-ui/           HUD, dialogue box, menus, cursors, fonts
-settings/     game settings (saved to user://settings.cfg)
-tools/        generator scripts (Ricco's SpriteFrames, level 1 + cellar maps, level 2 map)
+audio/        Sfx (sound + music player, mixing, slow-mo filter), sfx/, amb/ (ambience loops), music/
+characters/   ricco (player + slow-mo), gangster (goons built from body parts), don, lou (Big Lou – boss, dynamite)
+effects/      particles, explosions, gun smoke
+levels/       level1 (street → restaurant → casino) + cellar (tunnels, catacombs),
+              level2 (cemetery → docks → cold storage → S.S. Margaret), range (shooting range)
+world/        stealth (light zones), fx (rain, neon, lighthouse beam, doors…), npc (guests, rats, the dog),
+              water, coldstore (hook rails, carcasses, conveyor), ship (storm, crates, barrels, crane, deck fire)
+weapons/      derringer, revolver, pistol, lupara, tommy, hat, WeaponData, pickups
+props/        ammo, food & medkits, targets
+ui/           HUD (health poster, ammo panel, food slots), boss bar, dialogue box, main menu, arsenal,
+              pause menu & settings, loading screen, cursors, fonts, retro filter
+settings/     game settings + key bindings (user://settings.cfg), progress / unlocked weapons (user://progress.cfg)
+tools/        generator scripts for the maps and Ricco's SpriteFrames
 ```
 
-Level 1 and the cellar are generated by `tools/build_level1.gd`
-(`godot --headless --path . --script res://tools/build_level1.gd`) – the cellar maze is a text map in that file.
-Level 2 (the cemetery) is generated by `tools/build_level2.gd` the same way, the docks by `tools/build_docks.gd`, the cold storage by `tools/build_coldstore.gd`.
+The maps are generated by scripts in `tools/` – don't edit those `.tscn` files by hand, run the generator instead:
+
+```
+godot --headless --path . --script res://tools/build_level1.gd     # level 1 + cellar (the maze is a text map in the file)
+godot --headless --path . --script res://tools/build_level2.gd     # cemetery
+godot --headless --path . --script res://tools/build_docks.gd      # docks
+godot --headless --path . --script res://tools/build_coldstore.gd  # cold storage
+godot --headless --path . --script res://tools/build_margaret.gd   # S.S. Margaret
+godot --headless --path . --script res://tools/build_range.gd      # shooting range
+```
 
 ### Running it
 1. Install [Godot 4.7](https://godotengine.org/download)
-2. Clone the repo (it uses **Git LFS** for images: `git lfs install` first)
+2. Clone the repo (it uses **Git LFS** for images and audio: `git lfs install` first)
 3. Open `project.godot` and press **F5**
 
 <p align="center"><img src="docs/media/h_credits.png" alt="Credits" width="100%"></p>
@@ -102,6 +149,8 @@ Level 2 (the cemetery) is generated by `tools/build_level2.gd` the same way, the
 - **Font:** [Tiny5](https://github.com/Gissio/font_tiny5) by Gissio – SIL Open Font License (`ui/fonts/Tiny5_OFL.txt`)
 - **Character art:** generated with PixelLab and Google Gemini, then cleaned up into pixel art by hand/script
 - **Sound effects:** CC0 (public domain) recordings – [Kenney](https://kenney.nl) (Impact Sounds, RPG Audio, Casino Audio), Ben Burnes (Organic Wooshes, Smol Mechanisms), [Warfork](https://github.com/Warfork) and *40 CC0 water SFX*, collected in [CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds); the rest is generated procedurally
+- **Gunshots:** layered from CC0 samples – Warfork weapon sounds, Ben Burnes *2HTC Samples Vol 4* (snaps, kicks, clicks), Kenney RPG Audio and *metal interactions* (CC0-Public-Domain-Sounds), with saturation and a short room reverb
+- **Music:** loops from *2HTC Samples Vol 4* (+ Addendum) by Ben Burnes – CC0 (public domain): *At the Threshold – Smooth Jazz Loop*, *Midnight Murmurs – Rainy Noir*, *Chasing Crop Circles – Spooky*, *Sometimes, You Don't Make it to Level Two – Night Cafe Vibes*, *The Infested Power Grid – Desolation*, *I Should Be Sleeping – Intensity*
 - **Addons:** see each addon's own license in `addons/`
 - Inspired by *My Friend Pedro* by DeadToast Entertainment
 

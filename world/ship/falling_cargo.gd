@@ -59,6 +59,9 @@ func _land(shatter: bool) -> void:
 	if p and p.global_position.distance_to(global_position) < 220.0:
 		p.set(&"shake_timer", 0.15)
 		p.set(&"shake_strength", 2.5)
+	# stojí tam niekto (Ricco, Lou)? Pevná debna by ho zavrela do seba a nemohol by sa pohnúť → radšej sa rozletí
+	if _someone_at(global_position.round()):
+		shatter = true
 	# zmení sa na skutočnú debnu (kryt) – telo sa poskladá ešte pred vložením do stromu
 	var b := StaticBody2D.new()
 	b.set_script(CRATE)
@@ -81,3 +84,17 @@ func _land(shatter: bool) -> void:
 	if shatter:
 		b.shatter(Vector2(0, -1))
 	queue_free()
+
+
+## Je v mieste debny postava (Ricco vrstva 2, Lou vrstva 4)? Godot docs: classes/class_physicsshapequeryparameters2d
+func _someone_at(pos: Vector2) -> bool:
+	var q := PhysicsShapeQueryParameters2D.new()
+	var r := RectangleShape2D.new()
+	r.size = SIZE + Vector2(2, 2)
+	q.shape = r
+	q.transform = Transform2D(0.0, pos)
+	q.collision_mask = 2 | 4
+	for h in get_world_2d().direct_space_state.intersect_shape(q, 4):
+		if h.collider is CharacterBody2D:
+			return true
+	return false

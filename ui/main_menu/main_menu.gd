@@ -7,12 +7,12 @@ extends Control
 ##   START GAME – level 1 (Pizzeria Don Vito)
 ##   CHAPTER II – rovno kapitola II (cintorín, Donov pohreb)
 ##   ARSENAL – všetky zbrane a ich štatistiky (zamknuté sú zakryté)
-##   DEBUG ROOM – testovacia miestnosť (gangstri, terče, všetky zbrane)
+##   SHOOTING RANGE – strelnica: všetky zbrane, terče, režimy pákou (levels/range/shooting_range.gd)
 
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const LEVEL_1 := "res://levels/level1/level1.tscn"
 const LEVEL_2 := "res://levels/level2/level2.tscn"
-const DEBUG_ROOM := "res://levels/test_room/test_room.tscn"
+const SHOOTING_RANGE := "res://levels/range/range.tscn"
 const WINDOW_LIT := preload("res://levels/level1/art/window_lit.png")
 const GLOW := preload("res://levels/level1/art/glow.png")
 ## Okná na budovách v pozadí (menu_buildings.png má všetky tmavé, tieto sa rozsvecujú)
@@ -52,6 +52,7 @@ func _ready() -> void:
 	create_tween().tween_property(fade, "color:a", 0.0, 0.6)
 	_title_flicker_in()
 	Sfx.loop(&"rain", self, Vector2.INF, -10.0)   # dážď za oknom
+	Sfx.music(&"menu_jazz")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -76,7 +77,7 @@ func _show_page(p: Page) -> void:
 			var first := pages.item("START GAME", _start.bind(LEVEL_1))
 			pages.item("CHAPTER II", _start.bind(LEVEL_2))
 			pages.item("ARSENAL", _open_arsenal)
-			pages.item("DEBUG ROOM", _start.bind(DEBUG_ROOM))
+			pages.item("SHOOTING RANGE", _start.bind(SHOOTING_RANGE))
 			pages.item("SETTINGS", _show_page.bind(Page.SETTINGS))
 			pages.item("QUIT", func(): get_tree().quit())
 			pages.hint("ENTER  SELECT     F11  FULLSCREEN")

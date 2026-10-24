@@ -63,6 +63,7 @@ func _ready() -> void:
 	_splash = get_node_or_null(^"Splash") as Sprite2D
 	Sfx.loop(&"storm", self, Vector2.INF, -2.0)
 	Sfx.loop(&"rain", self, Vector2.INF, -8.0)
+	Sfx.music(&"")   # pred bojom len búrka, hudba príde s Lou (_start_fight)
 	var tw := create_tween()
 	tw.tween_interval(0.3)
 	tw.tween_property(black, "color:a", 0.0, 0.8)
@@ -151,6 +152,7 @@ func say(t: String) -> void:
 ## Lou nabije Thompson (prvý raz aj s bleskom a hláškou ducha), hore sa ukáže pás jeho zdravia
 func _start_fight() -> void:
 	_fight = true
+	Sfx.music(&"intensity", 0.8)
 	_bar = BOSS_BAR.new()
 	add_child(_bar)
 	_bar.notches.assign([1.0 / 3.0, 2.0 / 3.0])
@@ -425,6 +427,7 @@ func _on_lou_died() -> void:
 		return
 	_ended = true
 	await _wait(1.6)
+	Sfx.music(&"", 3.0)
 	_say_queue.clear()
 	bark("SO LONG, LOU. YOU SHOULD'A\nSTAYED IN THE FISH BUSINESS.")
 	await _wait(3.4)

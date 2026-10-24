@@ -12,11 +12,10 @@ Toto je odovzdávací súhrn pre nový chat / Claude Code. Prečítaj celý pred
 
 ## Pravidlá spolupráce (dôležité)
 - **Odpovedaj po slovensky**, pokojne neformálne.
-- **Postupne, nie všetko naraz.** Jeden krok → otestovať → commit.
+- **Postupne, nie všetko naraz.** Jeden krok → otestovať → hotovo.
 - **Nové vizuálne veci (dizajn, sprite, efekt, UI): najprv mi ukáž pár možností (obrázky/náhľady), až potom to daj do kódu.**
 - Zvuky: keď sa mi niečo nepáči, nepýtaj sa zbytočne – ak poviem „daj X“, sprav X. Nedávaj na výber tam, kde som povedal konkrétne.
-- **Pripomínaj mi git commit + push často** – po každom hotovom kroku mi daj hotové PowerShell príkazy.
-  Radšej 5 malých pushov ako jeden obrovský po 2 dňoch.
+- **Nepíš mi git príkazy** (ani PowerShell na commit/push) – git si robím sám.
 - **Nikdy sám necommituj ani nepushuj. Git robím len ja.**
 - `project.godot` upravuj len keď je Godot zavretý (inak ho Godot prepíše).
 - Testovacie skripty (testboti) nikdy nenechávaj v `project.godot` ani v repe.
@@ -24,10 +23,10 @@ Toto je odovzdávací súhrn pre nový chat / Claude Code. Prečítaj celý pred
 
 ## Štruktúra
 ```
-audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty), amb/*.ogg (slučky prostredia)
+audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty, varianty meno_2/_3), amb/*.ogg (slučky prostredia), music/*.ogg (hudba)
 characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/, lou/ (Big Lou – boss kapitoly II, dynamit)
 effects/      burst.gd (Burst – čiastočky), explosion.gd (trieda Explosion – výbuch: ohnivá guľa, tlaková vlna, záblesk, sadza, zranenie, reťaz sudov), art/
-levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň), test_room/
+levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň), range/ (strelnica)
 world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka),
               coldstore/ (hook_rail – koľajnica s hákmi, carcass – visiace mäso = kryt, conveyor – pás),
               ship/ (storm – blesky a hrom, roll – hojdanie mora a mrakov, ship_crate – debna/kryt, ship_barrel – sud whisky,
@@ -163,9 +162,27 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 - **Prechody medzi scénami** idú cez `ui/loading/loading_screen.gd` (`LoadingScreen.go(get_tree(), path)`, preload, nie class_name):
   čierna clona úplne navrchu (layer 128), skrytý kurzor, scéna sa načíta na pozadí a clona sa zdvihne až po pár snímkach novej scény.
   Nové `change_scene_to_file` už nepoužívať – ísť cez LoadingScreen.
+- **Strelnica** (menu SHOOTING RANGE, nahradila debug room `levels/test_room/`): `levels/range/range.tscn` generuje `tools/build_range.gd`
+  (krytá strelnica klubu **Fontana Gun Club**: tehlová hala, drevený obklad, lampy so zeleným tienidlom, okná s mrežami, betónová podlaha
+  `levels/range/tiles_club.tres`, drôt s kladkami a visiacimi terčmi, oceľový ochoz, bedne s nábojmi; svetlo strelnice zelená/červená;
+  všetka grafika `levels/range/art/` z `c7/make_range_art.py` mimo repa – nič z kapitol). Logika `levels/range/shooting_range.gd`:
+  zbrojnica (F vezme zbraň najbližšie k Riccovi, pri zbrani, ktorú už má, ju doplní – REFILL; náboje sú inak obmedzené ako v leveloch),
+  páka MODE (F) prepína 5 režimov – plechovky a fľaše,
+  pohyblivé terče (vozík na koľajnici, terče na kladkách), vyskakovacie terče na 30 s (najlepšie skóre), figuríny, ozajstní gangstri.
+  Terče a gangstrov spawnuje skript podľa značiek `Spots/<Skupina>` (metadáta span/speed/rope… na Marker2D).
+  Terč: `props/range/range_target.gd` (body podľa kruhu 50/25/10, diery od guliek); plechovka `props/target/target.gd` volá `add_score`.
 - **Zvuky** (posledná práca):
   - `Sfx.play(name, pos, vol_db, pitch_var, bus)`, `Sfx.loop(...)`, `Sfx.shot(weapon, pos)`, `Sfx.set_slowmo(on)` – zbernice sa vytvoria za behu,
     pri spomalení je dolná priepusť a SFX pitch ×0.72.
+  - Varianty: ak existuje `meno_2.wav`, `Sfx.stream()` z nich spraví AudioStreamRandomizer (bez opakovania tej istej).
+    Mix: kompresor so sidechain = SFX na Music a Ambience (výstrel ich stíši), HardLimiter na Master.
+  - Výstrely (pistol_a/b/c, revolver_shot, tommy_shot, lupara_shot + _2/_3) a mechanika (mag_in/out, slide_rack, dry_fire,
+    shell_insert, cylinder_spin) generuje `c5/make_gun_audio.py` mimo repa z CC0 vzoriek (Warfork mg/riot, BB 2HTC snap/kick/click,
+    Kenney RPG, metal_interactions). Nepriateľská pištoľ = pistol_b (`Sfx.ENEMY_SHOTS`).
+  - **Hudba:** `Sfx.music(&"meno", fade)` – prehrávač v koreni stromu (prežije zmenu scény), rovnaká skladba hrá ďalej, `&""` = stíšiť.
+    Skladby (CC0 slučky Ben Burnes 2HTC Vol 4, `c6/make_music.py` mimo repa – bezšvová slučka, −20 dBFS RMS): menu_jazz (menu),
+    rainy_noir (mesto + pivnica), intensity (prestrelka s duchom, Lou), cemetery, night_cafe (prístav), desolation (mraziareň).
+    Pri Donovi a pred bojom s Lou hudba stíchne.
   - Väčšina efektov sú CC0 nahrávky (Kenney Impact/RPG/Casino Audio, Organic Wooshes, Smol Mechanisms, Warfork ricochety, 40 CC0 water – dážď),
     zvyšok syntetizovaný (spomalenie, Riccov zásah/smrť, zásah do tela, výstrely, menu, dav, kuchyňa, tunely, neón, potkan, tlkot srdca).
   - Klobúk: `hat_throw` (hod) + `hat_return` (keď sa vracia, `hat_projectile.gd`).
@@ -179,6 +196,13 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   Hlavné: lupara → Winchester 1897 (pumpovačka), Thompson, Winchester 1894 (páková) → Springfield 1903, BAR M1918.
 - **Nepriatelia sa postupne zlepšujú** – v ďalších leveloch silnejší protivníci so silnejšími zbraňami.
 - **Výbava:** 1 bočná (kláves 1) + 2 hlavné (klávesy 2, 3). Zbraň zo zeme: voľné miesto → zoberie sám, plné → F vymení.
+  HUD (`ui/ammo_panel.gd`): lístok má pevnú šírku (zbraň sa zmenší do 40×12), pod ním 3 ústrižky so slotmi 1–3 (vybraný svetlý,
+  dlhší, podčiarknutý; MINIMAL štýl = malé tmavé políčka). Zálohu nábojov obmedzuje `WeaponData.reserve_max` (krabičky, zbrane zo zeme).
+- **Režimy streľby** (kláves B, akcia `fire_mode`): `WeaponData.alt_mode` – Tommy FULL AUTO ↔ SEMI (Thompson mal naozaj len tieto
+  dva, dávkový režim nie), lupara 1x ↔ 2x (obe hlavne naraz = 2× broky, väčší spätný ráz). Pamätá sa pre každú zbraň (`Ricco.alt_fire`),
+  HUD ukazuje červenú pečiatku AUTO/SEMI, 1x/2x. Broky luparky sú menšie (`pellet_scale`).
+- **Záblesk a dym:** každá časť záblesku (svetlo, snímky, žiara) má jeden tween, nový výstrel ho zruší (inak pri dávke svetlo zhaslo).
+  Pri dávke sa hlaveň zahrieva (`_heat`) – dymu pribúda a po dávke z ústia chvíľu stúpa tenký dym (`GunSmoke.wisp`).
 - **Výber výbavy medzi levelmi** (až keď bude druhý level): obrázok zbrane + štatistiky. **Damage, fire rate, range, accuracy
   ako pruhy**, čísla len pri veľkosti zásobníka a rýchlosti prebíjania. Štatistiky počítať priamo z WeaponData.
 - **Nepresnosť:** každý výstrel má trochu rozptylu (spread_deg); pri automatických zbraniach sa pri dlhej streľbe zhoršuje
@@ -192,7 +216,7 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
    Arsenal v menu (ui/arsenal/arsenal.gd, štýl „zbrane na stene“): odomknutie v settings/progress.gd (user://progress.cfg),
    zbraň sa odomkne pri prvom vzatí do ruky. Nové zbrane pridať do Arsenal.ENTRIES (res + popis).
    Ďalej: nové dobové zbrane (vždy najprv návrhy obrázkov), ľudský štít, výber výbavy so štatistikami medzi levelmi.
-1. **Realistické výstrely** (odložené) – syntetické aj CC0 nahrávky znejú „tupo“. Holé nahrávky treba vrstviť
+1. **Realistické výstrely** (prerobené vrstvením v úpravách 7, čaká na posluch) – predtým syntetické aj CC0 nahrávky zneli „tupo“. Holé nahrávky treba vrstviť
    (prask + telo + basy + saturácia). Still North knižnica je v `_raw_audio/` (Colt 1911 = priečinok 1911).
    Sonniss GDC 2026 Part 9 v `_raw_audio/SONISS GDC` nemá strelné zbrane (má ambienty baru, dažďa, auto atď.).
    Zdroj: Still North Media „Free Firearm Sound Library“ (CC0) –
@@ -205,6 +229,6 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 
 ## Užitočné
 - Ovládanie: A/D pohyb, Space/W skok, S/Ctrl šmyk, C/Alt plíženie (pri debne kryt), V zjesť jedlo, X schovať zbraň, F zneškodnenie/klopanie, pravé tlačidlo/E klobúk, ľavé tlačidlo streľba,
-  R prebíjanie, Shift spomalenie, Esc pauza.
+  R prebíjanie, 1–3 / koliesko zbrane, Q posledná zbraň, B režim streľby, Shift spomalenie, Esc pauza.
 - Fasády obchodov na ulici sú 128×88 px (dvere ~80 px) – mafián s klobúkom má ~75 px, dvere a otvory musia byť vyššie.
 - README je v angličtine s bannermi z `docs/media/h_*.png` (bez gifov). Pri nových zdrojoch (zvuky, hudba, fonty) doplniť sekciu Credits.

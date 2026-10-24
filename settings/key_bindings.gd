@@ -24,6 +24,7 @@ const ACTIONS := [
 	[&"weapon_2", "PRIMARY 1", [KEY_2]],
 	[&"weapon_3", "PRIMARY 2", [KEY_3]],
 	[&"weapon_last", "LAST WEAPON", [KEY_Q]],
+	[&"fire_mode", "FIRE MODE", [KEY_B]],
 	[&"pause", "PAUSE", [KEY_ESCAPE, KEY_P]],
 	[&"fullscreen", "FULLSCREEN", [KEY_F11]],
 ]

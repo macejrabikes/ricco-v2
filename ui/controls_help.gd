@@ -13,6 +13,7 @@ const ROWS := [
 	[[&"eat"], "zjesť jedlo zo zásoby (vylieči)"],
 	[[&"weapon_1", &"weapon_2", &"weapon_3"], "bočná / hlavné zbrane  (aj koliesko)"],
 	[[&"weapon_last"], "posledná zbraň"],
+	[[&"fire_mode"], "režim streľby (AUTO/SEMI, 1 alebo 2 hlavne)"],
 	[[&"focus"], "spomalenie – duch Dona"],
 	[[&"slide"], "šmyk po bruchu"],
 	[[&"sneak"], "zakrádanie (drž), pri debne = kryt"],

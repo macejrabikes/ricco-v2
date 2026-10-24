@@ -30,6 +30,7 @@ signal weapon_changed(weapon: WeaponData)
 signal health_changed(health: int, max_health: int)
 signal died
 signal shot_fired   ## každý výstrel (zameriavač naň krátko „odskočí“)
+signal fire_mode_changed(alt: bool)   ## B prepol režim streľby (HUD ukáže pečiatku AUTO/SEMI, 1x/2x)
 signal food_changed ## zobral alebo zjedol jedlo (HUD sloty – ui/food_slots.gd)
 
 @export var max_speed: float = 140.0       ## px/s pri behu
@@ -196,6 +197,9 @@ var weapon_ammo: Array = []           ## pre každú zbraň výbavy [v zásobní
 var _reload_tween: Tween
 var _barrels: Sprite2D                ## hlavne lámacej zbrane počas prebíjania (dieťa Gun, otáča sa na pánte)
 var _bloom: float = 0.0               ## ° – rozptyl navyše zo streľby za sebou (WeaponData.spread_bloom_deg)
+var alt_fire: Dictionary = {}         ## WeaponData → true = druhý režim (WeaponData.alt_mode); pamätá sa pre každú zbraň
+var _heat: float = 0.0                ## zahriatie hlavne pri streľbe dávkou – viac dymu, po dávke z hlavne chvíľu stúpa dym
+var _wisp_t: float = 0.0
 var _swap_tween: Tween
 var holstered: bool = false           ## zbraň je schovaná (X) – nestrieľa, ruka ducha zmizne
 var _holstering: bool = false         ## práve ju schováva (animácia ešte beží, Aim je viditeľný)
@@ -446,6 +450,7 @@ func _physics_process(delta: float) -> void:
 	_espresso_t -= delta
 	if weapon:
 		_bloom = maxf(_bloom - weapon.bloom_recover_deg * delta, 0.0)
+	_update_heat(delta)
 	_update_invulnerability(delta)
 	_swim_cooldown -= delta
 	_hook_cooldown -= delta
@@ -570,6 +575,7 @@ func _physics_process(delta: float) -> void:
 			and wall_lock_timer <= 0.0 and _try_grab_ledge(grab_dir):
 		return
 
+	_unstick(delta)
 	_update_sneak()
 	_update_cover(delta)
 	_takedown_t -= delta
@@ -886,7 +892,8 @@ func _update_weapons() -> void:
 	# Streľba – samopal strieľa, kým držíš; ostatné zbrane každé kliknutie jeden výstrel
 	var pull: bool = false
 	if weapon and not holstered:   # bez zbrane (začiatok levelu 1) sa len hádže klobúk
-		pull = Input.is_action_pressed("shoot") if weapon.automatic else Input.is_action_just_pressed("shoot")
+		var auto: bool = weapon.automatic and not is_alt_fire()   # samopal prepnutý na SEMI strieľa po jednom
+		pull = Input.is_action_pressed("shoot") if auto else Input.is_action_just_pressed("shoot")
 	if pull and fire_timer <= 0.0 and aim.visible and not reloading:
 		if ammo_in_mag > 0:
 			_shoot()
@@ -904,34 +911,44 @@ func _update_weapons() -> void:
 
 
 func _shoot() -> void:
-	fire_timer = weapon.fire_cooldown
+	var alt: bool = is_alt_fire()
+	var semi: bool = alt and weapon.alt_mode == WeaponData.AltMode.SEMI
+	# obe hlavne naraz (lupara 2x) – len keď sú v nej dva náboje, inak normálny výstrel
+	var shells: int = 2 if alt and weapon.alt_mode == WeaponData.AltMode.DOUBLE and ammo_in_mag >= 2 else 1
+	fire_timer = maxf(weapon.fire_cooldown, 0.1) if semi else weapon.fire_cooldown
 	if in_cover:
 		_cover_pop = COVER_POP_TIME   # vystrčí sa nad kryt a chvíľu ostane hore
 		_set_duck(false)
-	ammo_in_mag -= 1
+	ammo_in_mag -= shells
 	_store_ammo()
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
-	for i in weapon.pellets:
+	var pellets: int = weapon.pellets * shells
+	for i in pellets:
 		var b := bullet_scene.instantiate()
-		# broky sa rozložia do vejára, jedna guľka má len malý náhodný rozptyl
-		var spread: float = weapon.spread_deg + _bloom
-		var a: float = randf_range(-spread, spread) if weapon.pellets == 1 \
-				else lerpf(-spread / 2.0, spread / 2.0, (i + randf()) / weapon.pellets)
+		# broky sa rozložia do vejára, jedna guľka má len malý náhodný rozptyl;
+		# po jednom (SEMI) je samopal presnejší, dve hlavne naraz rozhodia vejár o trochu širšie
+		var spread: float = (weapon.spread_deg * (0.6 if semi else 1.0) + _bloom) * (1.2 if shells == 2 else 1.0)
+		var a: float = randf_range(-spread, spread) if pellets == 1 \
+				else lerpf(-spread / 2.0, spread / 2.0, (i + randf()) / pellets)
 		b.direction = aim_dir.rotated(deg_to_rad(a))
+		b.scale = Vector2.ONE * weapon.pellet_scale
 		b.shooter = self
 		b.damage = weapon.damage
-		b.speed = weapon.bullet_speed * (randf_range(0.85, 1.05) if weapon.pellets > 1 else 1.0)
+		b.speed = weapon.bullet_speed * (randf_range(0.85, 1.05) if pellets > 1 else 1.0)
 		b.lifetime = weapon.bullet_lifetime
 		b.effective_range = weapon.effective_range
 		b.falloff_range = weapon.falloff_range
 		b.global_position = muzzle.global_position
 		get_tree().current_scene.add_child(b)
-	_bloom = minf(_bloom + weapon.spread_bloom_deg, weapon.spread_max_deg)
+	_bloom = minf(_bloom + weapon.spread_bloom_deg * (0.5 if semi else 1.0), weapon.spread_max_deg)
 	# šťava: zvuk, záblesk (3 snímky + žiara + dym), cuknutie a nadhodenie zbrane, zatrasenie kamery
 	Sfx.shot(weapon)
-	_muzzle_flash()
-	gun.position.x = gun_base_x - weapon.recoil_px
-	var kick: float = -0.045 * weapon.recoil_px * gun.scale.y   # hlaveň vyskočí hore
+	if shells == 2:
+		Sfx.shot(weapon)   # druhá hlaveň v tom istom okamihu – hlasnejšia, hrubšia rana
+	_muzzle_flash(1.35 if shells == 2 else 1.0)
+	var recoil: float = weapon.recoil_px * (1.5 if shells == 2 else 1.0)
+	gun.position.x = gun_base_x - recoil
+	var kick: float = -0.045 * recoil * gun.scale.y   # hlaveň vyskočí hore
 	if _recoil_tween:
 		_recoil_tween.kill()
 	_recoil_tween = create_tween().set_parallel(true)
@@ -939,10 +956,10 @@ func _shoot() -> void:
 	_recoil_tween.tween_property(gun, "position:x", gun_base_x, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_recoil_tween.tween_property(gun, "rotation", 0.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	if weapon.recoil_px >= 6.0 and is_on_floor():
-		velocity.x -= aim_dir.x * 60.0   # lupara odtlačí Ricca
-	shake_timer = 0.08
-	shake_strength = weapon.shake
-	_cam_kick = -aim_dir * (1.5 + weapon.recoil_px * 0.9)
+		velocity.x -= aim_dir.x * 60.0 * shells   # lupara odtlačí Ricca (obe hlavne dvakrát viac)
+	shake_timer = 0.12 * (1.5 if shells == 2 else 1.0)
+	shake_strength = weapon.shake * 1.4 * (1.4 if shells == 2 else 1.0)
+	_cam_kick = -aim_dir * (2.5 + recoil * 1.3)
 	Gangster.gunshot(global_position, SHOT_NOISE)   # výstrel počuť ďaleko, záblesk vidno aj v tme
 	shot_fired.emit()
 
@@ -996,6 +1013,11 @@ const GLOW_TEX := preload("res://levels/level1/art/glow.png")
 const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8}
 var _flash_glow: Sprite2D
 var _flash_light: PointLight2D   ## záblesk na okamih osvetlí okolie (aj v tme – CanvasModulate „Darkness“)
+# Jeden tween na každú časť záblesku: nový výstrel starý zruší. Inak pri dávke dobehol tween
+# z predošlého výstrelu a zhasol svetlo / skryl záblesk, ktorý práve rozsvietil nový výstrel.
+var _flash_tw: Tween
+var _glow_tw: Tween
+var _light_tw: Tween
 var _recoil_tween: Tween
 var _cam_kick: Vector2 = Vector2.ZERO   ## px – spätný ráz kamery (_process ho vracia na nulu)
 
@@ -1025,31 +1047,62 @@ func _setup_flash() -> void:
 	muzzle.add_child(_flash_light)
 
 
-func _muzzle_flash() -> void:
-	var k: float = FLASH_SCALE.get(weapon.name, 0.8)
+func _muzzle_flash(boost: float = 1.0) -> void:
+	var k: float = FLASH_SCALE.get(weapon.name, 0.8) * boost
 	flash.scale = Vector2(k, k * randf_range(0.85, 1.15))
 	flash.rotation = randf_range(-0.12, 0.12)
 	flash.frame = 0
 	flash.visible = true
 	_flash_glow.visible = true
-	_flash_glow.scale = Vector2.ONE * 0.7 * k
+	_flash_glow.scale = Vector2.ONE * 0.9 * k
 	# okolie sa na okamih rozsvieti (steny, mafiáni v tme)
 	_flash_light.enabled = true
-	_flash_light.energy = 1.1 + 0.3 * k
+	_flash_light.energy = (1.1 + 0.3 * k) * randf_range(0.85, 1.1)   # pri dávke svetlo trochu bliká
 	_flash_light.texture_scale = 2.0 + 1.4 * k
-	var lt := create_tween()
-	lt.tween_property(_flash_light, "energy", 0.0, 0.11).set_delay(0.03)
-	lt.tween_callback(func(): _flash_light.enabled = false)
-	var tw := create_tween()
-	tw.tween_interval(0.025)
-	tw.tween_callback(func(): flash.frame = 1)
-	tw.tween_interval(0.025)
-	tw.tween_callback(func(): flash.frame = 2; _flash_glow.visible = false)
-	tw.tween_interval(0.025)
-	tw.tween_callback(func(): flash.visible = false)
-	Burst.spawn(get_tree().current_scene, muzzle.global_position, aim_dir + Vector2(0, -0.4),
-			Color(0.75, 0.72, 0.7, 0.55), 4 if k < 1.2 else 8, 40.0, Vector2(0, -30), 0.7)   # iskričky a sadze
-	GunSmoke.spawn(get_tree().current_scene, muzzle.global_position, aim_dir, k * (0.7 if weapon.automatic else 1.0))   # obláčiky dymu ostanú visieť
+	if _light_tw:
+		_light_tw.kill()
+	_light_tw = create_tween()
+	_light_tw.tween_property(_flash_light, "energy", 0.0, 0.2).set_delay(0.06)
+	_light_tw.tween_callback(func(): _flash_light.enabled = false)
+	# záblesk drží dlhšie (~0,14 s), žiara dohasína plynulo
+	if _flash_tw:
+		_flash_tw.kill()
+	_flash_tw = create_tween()
+	_flash_tw.tween_interval(0.045)
+	_flash_tw.tween_callback(func(): flash.frame = 1)
+	_flash_tw.tween_interval(0.045)
+	_flash_tw.tween_callback(func(): flash.frame = 2)
+	_flash_tw.tween_interval(0.05)
+	_flash_tw.tween_callback(func(): flash.visible = false)
+	_flash_glow.modulate.a = 0.9
+	if _glow_tw:
+		_glow_tw.kill()
+	_glow_tw = create_tween()
+	_glow_tw.tween_property(_flash_glow, "modulate:a", 0.0, 0.16).set_delay(0.05)
+	_glow_tw.tween_callback(func(): _flash_glow.visible = false)
+	Burst.spawn(get_tree().current_scene, muzzle.global_position, aim_dir,
+			Color(1.0, 0.8, 0.4), 5 if k < 1.2 else 10, 110.0, Vector2(0, 120), 0.22)   # iskry z ústia
+	# dym: samopal začína slabšie, ale s dlhšou dávkou ho pribúda (hlaveň sa zahrieva)
+	var smoke: float = k
+	if weapon.automatic:
+		_heat = minf(_heat + 1.0, HEAT_MAX)
+		smoke = k * (0.6 + 0.08 * _heat)
+	GunSmoke.spawn(get_tree().current_scene, muzzle.global_position, aim_dir, smoke)
+
+
+const HEAT_MAX := 10.0      ## po ~10 výstreloch dávkou je dymu najviac
+const HEAT_COOL := 4.0      ## o koľko za sekundu hlaveň chladne
+const HEAT_WISP := 4.0      ## od tohto zahriatia po dávke z hlavne stúpa tenký dym
+
+## Rozpálená hlaveň po dávke: kým sa nestrieľa, z ústia stúpajú tenké pásiky dymu
+func _update_heat(delta: float) -> void:
+	if _heat <= 0.0:
+		return
+	_heat = maxf(_heat - HEAT_COOL * delta, 0.0)
+	_wisp_t -= delta
+	if _heat > HEAT_WISP and fire_timer < -0.1 and aim.visible and _wisp_t <= 0.0:
+		_wisp_t = 0.07
+		GunSmoke.wisp(get_tree().current_scene, muzzle.global_position, clampf((_heat - HEAT_WISP) / 4.0, 0.3, 1.0))
 
 
 ## Prebíjanie (ako naozaj): zbraň sa nakloní, starý zásobník (bubon, nábojnice, broky) vykĺzne a padne na zem,
@@ -1327,6 +1380,12 @@ func _weapon_switch_input(event: InputEvent) -> void:
 			_equip(n)
 			get_viewport().set_input_as_handled()
 			return
+	if event.is_action_pressed(&"fire_mode") and weapon and weapon.alt_mode != WeaponData.AltMode.NONE:
+		alt_fire[weapon] = not is_alt_fire()
+		Sfx.play(&"dry_fire", global_position, -8.0, 0.05)   # cvaknutie prepínača
+		fire_mode_changed.emit(is_alt_fire())
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed(&"weapon_last"):
 		_draw_weapon()
 		_equip(last_weapon_index)
@@ -1635,6 +1694,39 @@ func _cover_at(s: float) -> bool:
 	return h >= COVER_MIN_H and h <= COVER_MAX_H
 
 
+## Poistka: keď sa Ricco ocitne vnútri pevného telesa (padla naňho debna, posunula sa plošina…), chvíľu počká
+## a potom ho vysadí na najbližšie voľné miesto nad ním alebo vedľa neho. Godot docs: classes/class_physicsdirectspacestate2d
+var _stuck_t: float = 0.0
+
+func _embedded(at: Vector2) -> bool:
+	var q := PhysicsShapeQueryParameters2D.new()
+	q.shape = body_shape.shape
+	q.transform = Transform2D(0.0, at + body_shape.position)
+	q.collision_mask = 1
+	q.margin = -1.0
+	q.exclude = [get_rid()]
+	for h in get_world_2d().direct_space_state.intersect_shape(q, 4):
+		if not (h.collider as Node).is_in_group(&"platform"):
+			return true
+	return false
+
+
+func _unstick(delta: float) -> void:
+	if not _embedded(global_position):
+		_stuck_t = 0.0
+		return
+	_stuck_t += delta
+	if _stuck_t < 0.25:
+		return
+	_stuck_t = 0.0
+	for d in range(4, 72, 4):
+		for off in [Vector2(0, -d), Vector2(-d, 0), Vector2(d, 0)]:
+			if not _embedded(global_position + off):
+				global_position += off
+				velocity = Vector2.ZERO
+				return
+
+
 func _set_duck(on: bool) -> void:
 	if on == ducked or (not on and not _can_stand()):
 		return
@@ -1725,6 +1817,44 @@ func take_hit(damage: int, dir: Vector2) -> void:
 	take_damage(damage, global_position - dir * 30.0)
 
 
+## Doplní zbraň z výbavy na začiatočné náboje (strelnica – zbrojnica). Vráti false, ak ju nemá alebo je plná.
+func refill_weapon(w: WeaponData) -> bool:
+	var i: int = loadout.find(w)
+	if i < 0:
+		return false
+	_store_ammo()
+	var full: Array = [w.mag_size, maxi(weapon_ammo[i][1], w.reserve_start)]
+	if weapon_ammo[i][0] >= full[0] and weapon_ammo[i][1] >= full[1]:
+		return false
+	weapon_ammo[i] = full
+	if i == weapon_index and not reloading:
+		ammo_in_mag = full[0]
+		ammo_reserve = full[1]
+	elif i == weapon_index:
+		ammo_reserve = full[1]   # práve prebíja – zásobník dobije sám
+		weapon_ammo[i][0] = ammo_in_mag
+	Sfx.play(&"pickup_ammo")
+	ammo_changed.emit(ammo_in_mag, ammo_reserve, reloading)
+	return true
+
+
+## Je zbraň v ruke prepnutá na druhý režim streľby (WeaponData.alt_mode)?
+func is_alt_fire() -> bool:
+	return weapon != null and weapon.alt_mode != WeaponData.AltMode.NONE and alt_fire.get(weapon, false)
+
+
+## Meno režimu pre HUD: AUTO/SEMI (samopal), 1x/2x (dvojhlavňovka), "" = zbraň má len jeden režim
+func fire_mode_label() -> String:
+	if weapon == null:
+		return ""
+	match weapon.alt_mode:
+		WeaponData.AltMode.SEMI:
+			return "SEMI" if is_alt_fire() else "AUTO"
+		WeaponData.AltMode.DOUBLE:
+			return "2x" if is_alt_fire() else "1x"
+	return ""
+
+
 ## Krabička nábojov: každá zbraň dostane jeden zásobník navyše
 ## Náboje z krabičky. Vráti false, ak Ricco nemá zbraň (krabička ostane ležať).
 func add_ammo() -> bool:
@@ -1733,7 +1863,7 @@ func add_ammo() -> bool:
 	_store_ammo()
 	Sfx.play(&"pickup_ammo")
 	for i in loadout.size():
-		weapon_ammo[i][1] += loadout[i].mag_size
+		weapon_ammo[i][1] = mini(weapon_ammo[i][1] + loadout[i].mag_size, loadout[i].reserve_max)
 	ammo_reserve = weapon_ammo[weapon_index][1]
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, reloading)
 	return true
@@ -1764,14 +1894,14 @@ func pick_up_weapon(w: WeaponData, ammo: int) -> bool:
 	_store_ammo()
 	var i: int = loadout.find(w)
 	if i >= 0:
-		weapon_ammo[i][1] += ammo
+		weapon_ammo[i][1] = mini(weapon_ammo[i][1] + ammo, w.reserve_max)
 		ammo_reserve = weapon_ammo[weapon_index][1]
 		Sfx.play(&"pickup_ammo")
 		ammo_changed.emit(ammo_in_mag, ammo_reserve, reloading)
 		return true
 	i = 0 if w.slot_name == "SIDEARM" else loadout.size()   # bočná je vždy prvá (kláves 1)
 	loadout.insert(i, w)
-	weapon_ammo.insert(i, [mini(ammo, w.mag_size), maxi(ammo - w.mag_size, 0)])
+	weapon_ammo.insert(i, [mini(ammo, w.mag_size), clampi(ammo - w.mag_size, 0, w.reserve_max)])
 	if i <= weapon_index:
 		weapon_index += 1
 	Sfx.play(&"slide_rack", Vector2.INF, -4.0)
@@ -1791,7 +1921,7 @@ func swap_weapon(w: WeaponData, ammo: int) -> Array:
 	var old: WeaponData = loadout[i]
 	var old_ammo: int = weapon_ammo[i][0] + weapon_ammo[i][1]
 	loadout[i] = w
-	weapon_ammo[i] = [mini(ammo, w.mag_size), maxi(ammo - w.mag_size, 0)]
+	weapon_ammo[i] = [mini(ammo, w.mag_size), clampi(ammo - w.mag_size, 0, w.reserve_max)]
 	if i == weapon_index:
 		weapon = null   # _equip by inak novú zbraň nevzal (rovnaký index) a prepísal by jej náboje
 	Sfx.play(&"slide_rack", Vector2.INF, -4.0)

@@ -26,6 +26,7 @@ recoil_px = 3.0
 shake = 2.0
 mag_size = 8
 reserve_start = 32
+reserve_max = 64
 reload_time = 1.0
 mag_texture = ExtResource("3_t")
 mag_px = Vector2(3, 5)

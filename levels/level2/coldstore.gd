@@ -74,6 +74,7 @@ func _ready() -> void:
 	for t in [[^"Checkpoint8", 8], [^"Checkpoint9", 9], [^"Checkpoint10", 10]]:
 		_connect(t[0], func(): checkpoint = maxi(checkpoint, t[1]))
 	Sfx.loop(&"cold", self, Vector2.INF, -5.0)
+	Sfx.music(&"desolation")
 	var tw := create_tween()
 	tw.tween_interval(0.3)
 	tw.tween_property(black, "color:a", 0.0, 0.8)

@@ -99,6 +99,7 @@ func _process(delta: float) -> void:
 # ---------------------------------------------------------------- cutscéna
 
 func _play() -> void:
+	Sfx.music(&"", 2.5)   # pri Donovi hudba stíchne
 	# počká, kým Ricco stojí na zemi, potom mu zoberie ovládanie
 	while not player.is_on_floor():
 		await get_tree().physics_frame
@@ -156,6 +157,7 @@ func _play() -> void:
 	player.set_cutscene(false)
 	await _wait(1.6)
 	_start_fight()
+	Sfx.music(&"intensity", 0.6)
 
 
 func _wait(t: float) -> void:

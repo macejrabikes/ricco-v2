@@ -121,6 +121,7 @@ func _ready() -> void:
 	for t in [[^"Checkpoint1", 1], [^"Checkpoint3", 3]]:
 		_connect(t[0], func(): checkpoint = maxi(checkpoint, t[1]))
 	Sfx.loop(&"cemetery", self, Vector2.INF, -4.0)
+	Sfx.music(&"cemetery")
 	if checkpoint == 0 and not intro_done:
 		_intro(black)
 	else:

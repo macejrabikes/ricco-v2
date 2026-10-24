@@ -48,6 +48,7 @@ func _ready() -> void:
 	tw.tween_property(black, "color:a", 0.0, 0.8)
 	tw.tween_callback(black.get_parent().queue_free)
 	Sfx.loop(&"tunnels", self, Vector2.INF, -2.0)
+	Sfx.music(&"intensity" if checkpoint >= 5 else &"rainy_noir")   # po cutscéne s Donom už ide do tuhého
 	if checkpoint == 3 and not cellar_arrived:
 		cellar_arrived = true
 		_arrive()

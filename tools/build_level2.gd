@@ -478,7 +478,7 @@ func _fog() -> void:
 
 ## [x, y, druh] – druh "" = jedlo podľa poradia (Food.next_kind – vždy iné), "medkit" = lekárnička. Za behu spadne na zem.
 ## Rozmiestnenie: za hrobníkom, pri pohrebe, pred kryptou
-const FOOD := [[52 * T, -12.0, ""], [100 * T, -12.0, ""], [119 * T, -12.0, "medkit"]]
+const FOOD := [[52 * T, -12.0, ""], [100 * T, -12.0, ""], [121 * T, -12.0, "medkit"]]   # medkit vpravo od rodinnej hrobky (nie v nej)
 
 func _build_food() -> void:
 	for i in FOOD.size():

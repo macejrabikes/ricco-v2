@@ -4,6 +4,11 @@ extends Resource
 ## Používa ich Ricco (ruka ducha, prebíjanie, HUD) aj nepriatelia (obrázok, streľba).
 ## Súradnice „px“ sú pixely v obrázku zbrane (ľavý horný roh = 0, 0), zbraň mieri doprava.
 
+## Druhý režim streľby (kláves FIRE MODE, predvolene B):
+##   SEMI   – samopal strieľa po jednom (Thompson mal prepínač FULL AUTO / SEMI, dávkový režim nemal)
+##   DOUBLE – dvojhlavňová brokovnica vystrelí obe hlavne naraz (2× toľko brokov)
+enum AltMode { NONE, SEMI, DOUBLE }
+
 @export var name: String = "Pistol"
 @export var texture: Texture2D
 @export var slot_name: String = "SIDEARM"          ## SIDEARM / PRIMARY (neskôr výber výbavy)
@@ -18,6 +23,8 @@ extends Resource
 @export var automatic: bool = false       ## true = strieľa, kým držíš tlačidlo
 @export var fire_cooldown: float = 0.14   ## s medzi výstrelmi
 @export var pellets: int = 1              ## brokovnica = viac broky naraz
+@export var pellet_scale: float = 1.0     ## veľkosť guľky na obrazovke (broky sú menšie než guľka z pištole)
+@export var alt_mode: AltMode = AltMode.NONE
 @export var spread_deg: float = 1.5       ## rozptyl (pri brokoch celý vejár)
 @export var damage: float = 1.0       ## zásah zblízka (gangster má 3 životy, bitkár 5)
 @export var bullet_speed: float = 650.0
@@ -37,6 +44,7 @@ extends Resource
 @export_group("Ammo")
 @export var mag_size: int = 8
 @export var reserve_start: int = 32
+@export var reserve_max: int = 64         ## viac nábojov v zálohe Ricco neunesie (krabičky, zbrane zo zeme)
 @export var reload_time: float = 1.0
 @export var mag_texture: Texture2D        ## zásobník v zbrani / to, čo vypadne (prázdny zásobník, nábojnica, brok)
 @export var mag_px: Vector2 = Vector2(3, 5)        ## kde je zásobník (ľavý horný roh)

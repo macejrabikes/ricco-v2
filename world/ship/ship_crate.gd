@@ -28,6 +28,26 @@ func _ready() -> void:
 		_base_x = _sprite.position.x
 
 
+var _blocked_by: Object
+
+
+## Je pod debnou (o dy nižšie) niekto? Ricco je na vrstve 2, Lou na vrstve 4. Godot docs: classes/class_physicsshapequeryparameters2d
+func _blocked(dy: float) -> bool:
+	var q := PhysicsShapeQueryParameters2D.new()
+	var r := RectangleShape2D.new()
+	r.size = SIZE - Vector2(2, 2)
+	q.shape = r
+	q.transform = Transform2D(0.0, global_position + Vector2(0, dy))
+	q.collision_mask = 2 | 4
+	q.exclude = [get_rid()]
+	var hits := get_world_2d().direct_space_state.intersect_shape(q, 4)
+	for h in hits:
+		if h.collider is CharacterBody2D:
+			_blocked_by = h.collider
+			return true
+	return false
+
+
 ## Zásah guľkou (Lou aj Ricco) – triesky, trasenie, debna tmavne
 func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
 	if _dead:
@@ -78,8 +98,15 @@ func shatter(dir: Vector2 = Vector2.ZERO) -> void:
 	queue_free()
 
 
-## Spodnú debnu rozbili – táto spadne o dy nižšie (a s ňou aj debna navrchu – veža z troch)
+## Spodnú debnu rozbili – táto spadne o dy nižšie (a s ňou aj debna navrchu – veža z troch).
+## Ak tam práve stojí Ricco (alebo Lou), debna by ho zavrela do seba – namiesto pádu mu na hlave praskne.
 func drop_down(dy: float) -> void:
+	if _blocked(dy):
+		var p := get_tree().get_first_node_in_group(&"player") as Node2D
+		if p and p.has_method(&"take_damage") and _blocked_by == p:
+			p.take_damage(1, global_position)
+		shatter(Vector2.UP)
+		return
 	for n in get_tree().get_nodes_in_group(&"ship_cover"):
 		var top := n as Node2D
 		if top and top != self and absf(top.global_position.x - global_position.x) < 6.0 \
