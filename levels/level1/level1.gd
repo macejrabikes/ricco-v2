@@ -47,6 +47,7 @@ func _ready() -> void:
 	if checkpoint >= 3 and scene_file_path != CELLAR:   # zomrel v pivnici → rovno tam
 		get_tree().change_scene_to_file.call_deferred(CELLAR)
 		return
+	Progress.reach_chapter(1)   # STORY → CONTINUE
 	Sfx.music(&"rainy_noir")   # hudba (audio/sfx.gd → music); do pivnice hrá ďalej bez prerušenia
 	# začiatok (aj po smrti) z čiernej – nič nepreblikne, kým sa kamera a Ricco nepresunú na miesto
 	var black := _fade_rect()

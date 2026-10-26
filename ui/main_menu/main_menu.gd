@@ -4,21 +4,29 @@ extends Control
 ## po mokrej ulici prejde auto (Ford A) so svetlami, prší, neón bliká, Ricco stojí pod lampou.
 ## Nadpis RICCO sa na začiatku rozsvieti ako neón. Menu vpravo, väčšie písmo, za ním tmavý prechod.
 ## Stránky nastavení a ovládania sú spoločné s pause menu (ui/pause_menu/menu_pages.gd).
-##   START GAME – level 1 (Pizzeria Don Vito)
-##   CHAPTER II – rovno kapitola II (cintorín, Donov pohreb)
+##   STORY – NEW STORY (od kapitoly I), CONTINUE (posledná rozohratá kapitola – Progress.chapter, od jej začiatku),
+##           CHAPTERS – výber kapitoly: veľké CHAPTER I, pod ním malým názov
+##           (I Pizzeria Don Vito, II cintorín a prístav, III New York)
 ##   ARSENAL – všetky zbrane a ich štatistiky (zamknuté sú zakryté)
 ##   SHOOTING RANGE – strelnica: všetky zbrane, terče, režimy pákou (levels/range/shooting_range.gd)
 
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const LEVEL_1 := "res://levels/level1/level1.tscn"
 const LEVEL_2 := "res://levels/level2/level2.tscn"
+const LEVEL_3 := "res://levels/level3/intro.tscn"
+## Kapitoly: číslo, názov a prvá scéna (CHAPTERS a CONTINUE)
+const CHAPTERS: Array[Array] = [
+	["CHAPTER I", "THE DON'S GHOST", LEVEL_1],
+	["CHAPTER II", "WHARF RATS", LEVEL_2],
+	["CHAPTER III", "THE BIG APPLE", LEVEL_3],
+]
 const SHOOTING_RANGE := "res://levels/range/range.tscn"
 const WINDOW_LIT := preload("res://levels/level1/art/window_lit.png")
 const GLOW := preload("res://levels/level1/art/glow.png")
 ## Okná na budovách v pozadí (menu_buildings.png má všetky tmavé, tieto sa rozsvecujú)
 const WINDOWS: Array[Vector2] = [Vector2(14, 140), Vector2(14, 192), Vector2(14, 244), Vector2(58, 140), Vector2(58, 192), Vector2(58, 244), Vector2(414, 108), Vector2(414, 160), Vector2(414, 212), Vector2(458, 108), Vector2(458, 160), Vector2(458, 212), Vector2(502, 108), Vector2(502, 160), Vector2(502, 212), Vector2(546, 108), Vector2(546, 160), Vector2(546, 212), Vector2(590, 108), Vector2(590, 160), Vector2(590, 212), Vector2(140, 196), Vector2(352, 196)]
 
-enum Page { MAIN, SETTINGS, CONTROLS, AUDIO }
+enum Page { MAIN, STORY, CHAPTERS, SETTINGS, CONTROLS, AUDIO }
 
 @onready var column: VBoxContainer = $Root/Column
 @onready var fade: ColorRect = $Fade
@@ -74,13 +82,42 @@ func _show_page(p: Page) -> void:
 	match p:
 		Page.MAIN:
 			pages.clear()
-			var first := pages.item("START GAME", _start.bind(LEVEL_1))
-			pages.item("CHAPTER II", _start.bind(LEVEL_2))
+			var first := pages.item("STORY", _show_page.bind(Page.STORY))
 			pages.item("ARSENAL", _open_arsenal)
 			pages.item("SHOOTING RANGE", _start.bind(SHOOTING_RANGE))
 			pages.item("SETTINGS", _show_page.bind(Page.SETTINGS))
 			pages.item("QUIT", func(): get_tree().quit())
 			pages.hint("ENTER  SELECT     F11  FULLSCREEN")
+			pages.focus(first)
+		Page.STORY:
+			pages.clear()
+			pages.esc_back = _show_page.bind(Page.MAIN)
+			pages.title("STORY")
+			Progress.ensure_loaded()
+			var first: MenuItem = null
+			var last: int = clampi(Progress.chapter, 0, CHAPTERS.size())
+			if last > 0:   # CONTINUE len keď už niečo rozohral – pod ním malým, ktorá kapitola
+				var ch: Array = CHAPTERS[last - 1]
+				first = pages.item_sub("CONTINUE", "%s - %s" % [ch[0], ch[1]], _start.bind(ch[2]))
+			var new_story := pages.item("NEW STORY", _start.bind(LEVEL_1))
+			pages.item("CHAPTERS", _show_page.bind(Page.CHAPTERS))
+			pages.spacer(6)
+			pages.item("BACK", _show_page.bind(Page.MAIN))
+			pages.hint("ENTER  SELECT     ESC  BACK")
+			pages.focus(first if first else new_story)
+		Page.CHAPTERS:
+			pages.clear()
+			pages.esc_back = _show_page.bind(Page.STORY)
+			pages.title("CHAPTERS")
+			var first: MenuItem = null
+			for ch: Array in CHAPTERS:
+				var it := pages.item_sub(ch[0], ch[1], _start.bind(ch[2]))
+				pages.spacer(2)
+				if first == null:
+					first = it
+			pages.spacer(4)
+			pages.item("BACK", _show_page.bind(Page.STORY))
+			pages.hint("ENTER  SELECT     ESC  BACK")
 			pages.focus(first)
 		Page.SETTINGS:
 			pages.settings_page(_show_page.bind(Page.MAIN), _show_page.bind(Page.AUDIO))
@@ -111,6 +148,7 @@ func _start(path: String) -> void:
 	Level1.cellar_arrived = false
 	Level1.catacombs_seen = false
 	Level2.reset()
+	Level3.reset()
 	get_viewport().gui_release_focus()
 	LoadingScreen.go(get_tree(), path, 0.4)
 

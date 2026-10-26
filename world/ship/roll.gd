@@ -7,6 +7,7 @@ extends Node2D
 @export var tilt_deg: float = 1.6      ## stupne náklonu
 @export var period: float = 6.5        ## s na jedno zhupnutie
 @export var phase: float = 0.0
+@export var lean_deg: float = 0.0      ## trvalý náklon (potápajúca sa loď pri úteku – margaret.gd ho postupne zvyšuje)
 
 var _base: Vector2
 var _t: float = 0.0
@@ -20,4 +21,4 @@ func _process(delta: float) -> void:
 	_t += delta
 	var k: float = TAU * _t / period + phase
 	position = _base + Vector2(0.0, amplitude * sin(k))
-	rotation = deg_to_rad(tilt_deg) * sin(k + 0.9)
+	rotation = deg_to_rad(lean_deg + tilt_deg * sin(k + 0.9))

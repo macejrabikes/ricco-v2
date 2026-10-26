@@ -15,6 +15,7 @@ const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
 const DOCKS := "res://levels/level2/docks.tscn"
 const COLDSTORE := "res://levels/level2/coldstore.tscn"
 const MARGARET := "res://levels/level2/margaret.tscn"
+const EPILOGUE := "res://levels/level2/epilogue.tscn"   ## záver kapitoly – svitanie na mori (epilogue.gd)
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const DERRINGER := preload("res://weapons/derringer/derringer.tres")
 const REVOLVER := preload("res://weapons/revolver/revolver.tres")
@@ -27,7 +28,7 @@ const FONT := preload("res://ui/fonts/tiny5.ttf")
 const NIGHT := Color(0.72, 0.8, 0.86)               ## mafiáni sú v mesačnom svetle tmavší (Ricco sa stmavuje sám)
 const BELL_POS := Vector2(1648, -60)                 ## kostol za pohrebom
 
-## 0 = brána, 1 = za kôlňou, 2 = strecha nad pohrebom, 3 = za pohrebom; 4–6 = prístav (docks.gd), 7–10 = mraziareň (coldstore.gd), 11 = paluba S.S. Margaret (margaret.gd). Statické premenné prežijú smrť
+## 0 = brána, 1 = za kôlňou, 2 = strecha nad pohrebom, 3 = za pohrebom; 4–6 = prístav (docks.gd), 7–10 = mraziareň (coldstore.gd), 11 = paluba S.S. Margaret (margaret.gd, útek z lode = escape_stage). Statické premenné prežijú smrť
 ## (reload scény), úvodné menu a koniec kapitoly I ich vynulujú (reset()).
 static var checkpoint: int = 0
 static var intro_done: bool = false
@@ -45,6 +46,8 @@ static var cold_barks: Array[StringName] = []    ## hlášky ducha v mraziarni, 
 static var margaret_arrived: bool = false        ## Ricco už vyšiel na palubu lode (úvod sa neopakuje po smrti)
 static var lou_revealed: bool = false            ## Big Lou sa už ukázal na mostíku (po smrti bez blesku a hlášky)
 static var lou_phase: int = 1                    ## fáza boja s Big Lou, ktorú Ricco dosiahol – po smrti začne od nej
+static var escape_stage: int = 0                 ## útek z lode: 0 = boj, 1 = Lou padol (do kajuty), 2 = list prečítaný (k člnu)
+static var has_tommy: bool = false               ## Ricco si zobral Thompson po Lou (po smrti pri úteku ho má znova)
 
 const INTRO: Array[String] = [
 	"Three days since they whacked the boss. Tonight they put him in the ground.",
@@ -82,10 +85,13 @@ static func reset() -> void:
 	margaret_arrived = false
 	lou_revealed = false
 	lou_phase = 1
+	escape_stage = 0
+	has_tommy = false
 	Food.reset()   # nesené jedlo (props/food/food.gd)
 
 
 func _ready() -> void:
+	Progress.reach_chapter(2)   # STORY → CONTINUE
 	var black := _fade_rect()
 	black.color.a = 1.0
 	player = get_tree().get_first_node_in_group(&"player") as Node2D

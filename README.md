@@ -51,6 +51,16 @@ The Don is buried, and the trail leads to the waterfront – and to **Big Lou**.
 - **Boss: Big Lou** – a big man in a pinstripe suit with a drum‑fed Thompson, a vest and a lot of dynamite. Three phases:
   the **bridge wing**, the **cargo crane** (a swinging net that sweeps the deck and drops crates) and, after a lightning strike,
   the **burning ship** – where he charges at you, reloads his drum and throws dynamite three at a time.
+- **The escape** – a letter in Lou's cabin from someone in New York who signs it "M.", then 40 seconds to reach the lifeboat
+  across the burning, listing deck while beams fall from the bridge. The chapter ends at dawn out at sea.
+
+### Chapter III – The Big Apple *(in progress)*
+
+The letter from "M." leads Ricco and the ghost to New York.
+
+- **The arrival** – a night cutscene: rowing the Margaret's lifeboat past the Statue of Liberty, Manhattan lit up behind her.
+- **The waterfront** – climb an iron ladder up the East River seawall to a promenade with street lamps and a guard with a flashlight.
+- Coming next: rainy streets, fire escapes and rooftops with laundry lines, the elevated train, a jazz club in Harlem and the Hotel Majestic.
 
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
@@ -63,8 +73,10 @@ The Don is buried, and the trail leads to the waterfront – and to **Big Lou**.
 - **Gunfeel** – spread and bloom, damage falloff with distance, muzzle flash that lights up the dark, lingering smoke, camera kick; enemies hear shots
 - **Food to go** – carry up to 3 snacks (pizza, sardines, cannoli, espresso…) and eat one to heal; medkits heal fully
 - **Swimming and ice** – Ricco is a penguin: he swims (no breath meter), dives under patrols and slides far on ice
+- **Ladders** – climb up and down iron ladders, jump off them or pull yourself up onto the ledge at the top
 - **Mafia goons** built from body parts, with patrols, flashlights, vests and different weapons; party guests with randomized faces (don't shoot them – the ghost will tell you off)
 - **A boss fight** with a health bar, phases and a lot of explosions
+- **Story menu** – *Continue* (last chapter played), *New Story* and *Chapters* to jump into any chapter
 - **Arsenal** – a wall of weapons in the main menu; each gun unlocks the first time Ricco picks it up
 - **Shooting range** – the *Fontana Gun Club*: try every weapon on moving targets, pop‑up targets (best score), cans and live goons
 - **Dialogue & cutscenes** – typewriter dialogue box with portraits, readable documents
@@ -98,10 +110,10 @@ All keys can be changed in **Settings → Controls → Keyboard**. Defaults:
 - [x] Movement, shooting, slow‑mo, the hat, health
 - [x] First enemies, stealth, takedowns, cover
 - [x] **Chapter I** – street, restaurant, kitchen, storage, casino, tunnels, the Don
-- [x] **Chapter II – Wharf Rats** – the Don's funeral at the cemetery, the foggy docks, Big Lou's cold storage, the S.S. Margaret in a storm, **boss fight with Big Lou**
-- [ ] Chapter II ending – escape from the burning ship and a cliffhanger
+- [x] **Chapter II – Wharf Rats** – the Don's funeral at the cemetery, the foggy docks, Big Lou's cold storage, the S.S. Margaret in a storm, **boss fight with Big Lou**, the escape from the burning ship and a cliffhanger
 - [x] Weapons: derringer, revolver, lupara, Tommy gun, fire modes, Arsenal, shooting range
 - [ ] More period weapons (Colt 1911, Winchester 1897, Mauser C96…), human shield, loadout screen with weapon stats between levels
+- [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops, the El train, a Harlem jazz club, the Hotel Majestic, boss Iron Mike, a car chase
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
 - [ ] Style meter, more secrets (swimming ✔, ice ✔, meat hooks ✔)
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)
@@ -117,8 +129,9 @@ audio/        Sfx (sound + music player, mixing, slow-mo filter), sfx/, amb/ (am
 characters/   ricco (player + slow-mo), gangster (goons built from body parts), don, lou (Big Lou – boss, dynamite)
 effects/      particles, explosions, gun smoke
 levels/       level1 (street → restaurant → casino) + cellar (tunnels, catacombs),
-              level2 (cemetery → docks → cold storage → S.S. Margaret), range (shooting range)
-world/        stealth (light zones), fx (rain, neon, lighthouse beam, doors…), npc (guests, rats, the dog),
+              level2 (cemetery → docks → cold storage → S.S. Margaret → ending at sea),
+              level3 (arrival in New York → waterfront), range (shooting range)
+world/        stealth (light zones), fx (rain, neon, lighthouse beam, doors, ladders…), npc (guests, rats, the dog),
               water, coldstore (hook rails, carcasses, conveyor), ship (storm, crates, barrels, crane, deck fire)
 weapons/      derringer, revolver, pistol, lupara, tommy, hat, WeaponData, pickups
 props/        ammo, food & medkits, targets
@@ -135,7 +148,8 @@ godot --headless --path . --script res://tools/build_level1.gd     # level 1 + c
 godot --headless --path . --script res://tools/build_level2.gd     # cemetery
 godot --headless --path . --script res://tools/build_docks.gd      # docks
 godot --headless --path . --script res://tools/build_coldstore.gd  # cold storage
-godot --headless --path . --script res://tools/build_margaret.gd   # S.S. Margaret
+godot --headless --path . --script res://tools/build_margaret.gd   # S.S. Margaret + the ending at sea
+godot --headless --path . --script res://tools/build_level3.gd     # chapter III: arrival + waterfront
 godot --headless --path . --script res://tools/build_range.gd      # shooting range
 ```
 

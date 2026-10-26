@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/level2/epilogue.gd" id="1_o08mu"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/epilogue/dawn_sky.png" id="2_dlgj7"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/epilogue/margaret_far.png" id="3_kj7r7"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/epilogue/dawn_sea.png" id="4_btp3e"]
+[ext_resource type="SpriteFrames" path="res://characters/ricco/ricco_frames.tres" id="5_wunn3"]
+[ext_resource type="Texture2D" path="res://characters/don/ghost_don.png" id="6_g7k8o"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/ship/lifeboat_boat.png" id="7_8gxe2"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/epilogue/dawn_waves.png" id="8_f0erh"]
+
+[node name="Epilogue" type="Node2D" unique_id=1300066624]
+script = ExtResource("1_o08mu")
+
+[node name="Sky" type="Sprite2D" parent="." unique_id=829148705]
+z_index = -10
+texture = ExtResource("2_dlgj7")
+centered = false
+
+[node name="Margaret" type="Sprite2D" parent="." unique_id=2139916737]
+z_index = -5
+position = Vector2(176, 186)
+texture = ExtResource("3_kj7r7")
+centered = false
+hframes = 3
+
+[node name="Sea" type="Sprite2D" parent="." unique_id=2032304281]
+z_index = -2
+position = Vector2(0, 232)
+texture = ExtResource("4_btp3e")
+centered = false
+
+[node name="Boat" type="Node2D" parent="." unique_id=2028180220]
+position = Vector2(96, 300)
+
+[node name="Ricco" type="AnimatedSprite2D" parent="Boat" unique_id=1647568602]
+position = Vector2(46, -14)
+sprite_frames = ExtResource("5_wunn3")
+animation = &"idle"
+
+[node name="Ghost" type="Sprite2D" parent="Boat" unique_id=1304967165]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(66, -84)
+texture = ExtResource("6_g7k8o")
+centered = false
+
+[node name="Hull" type="Sprite2D" parent="Boat" unique_id=342496225]
+z_index = 1
+position = Vector2(0, -6)
+texture = ExtResource("7_8gxe2")
+centered = false
+
+[node name="Waves" type="Sprite2D" parent="." unique_id=1043485560]
+z_index = 3
+texture_repeat = 2
+position = Vector2(0, 306)
+texture = ExtResource("8_f0erh")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 640, 24)

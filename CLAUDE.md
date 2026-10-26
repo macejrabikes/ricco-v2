@@ -26,8 +26,9 @@ Toto je odovzdávací súhrn pre nový chat / Claude Code. Prečítaj celý pred
 audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty, varianty meno_2/_3), amb/*.ogg (slučky prostredia), music/*.ogg (hudba)
 characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/, lou/ (Big Lou – boss kapitoly II, dynamit)
 effects/      burst.gd (Burst – čiastočky), explosion.gd (trieda Explosion – výbuch: ohnivá guľa, tlaková vlna, záblesk, sadza, zranenie, reťaz sudov), art/
-levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň), range/ (strelnica)
-world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka),
+levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň),
+              level3/ (kapitola III – intro = čln pri Soche slobody, waterfront = nábrežná stena), range/ (strelnica)
+world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door, ladder – rebrík na stene…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka),
               coldstore/ (hook_rail – koľajnica s hákmi, carcass – visiace mäso = kryt, conveyor – pás),
               ship/ (storm – blesky a hrom, roll – hojdanie mora a mrakov, ship_crate – debna/kryt, ship_barrel – sud whisky,
               deck_fire – oheň na palube, crane – žeriav so sieťou, falling_cargo – debna zo siete)
@@ -35,7 +36,8 @@ weapons/      pistol/ (bullet, magazine_drop, záblesky), hat/ (hat_projectile �
 props/        ammo/ (krabička nábojov), food/ (jedlo so sebou + lekárnička, food.gd = Food), target/
 ui/           hud, boss_bar (pás zdravia bossa, značky fáz), dialog, main_menu, pause_menu (menu_pages: nastavenia, AUDIO), cursor, fonts (Tiny5), retro_filter
 settings/     game_settings.gd (GameSettings – ukladá do user://settings.cfg, aj hlasitosti [audio])
-tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_coldstore.gd (mraziareň), build_margaret.gd (loď), build_ricco_frames.gd (SpriteFrames Ricca)
+tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_coldstore.gd (mraziareň), build_margaret.gd (loď + záver kapitoly epilogue.tscn),
+              build_level3.gd (kapitola III – intro.tscn + waterfront.tscn), build_ricco_frames.gd (SpriteFrames Ricca)
 docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 ```
 - **Level 1 a pivnica sa generujú skriptom**, needitovať `.tscn` ručne:
@@ -43,7 +45,9 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   Level 2 (cintorín) rovnako: `godot --headless --path . --script res://tools/build_level2.gd`,
   prístav: `godot --headless --path . --script res://tools/build_docks.gd`,
   mraziareň: `godot --headless --path . --script res://tools/build_coldstore.gd` (generuje aj `tiles_cold.tres` s vlastnými dátami „ice“),
-  loď: `godot --headless --path . --script res://tools/build_margaret.gd` (generuje aj `tiles_ship.tres`).
+  loď: `godot --headless --path . --script res://tools/build_margaret.gd` (generuje aj `tiles_ship.tres` a `epilogue.tscn`),
+  kapitola III: `godot --headless --path . --script res://tools/build_level3.gd` (úvod `intro.tscn` + nábrežie `waterfront.tscn`).
+  Nové obrázky treba pred generátorom naimportovať (otvoriť editor alebo `godot --headless --path . --import`).
 - Obrázky sú v **Git LFS**.
 
 ## Čo je hotové (kapitola I hrateľná)
@@ -116,9 +120,41 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   hlava dole, 230 px/s): stojaceho Ricca zrazí (2), šmyk do neho = podkopnutie → padne na tvár, **omámený** 2,2 s (hviezdičky,
   vesta nepomáha); náraz do steny / päty žeriavu → omámený 1,8 s. Keď Ricca zraní, **smeje sa**. Duch radí: sud pri Lou, rozbeh, hviezdy.
   **Smrť:** zapotáca sa, posledná dávka do neba, Thompson vyletí (pickup), na kolená, na tvár → zo saka sa vykotúľa dynamit → veľký
-  výbuch (bez zranenia), z Lou ostane klobúk, ktorý sa znesie ako list → hláška ducha → TO BE CONTINUED (`margaret.gd _on_lou_died`).
+  výbuch (bez zranenia), z Lou ostane klobúk, ktorý sa znesie ako list → hláška ducha → útek z lode (`margaret.gd _on_lou_died`).
   Duch hlási: úvod, mier na hlavu, dynamit, debny, beh k žeriavu, náklad, švih sieťou, „loď horí“, rozbeh, hviezdy, sud.
-  **Ďalej:** únik z horiacej lode a cliffhanger (list v kajute), README roadmapa.
+  **Útek z lode** (variant A, `Level2.escape_stage`: 1 = Lou padol, 2 = list prečítaný; po smrti Ricco začne pri dverách – `Spawn12`
+  x 1343): duch pošle Ricca do **kajuty Lou** pod mostíkom – ľavé dvere spodnej nadstavby (`_open_house()` zúži kolíziu `House`,
+  aby sa pred dvere dalo prejsť; `InteractSpot` ENTER). Kajuta je pod mapou (`cabin.png` 640×360 na y 800, `CABIN_MAP`, podlaha
+  y 1100, `CabinLamp` sa kýve, oheň nad stropom a dym pridá `_cabin_fx()`, dážď a iskry sa skryjú, búrka stíšená). Na stole **list od „M.“**
+  (`letter_big.png`, hotel Majestic, Central Park West, New York – Lou bol len poskok, „M.“ vie o tučniakovi z pizzerie) cez `ReadCard`
+  → kotol vybuchne → späť na palubu: **odpočet 40 s** k záchrannému člnu (pás hore „GET TO THE LIFEBOAT“), ohne na ceste
+  (`ESCAPE_FIRES`), **horiace trámy** (`debris.png` – najprv tieň, kto stojí, na toho padá, 1 kúsok pizze), výbuchy za chrbtom (`BLASTS`),
+  otrasy, loď sa nakláňa (`roll.gd lean_deg`, skupina `ship_roll`). Čas vyprší → loď vybuchne (smrť). Páka `DavitLever` pri člne (F) →
+  Ricco skočí do člna, čln (`Lifeboat/Boat`, laná `RopeL/R` sú čiary, davity zvlášť) sa spustí za trup → Margaret vybuchne → záver.
+  **Záver kapitoly** (`levels/level2/epilogue.gd`, `epilogue.tscn` generuje tiež `build_margaret.gd`, bez kamery): svitanie na mori,
+  Ricco v člne, v diaľke horí Margaret (`margaret_far.png`, 3 snímky) → výbuch, potopí sa → duch v člne, hlášky o „M.“ a New Yorku →
+  END OF CHAPTER II / WHARF RATS → rovno kapitola III (`levels/level3/intro.tscn`, `Level2.reset()` + `Level3.reset()`). Obrázky kreslí `c9/make_escape_art.py` mimo repa.
+- **Kapitola III – The Big Apple** (rozrobená, nápady a rozhodnutia v projekte `ricco-navrhy/kapitola3_napady.md`):
+  „M.“ = **Margaret Vito, Donova vdova** (odhalí sa na konci kapitoly). Poradie: úvod → nábrežie → ulica, požiarne schodisko a
+  strechy so šnúrami (návrh A+C) → nadzemka → jazzový klub v Harleme → hotel Majestic → boss **Iron Mike** na rozostavanom
+  mrakodrape (má **Winchester 1897**, Ricco ho získa až po ňom) → naháňačka autom. Nové: **Colt 1911** (hlavná nová zbraň),
+  Thompson s vzácnymi nábojmi, rozdelené mierenie pre bočné zbrane, odstreľovač (pušku Ricco nezíska), brokovník s luparou,
+  policajti, výťah, šnúry s prádlom, prostredie zabíja, ricochet od panvice. Ľudský štít je odložený.
+  **Úvod** (`levels/level3/intro.gd`, `intro.tscn` z `build_level3.gd`, bez kamery): noc, Ricco v člne z Margaret vesluje popri
+  Soche slobody (`liberty.png`, fakľa svieti), za ňou Manhattan, trajekt, nápis CHAPTER III / THE BIG APPLE, myšlienky,
+  hlášky ducha → nábrežie. Esc / Enter úvod preskočí.
+  **Nábrežie** (`levels/level3/level3.gd`, `class_name Level3` – základ kapitoly III so statickými `checkpoint`, `arrived`,
+  `barks`, `reset()`; `waterfront.tscn`): hladina y 0, dno y 96, kamenná stena od x 448 s promenádou na y −104. Ricco stojí
+  v záchrannom člne (`lifeboat_boat.png`, jednosmerná paluba), **železný rebrík** (`world/fx/ladder.gd`, skupina `ladders`,
+  `length`, `side`) na čele steny → promenáda (dve lampy = svetlo, lavička, strážnik s revolverom a baterkou) → nájomný dom
+  (`tenement.png`, mierka 120 px na poschodie) – dvere obchodu = zatiaľ koniec (TO BE CONTINUED → menu). Výbava: revolver,
+  lupara, Thompson len s 20 nábojmi (`TOMMY_START_AMMO`, bez rezervy). Obrázky kreslí `_art_src/make_ch3_art.py`
+  (v projekte `ricco-v2-kapitola3-zaciatok/`, mimo repa).
+  **Rebrík** (Ricco stav `LADDER`): skok pri rebríku (zo zeme, z člna, z hladiny) = chytí sa, vo vzduchu pri páde sám, S pri
+  vrchu = zlezie; W / medzerník hore, S dole (`ladder_speed`), smer od steny = pustí sa, so skokom odskočí; hore sa vyšvihne
+  animáciou `climb` (ako pri chytení hrany), dole sa pustí. Na rebríku nestrieľa. Póza je zatiaľ `hang` (vlastná animácia lezenia
+  ešte nie je – najprv návrhy).
+  **Ďalej:** ulica v daždi → požiarne schodisko → strechy so šnúrami (návrh `strechy_AC_vyssie.png`), policajti (najprv návrhy vzhľadu).
   **Ľad:** dlaždica s vlastnými dátami `ice` (TileSet) alebo kolízia v skupine `ice` → `ricco.on_ice` (malé trenie, dlhý šmyk, `ground_friction()`).
   **Háky:** `world/coldstore/hook_rail.gd` – vozíky idú po koľajnici (vzor `pattern`: C = mäso, H = voľný hák, - = nič); Ricco vo vzduchu
   chytí voľný hák (stav HOOK = 6, animácia `hook` = jedna plutva hore, `sprites/hook.png` z `jump.png`; vezie sa, strieľa,
@@ -131,6 +167,9 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   Pod hladinou (`submerged`) ho gangstri nevidia. Dych nemá – je to tučniak.
 - **Schody:** kolízia je neviditeľná 45° rampa, kresba sú jemné 4 px schodíky presne po rampe (dlaždice „nos“ v 4. riadku atlasov).
   Postavy majú `floor_snap_length = 16` (na hrane schodov nevyskočia) a na svahu sa obrázok posunie o 4 px nižšie (spodok kapsuly).
+- **STORY** v hlavnom menu: CONTINUE (posledná rozohratá kapitola od začiatku – `Progress.chapter` v user://progress.cfg,
+  zapíše ju `Progress.reach_chapter(n)` v _ready prvej scény kapitoly; bez uloženia sa neukáže), NEW STORY (kapitola I),
+  CHAPTERS (veľké CHAPTER I, pod ním malým názov – `MenuPages.item_sub`, `MenuItem.subtitle`). Zoznam kapitol `CHAPTERS` v main_menu.gd.
 - Menu: hlavné menu, pauza, nastavenia (kurzor, zameriavače, HUD štýly, retro filter), **AUDIO** (Master, Music, SFX, Ambience, UI; 0–10),
   **CONTROLS** (SNEAK HOLD / TOGGLE – `GameSettings.sneak_toggle` + stránka **KEYBOARD**: všetky akcie, Enter → „PRESS A KEY“ → nový
   hlavný kláves, RESET TO DEFAULTS). Klávesy sú v `settings/key_bindings.gd` (`KeyBindings.ACTIONS`, uložené v settings.cfg [keys],

@@ -19,6 +19,8 @@ var selectable: bool = true  ## false = len riadok textu (napr. zoznam ovládani
 var font_size: int = 8       ## úvodné menu má väčšie písmo (16)
 var choices: PackedStringArray = []   ## neprázdne = rolovacie menu (Enter / klik ho otvorí, šípky doľava/doprava prepínajú)
 var on_hover: Callable                ## náhľad možnosti (index) pri prechode po rolovacom menu
+var subtitle: String = ""            ## malý riadok pod textom (napr. názov kapitoly pod CHAPTER I)
+var subtitle_size: int = 8
 
 
 func _init(label_: String = "", value_: String = "") -> void:
@@ -28,7 +30,7 @@ func _init(label_: String = "", value_: String = "") -> void:
 
 func _ready() -> void:
 	flat = true
-	custom_minimum_size = Vector2(0, font_size + 4)
+	custom_minimum_size = Vector2(0, font_size + 4 + (subtitle_size + 3 if subtitle != "" else 0))
 	for s: StringName in [&"normal", &"hover", &"pressed", &"focus", &"disabled", &"hover_pressed"]:
 		add_theme_stylebox_override(s, StyleBoxEmpty.new())
 	if selectable:
@@ -73,7 +75,8 @@ func _draw() -> void:
 	var font: Font = get_theme_default_font()
 	var sel: bool = selectable and has_focus()
 	var right: float = size.x - 3.0 - BAR_GAP * font_size / 8.0
-	var base_y: float = roundf((size.y + font.get_ascent(font_size) - font.get_descent(font_size)) / 2.0)
+	var text_h: float = size.y - (subtitle_size + 3 if subtitle != "" else 0)   # podnadpis zaberá spodok
+	var base_y: float = roundf((text_h + font.get_ascent(font_size) - font.get_descent(font_size)) / 2.0)
 	var x: float = right
 	if value != "":
 		var v: String = ("< %s >" % value) if sel else value
@@ -100,3 +103,8 @@ func _draw() -> void:
 	if sel:
 		draw_rect(Rect2(size.x - 3.0, base_y - font_size + 1.0, 3.0, font_size + 1.0), BRASS)   # pásik vpravo
 		draw_rect(Rect2(roundf(x) - 6.0, base_y + 2.0, right - roundf(x) + 6.0, 1.0), BRASS_D)  # čiara pod textom
+	if subtitle != "":
+		# podnadpis malým písmom pod čiarou, zarovnaný doprava ako text
+		var sw: float = font.get_string_size(subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, subtitle_size).x
+		var sy: float = base_y + 4.0 + font.get_ascent(subtitle_size)
+		draw_string(font, Vector2(roundf(right - sw), roundf(sy)), subtitle, HORIZONTAL_ALIGNMENT_LEFT, -1, subtitle_size, CREAM if sel else DIM)

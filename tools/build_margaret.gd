@@ -8,7 +8,10 @@ extends SceneTree
 ##   vyvýšený nákladný poklop (plošina, za jej hranou kryt) → veža z troch debien →
 ##   mohutný nákladný žeriav s ramenom a sieťou s nákladom (world/ship/crane.gd) a búdkou s pákou (2. fáza Lou) →
 ##   krídlo mostíka (tu stojí Big Lou s Thompsonom) → nadstavba s mostíkom a komínom → prova s navijakom.
-## Obrázky žeriavu, ramena a poklopu kreslí c4/make_crane.py, ostatné c2/make_ship_art.py.
+## Pod mapou (y 800+) je kajuta Lou (útek z lode po bossfighte – margaret.gd) a druhá scéna levels/level2/epilogue.tscn
+## (záver kapitoly na mori, epilogue.gd) sa generuje tu tiež.
+## Obrázky žeriavu, ramena a poklopu kreslí c4/make_crane.py, kajutu, list, čln na spustenie a záver c9/make_escape_art.py,
+## ostatné c2/make_ship_art.py.
 ## Búrka (blesky, hrom) je world/ship/storm.gd, hojdanie mora world/ship/roll.gd, udalosti levels/level2/margaret.gd.
 ## Godot docs: classes/class_tilemaplayer, class_parallax2d, class_packedscene, class_line2d.
 
@@ -35,6 +38,9 @@ const BOOM_ANGLE := 0.143      ## rad – rameno mieri doľava, mierne hore (kla
 const NET_Y := -150.0          ## px – očko siete (v pokoji)
 const BOOTH := Rect2(928, -46, 56, 46)      ## búdka s pákou žeriavu (Lou v 2. fáze; obrázky c4/make_lou_don.py)
 const PLATFORM := Rect2(420, -26, 140, 26)  ## vyvýšený nákladný poklop (hatch_big.png)
+const CABIN := Vector2(0, 800)              ## kajuta Lou (cabin.png 640×360): podlaha CABIN.y + 300, strop + 168, steny x 96 a 544
+const CABIN_DOOR := Vector2(1343, 0)        ## dvere do kajuty v spodnej nadstavbe (ľavé dvere na bridge.png)
+const EPI_ART := "res://levels/level2/art/epilogue/"
 
 var rng := RandomNumberGenerator.new()
 var lvl: Node2D
@@ -64,6 +70,7 @@ func _init() -> void:
 	_build_bridge()
 	_build_storm()
 	_build_lou()
+	_build_cabin()
 
 	_build_food()
 	var ricco: Node2D = load("res://characters/ricco/ricco.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
@@ -76,6 +83,7 @@ func _init() -> void:
 	print("pack margaret: ", scene.pack(lvl))
 	print("save margaret: ", ResourceSaver.save(scene, "res://levels/level2/margaret.tscn"))
 	lvl.free()
+	_build_epilogue()
 	quit()
 
 
@@ -240,6 +248,7 @@ func _sky() -> void:
 	roll_c.set_script(load("res://world/ship/roll.gd"))
 	roll_c.set("amplitude", 4.0)
 	roll_c.set("tilt_deg", 0.6)
+	roll_c.add_to_group(&"ship_roll", true)   # pri úteku sa loď nakláňa (margaret.gd → lean_deg)
 	_node(roll_c, "Roll", cl)
 	var cs := Sprite2D.new()
 	cs.texture = load(ART + "clouds_storm.png")
@@ -251,6 +260,7 @@ func _sky() -> void:
 	var roll := Node2D.new()
 	roll.set_script(load("res://world/ship/roll.gd"))
 	_node(roll, "Roll", sea)
+	roll.add_to_group(&"ship_roll", true)
 	var ss := Sprite2D.new()
 	ss.texture = load(ART + "sea_storm.png")
 	ss.centered = false
@@ -295,10 +305,26 @@ func _build_stern() -> void:
 	_glow(Vector2(73, -84), Color(1.0, 0.8, 0.45, 0.6), 1.1, null, true)   # lampa nad dverami
 	_glow(Vector2(23, -59), Color(1.0, 0.8, 0.45, 0.35), 0.6)
 	_marker("Spawn11", Vector2(73, 0))
-	# záchranný čln na davitoch – lem 48 px nad palubou (z debny naň vyskočíš, odtiaľ lepší uhol na mostík)
-	var lb := _sprite("lifeboat.png", Vector2(128, -108), null, "Lifeboat")
+	# záchranný čln na davitoch – lem 48 px nad palubou (z debny naň vyskočíš, odtiaľ lepší uhol na mostík).
+	# Davity a čln sú zvlášť a laná sú čiary – na konci kapitoly sa čln s Riccom spustí na more (margaret.gd → _lower_boat).
+	var lb := Node2D.new()
+	_node(lb, "Lifeboat", lvl)
+	lb.position = Vector2(128, -108)
 	lb.z_index = -2
+	_sprite("lifeboat_davits.png", Vector2.ZERO, lb, "Davits")
+	_sprite("lifeboat_boat.png", Vector2(0, 56), lb, "Boat")
+	for spec in [["RopeL", 30.0], ["RopeR", 82.0]]:
+		var rope := Line2D.new()
+		rope.width = 1.0
+		rope.default_color = Color8(80, 76, 66)
+		rope.points = PackedVector2Array([Vector2(spec[1], 14), Vector2(spec[1], 58)])
+		_node(rope, spec[0], lb)
 	_oneway(Vector2(132, -48), 104.0, "LifeboatTop")
+	# páka, ktorou sa čln spustí (pri úteku – F)
+	var lever := _sprite("davit_lever.png", Vector2(248, -26), null, "DavitLever")
+	lever.hframes = 2
+	lever.z_index = -1
+	_marker("LeverSpot", Vector2(256, 0))
 
 
 # ---------------------------------------------------------------- náklad: debny (kryt), sudy, poklop
@@ -438,6 +464,8 @@ func _build_bridge() -> void:
 	_glow(Vector2(bx + 250, -227), Color(1.0, 0.95, 0.8, 0.5), 0.8, null, true)
 	var wn := _sprite("winch.png", Vector2(END_X * T - 46, -28), null, "Winch")
 	wn.z_index = -2
+	# dvere do kajuty Lou – po bossfighte sa otvoria (margaret.gd: _open_house), pred nimi sa Ricco objaví po smrti pri úteku
+	_marker("Spawn12", CABIN_DOOR)
 
 
 # ---------------------------------------------------------------- búrka: dážď, blesky, vlny cez palubu
@@ -478,7 +506,7 @@ func _build_lou() -> void:
 
 ## [x, y, druh] – druh "" = jedlo podľa poradia (Food.next_kind – vždy iné), "medkit" = lekárnička. Za behu spadne na zem.
 ## Rozmiestnenie: paluba (ďalšie jedlo vypadne z Lou počas boja)
-const FOOD := [[200.0, -12.0, ""], [535.0, -40.0, "medkit"], [760.0, -12.0, ""]]
+const FOOD := [[200.0, -12.0, ""], [535.0, -40.0, "medkit"], [760.0, -12.0, ""], [514.0, CABIN.y + 268.0, "medkit"]]
 
 func _build_food() -> void:
 	for i in FOOD.size():
@@ -488,3 +516,70 @@ func _build_food() -> void:
 		p.position = Vector2(f[0], f[1])
 		if f[2] != "":
 			p.set(&"kind", StringName(f[2]))
+
+
+# ---------------------------------------------------------------- kajuta Lou (útek z lode, list od „M.“)
+
+## Kajuta je pod mapou lode (vlastné hranice kamery v margaret.gd – CABIN_MAP). Ricco sem príde dverami spodnej nadstavby,
+## na stole leží list (LetterSpot), na posteli lekárnička. Lampa sa pri otrasoch kýve, oheň nad stropom a dym pridá margaret.gd.
+func _build_cabin() -> void:
+	var room := _sprite("cabin.png", CABIN, lvl, "Cabin")
+	room.z_index = -10
+	var fy: float = CABIN.y + 300.0
+	_block("CabinFloor", Rect2(CABIN.x, fy, 640, 40))
+	_block("CabinCeiling", Rect2(CABIN.x + 80, CABIN.y + 152, 480, 16))
+	_block("CabinWallL", Rect2(CABIN.x + 84, CABIN.y + 120, 12, 180))
+	_block("CabinWallR", Rect2(CABIN.x + 544, CABIN.y + 120, 12, 180))
+	_marker("CabinSpawn", Vector2(CABIN.x + 140, fy))
+	_marker("LetterSpot", Vector2(CABIN.x + 362, fy - 34))
+	var lamp := _sprite("cabin_lamp.png", Vector2(CABIN.x + 280, CABIN.y + 168), lvl, "CabinLamp")
+	lamp.offset = Vector2(-7, 0)
+	lamp.z_index = -9
+	var lamp_glow := _glow(Vector2(0, 28), Color(1.0, 0.8, 0.45, 0.55), 1.4, lamp, true)
+	lamp_glow.position = Vector2(0, 28)
+	_glow(Vector2(CABIN.x + 402, fy - 44), Color(0.8, 1.0, 0.6, 0.3), 0.6)                  # zelená lampa na stole
+	_glow(Vector2(CABIN.x + 50, fy - 20), Color(1.0, 0.45, 0.15, 0.6), 1.8, null, true)       # oheň v chodbe
+	for px in [210.0, 436.0]:
+		_glow(Vector2(CABIN.x + px, CABIN.y + 204), Color(0.5, 0.6, 0.9, 0.18), 0.4)          # okienka
+
+
+# ---------------------------------------------------------------- záver kapitoly II (epilogue.tscn)
+
+## Svitanie na mori: obloha, vzdialená horiaca Margaret, more so zlatým chodníkom, čln s Riccom (a duchom) v popredí.
+## Bez kamery – súradnice = obrazovka 640×360. Celý priebeh (výbuch, potopenie, hlášky, titulky) je v epilogue.gd.
+func _build_epilogue() -> void:
+	lvl = Node2D.new()
+	lvl.name = "Epilogue"
+	lvl.set_script(load("res://levels/level2/epilogue.gd"))
+	var sky := _sprite(EPI_ART + "dawn_sky.png", Vector2.ZERO, lvl, "Sky")
+	sky.z_index = -10
+	var ship := _sprite(EPI_ART + "margaret_far.png", Vector2(176, 186), lvl, "Margaret")
+	ship.hframes = 3
+	ship.z_index = -5
+	var sea := _sprite(EPI_ART + "dawn_sea.png", Vector2(0, 232), lvl, "Sea")
+	sea.z_index = -2
+	var boat := Node2D.new()
+	_node(boat, "Boat", lvl)
+	boat.position = Vector2(96, 300)
+	var ricco := AnimatedSprite2D.new()
+	ricco.sprite_frames = load("res://characters/ricco/ricco_frames.tres")
+	ricco.animation = &"idle"
+	ricco.position = Vector2(46, -14)   # stred snímky je 21 px nad nohami (ako v ricco.tscn) – nohy sú v člne
+	_node(ricco, "Ricco", boat)
+	var ghost := _sprite("res://characters/don/ghost_don.png", Vector2(66, -84), boat, "Ghost")
+	ghost.modulate.a = 0.0
+	var hull := _sprite("res://levels/level2/art/ship/lifeboat_boat.png", Vector2(0, -6), boat, "Hull")
+	hull.z_index = 1
+	var waves := Sprite2D.new()
+	waves.texture = load(EPI_ART + "dawn_waves.png")
+	waves.centered = false
+	waves.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	waves.region_enabled = true
+	waves.region_rect = Rect2(0, 0, 640, 24)
+	waves.position = Vector2(0, 306)
+	waves.z_index = 3
+	_node(waves, "Waves", lvl)
+	var scene := PackedScene.new()
+	print("pack epilogue: ", scene.pack(lvl))
+	print("save epilogue: ", ResourceSaver.save(scene, "res://levels/level2/epilogue.tscn"))
+	lvl.free()

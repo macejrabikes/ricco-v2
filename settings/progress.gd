@@ -1,5 +1,6 @@
 class_name Progress
-## Postup hráča: ktoré zbrane už Ricco našiel (Arsenal v menu ich ukáže, ostatné sú zamknuté).
+## Postup hráča: ktoré zbrane už Ricco našiel (Arsenal v menu ich ukáže, ostatné sú zamknuté)
+## a v ktorej kapitole naposledy hral (STORY → CONTINUE ju spustí od začiatku).
 ## Zbraň sa odomkne, keď ju Ricco prvý raz vezme do ruky (ricco.gd → _equip).
 ## Ukladá sa do user://progress.cfg cez ConfigFile, všetko je statické ako GameSettings.
 
@@ -7,6 +8,7 @@ const PATH := "user://progress.cfg"
 
 static var unlocked: PackedStringArray = []   ## WeaponData.name odomknutých zbraní
 static var seen: PackedStringArray = []       ## zbrane, ktoré si hráč už pozrel v Arsenale (inak svieti NEW)
+static var chapter: int = 0                   ## posledná rozohratá kapitola (0 = ešte nehral, CONTINUE sa neukáže)
 static var _loaded: bool = false
 
 
@@ -19,6 +21,7 @@ static func ensure_loaded() -> void:
 		return  # nová hra – nič odomknuté
 	unlocked = PackedStringArray(cfg.get_value("arsenal", "unlocked", []))
 	seen = PackedStringArray(cfg.get_value("arsenal", "seen", []))
+	chapter = int(cfg.get_value("story", "chapter", 0))
 
 
 static func save() -> void:
@@ -26,7 +29,17 @@ static func save() -> void:
 	cfg.load(PATH)
 	cfg.set_value("arsenal", "unlocked", Array(unlocked))
 	cfg.set_value("arsenal", "seen", Array(seen))
+	cfg.set_value("story", "chapter", chapter)
 	cfg.save(PATH)
+
+
+## Kapitola sa začala (volá prvá scéna kapitoly v _ready) – zapamätá sa pre CONTINUE
+static func reach_chapter(n: int) -> void:
+	ensure_loaded()
+	if chapter == n:
+		return
+	chapter = n
+	save()
 
 
 static func unlock(weapon_name: String) -> void:

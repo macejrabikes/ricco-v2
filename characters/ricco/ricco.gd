@@ -21,9 +21,10 @@ extends CharacterBody2D
 ## krok 16: pocit zásahu (silné zatrasenie, červené okraje obrazovky, hitstop), schody ako šikmá rampa, výstrel počujú gangstri
 ## krok 18: ľad (dlaždica s vlastnými dátami "ice" alebo telo v skupine "ice") – kĺže sa, šmyk po bruchu je dlhší a rýchlejší;
 ##          háky na mäso na koľajnici (world/coldstore/hook_rail.gd) – chytí sa vo vzduchu a vezie sa, dá sa pri tom strieľať
+## krok 19: rebrík na stene (world/fx/ladder.gd) – skok pri rebríku = chytí sa, W / medzerník hore, S dole, hore sa vyšvihne na hranu
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
-enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM, HOOK }
+enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM, HOOK, LADDER }
 
 signal ammo_changed(mag: int, reserve: int, reloading: bool)
 signal weapon_changed(weapon: WeaponData)
@@ -116,6 +117,11 @@ signal food_changed ## zobral alebo zjedol jedlo (HUD sloty – ui/food_slots.gd
 @export var hook_regrab_time: float = 0.35  ## s – po pustení sa hneď znova nechytí
 @export_group("")
 
+@export_group("Ladder")
+@export var ladder_speed: float = 74.0    ## px/s – lezenie po rebríku hore aj dole
+@export var ladder_regrab_time: float = 0.3  ## s – po pustení sa hneď znova nechytí
+@export_group("")
+
 @export_group("Waddle")
 @export var waddle_angle_deg: float = 4.0  ## max. náklon do strany pri behu
 @export var waddle_bob: float = 1.0         ## o koľko px sa pri kroku nadvihne
@@ -183,6 +189,9 @@ var on_ice: bool = false      ## stojí (alebo sa šmýka) na ľade
 var _hook: Node2D             ## hák na mäso, na ktorom visí (world/coldstore/hook_rail.gd)
 var _hook_cooldown: float = 0.0
 var _hook_t: float = 0.0
+var _ladder: Node2D           ## rebrík, na ktorom práve je (world/fx/ladder.gd)
+var _ladder_cooldown: float = 0.0
+var _ladder_step: float = 0.0 ## px – prelezená vzdialenosť (priečky, zhupnutie obrázka)
 var _swim_cooldown: float = 0.0   ## s – po vyskočení z vody hneď znova nespadne do plávania
 var _bubble_t: float = 0.0
 var has_hat: bool = true            ## false = klobúk práve letí
@@ -454,6 +463,7 @@ func _physics_process(delta: float) -> void:
 	_update_invulnerability(delta)
 	_swim_cooldown -= delta
 	_hook_cooldown -= delta
+	_ladder_cooldown -= delta
 	if state in [State.NORMAL, State.SLIDE] and _swim_cooldown <= 0.0 and _water_index(global_position + Vector2(0, -14)) >= 0:
 		_start_swim()
 	match state:
@@ -480,6 +490,13 @@ func _physics_process(delta: float) -> void:
 		State.HOOK:
 			_process_hook(delta)
 			return
+		State.LADDER:
+			_process_ladder(delta)
+			return
+
+	# rebrík: skok pri ňom (alebo pád popri ňom) = chytí sa, S pri jeho vrchu = zlezie dole
+	if _try_ladder():
+		return
 
 	# Gravitácia – get_gravity() berie hodnotu z Project Settings → Physics → 2D.
 	# Na zemi sa coyote time nabíja, vo vzduchu odpočítava.
@@ -1955,6 +1972,7 @@ func _update_invulnerability(delta: float) -> void:
 func _die() -> void:
 	state = State.DEAD
 	_hook = null
+	_ladder = null
 	invulnerable_timer = 0.0
 	reloading = false
 	if focus.active:
@@ -2050,6 +2068,8 @@ func _process_swim(delta: float) -> void:
 	elif Input.is_action_pressed(&"jump") and not at_surface:
 		dir.y = -1.0
 	if at_surface and Input.is_action_just_pressed(&"jump"):
+		if _try_ladder():   # z vody rovno na rebrík
+			return
 		_leave_water(Vector2(dir.x * 110.0, swim_jump))
 		return
 	if dir.y > 0.0 or not at_surface:
@@ -2208,3 +2228,114 @@ func _process_hook(delta: float) -> void:
 		return
 	_update_aim()
 	_update_weapons()
+
+
+# ---------------------------------------------------------------- rebrík (world/fx/ladder.gd)
+
+## Chytí sa rebríka? Zdola skokom (zo zeme, z člna aj z vody), vo vzduchu pri páde sám, zhora S tesne pri hrane.
+func _try_ladder() -> bool:
+	if _ladder_cooldown > 0.0 or in_cutscene:
+		return false
+	for n in get_tree().get_nodes_in_group(&"ladders"):
+		var l := n as Node2D
+		var top: Vector2 = l.global_position
+		var side: float = l.get(&"side")
+		var length: float = l.get(&"length")
+		var p: Vector2 = global_position
+		# zhora: stojí na hrane pri rebríku a stlačí S
+		if is_on_floor() and Input.is_action_just_pressed(&"slide") and absf(p.y - top.y) < 6.0 \
+				and (p.x - top.x) * side > -4.0 and (p.x - top.x) * side < 26.0:
+			_grab_ladder(l, top.y + ledge_hang_depth + 6.0)
+			return true
+		var gx: float = top.x - side * (HALF_WIDTH + 0.5)
+		if absf(p.x - gx) > 14.0 or p.y < top.y + ledge_hang_depth or p.y > top.y + length + 12.0:
+			continue
+		if Input.is_action_just_pressed(&"jump") or (state == State.NORMAL and not is_on_floor() and velocity.y > 30.0):
+			_grab_ladder(l, p.y)
+			return true
+	return false
+
+
+func _grab_ladder(l: Node2D, y: float) -> void:
+	if state == State.SWIM:
+		_end_swim()
+	_cancel_eat()
+	_set_duck(false)
+	_sneak_on = false
+	_ladder = l
+	state = State.LADDER
+	velocity = Vector2.ZERO
+	wall_sliding = false
+	jump_buffer_timer = 0.0
+	var top: Vector2 = l.global_position
+	var side: float = l.get(&"side")
+	facing = side
+	visual.scale.x = facing
+	visual.rotation = 0.0
+	visual.position = Vector2.ZERO
+	sprite.offset = Vector2.ZERO
+	sprite.speed_scale = 1.0
+	global_position = Vector2(top.x - side * (HALF_WIDTH + 0.5), clampf(y, top.y + ledge_hang_depth + 1.0, top.y + l.get(&"length")))
+	sprite.play(&"hang")
+	aim.visible = false
+	_takedown_hint.visible = false
+	Sfx.play(&"ledge_grab", Vector2.INF, -6.0)
+
+
+## Pustí rebrík. v = rýchlosť po pustení (odskok / pád).
+func _leave_ladder(v: Vector2) -> void:
+	_ladder = null
+	state = State.NORMAL
+	_ladder_cooldown = ladder_regrab_time
+	visual.position = Vector2.ZERO
+	velocity = v
+	aim.visible = weapon != null and not holstered
+	sprite.play(_hat_anim(&"jump" if v.y < 0.0 else &"fall"))
+
+
+## Na rebríku: W / medzerník hore, S dole, smer od steny = pustí sa (so skokom odskočí). Hore sa vyšvihne na hranu
+## rovnakou animáciou ako pri chytení hrany (climb), dole pustí rebrík (zem, voda). Na rebríku nestrieľa.
+func _process_ladder(delta: float) -> void:
+	if not is_instance_valid(_ladder):
+		_leave_ladder(Vector2.ZERO)
+		return
+	aim.visible = false
+	var top: Vector2 = _ladder.global_position
+	var length: float = _ladder.get(&"length")
+	var dir: float = Input.get_axis(&"move_left", &"move_right")
+	if dir != 0.0 and signf(dir) == -facing:
+		var jump: bool = Input.is_action_pressed(&"jump")
+		_leave_ladder(Vector2(-facing * (130.0 if jump else 40.0), -220.0 if jump else 0.0))
+		if jump:
+			_turn(-facing)
+			Sfx.play(&"jump", Vector2.INF, -6.0)
+		return
+	var vy: float = 0.0
+	if Input.is_action_pressed(&"jump"):
+		vy = -ladder_speed
+	elif Input.is_action_pressed(&"slide"):
+		vy = ladder_speed
+	global_position.y += vy * delta
+	# hore: vyšvihne sa na hranu (Ricco je v polohe ako pri visení na hrane, animácia climb je na ňu zarovnaná)
+	if global_position.y <= top.y + ledge_hang_depth:
+		global_position = Vector2(top.x - facing * (HALF_WIDTH + 0.5), top.y + ledge_hang_depth)
+		ledge_top = Vector2(top.x + facing * CLIMB_STAND_DISTANCE, top.y)
+		_ladder = null
+		_ladder_cooldown = ladder_regrab_time
+		_start_climb()
+		return
+	# dole: koniec rebríka – pustí sa (dopadne na zem / do vody)
+	if global_position.y >= top.y + length:
+		global_position.y = top.y + length
+		if vy > 0.0:
+			_leave_ladder(Vector2.ZERO)
+			return
+	# plutvy sa pri lezení striedajú – obrázok sa jemne zhupne, na každej priečke cinkne železo
+	if vy != 0.0:
+		_ladder_step += absf(vy) * delta
+		visual.position.y = roundf(sin(_ladder_step * 0.39) * 1.5)
+		if _ladder_step >= 16.0:
+			_ladder_step = 0.0
+			Sfx.play(&"ledge_grab", Vector2.INF, -16.0, 0.2)
+	else:
+		visual.position.y = 0.0

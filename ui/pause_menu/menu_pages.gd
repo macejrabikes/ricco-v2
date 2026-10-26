@@ -57,6 +57,17 @@ func item(t: String, action: Callable) -> MenuItem:
 	return it
 
 
+
+## Položka s malým podnadpisom pod textom (výber kapitoly: CHAPTER I / THE DON'S GHOST)
+func item_sub(t: String, sub: String, action: Callable) -> MenuItem:
+	var it := MenuItem.new(t)
+	it.font_size = item_size
+	it.subtitle = sub
+	it.pressed.connect(action)
+	column.add_child(it)
+	return it
+
+
 func setting(t: String, v: String, on_change: Callable) -> MenuItem:
 	var it := MenuItem.new(t, v)
 	it.font_size = item_size
