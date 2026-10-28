@@ -22,6 +22,9 @@ extends CharacterBody2D
 ## krok 18: ľad (dlaždica s vlastnými dátami "ice" alebo telo v skupine "ice") – kĺže sa, šmyk po bruchu je dlhší a rýchlejší;
 ##          háky na mäso na koľajnici (world/coldstore/hook_rail.gd) – chytí sa vo vzduchu a vezie sa, dá sa pri tom strieľať
 ## krok 19: rebrík na stene (world/fx/ladder.gd) – skok pri rebríku = chytí sa, W / medzerník hore, S dole, hore sa vyšvihne na hranu
+## krok 20: markíza ako trampolína (world/fx/awning.gd – bounce), šnúra s prádlom = jazda na kladke (world/fx/clothesline.gd,
+##          rovnako ako hák na mäso – grab_hook / _process_hook)
+## krok 21: animácia lezenia po rebríku (sprites/ladder.png – bokom čelom k stene, snímky podľa prelezenej vzdialenosti)
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
 enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM, HOOK, LADDER }
@@ -191,7 +194,8 @@ var _hook_cooldown: float = 0.0
 var _hook_t: float = 0.0
 var _ladder: Node2D           ## rebrík, na ktorom práve je (world/fx/ladder.gd)
 var _ladder_cooldown: float = 0.0
-var _ladder_step: float = 0.0 ## px – prelezená vzdialenosť (priečky, zhupnutie obrázka)
+var _ladder_step: float = 0.0 ## px – prelezená vzdialenosť od poslednej priečky (cinknutie železa)
+var _ladder_dist: float = 0.0 ## px – prelezená vzdialenosť celkom (snímky animácie ladder)
 var _swim_cooldown: float = 0.0   ## s – po vyskočení z vody hneď znova nespadne do plávania
 var _bubble_t: float = 0.0
 var has_hat: bool = true            ## false = klobúk práve letí
@@ -247,6 +251,7 @@ func _ready() -> void:
 	_add_takedown_anim()
 	_add_throw_walk_anim()
 	_add_hook_anim()
+	_add_ladder_anim()
 	_takedown_hint = Label.new()
 	_takedown_hint.text = KeyBindings.short(&"takedown")
 	_takedown_hint.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
@@ -360,6 +365,23 @@ func _add_hook_anim() -> void:
 		at.atlas = tex
 		at.region = Rect2(i * 64, 0, 64, 64)
 		sf.add_frame(&"hook", at)
+
+
+## Lezenie po rebríku – bokom, čelom k stene, plutvy a labky sa striedajú (sprites/ladder.png, 4 snímky, zarovnané ako hang).
+## Snímky neidú časom, ale podľa prelezenej vzdialenosti (_process_ladder) – keď stojí, ostane na mieste.
+func _add_ladder_anim() -> void:
+	var sf := sprite.sprite_frames
+	if sf.has_animation(&"ladder"):
+		return
+	var tex: Texture2D = load("res://characters/ricco/sprites/ladder.png")
+	sf.add_animation(&"ladder")
+	sf.set_animation_loop(&"ladder", true)
+	sf.set_animation_speed(&"ladder", 0.0)
+	for i in 4:
+		var at := AtlasTexture.new()
+		at.atlas = tex
+		at.region = Rect2(i * 64, 0, 64, 64)
+		sf.add_frame(&"ladder", at)
 
 
 ## Zakrádanie: kto drží C na zemi, ide pomaly a prikrčene. V režime TOGGLE (GameSettings.sneak_toggle)
@@ -2167,6 +2189,19 @@ func ground_friction() -> float:
 	return ice_friction if on_ice else friction
 
 
+# ---------------------------------------------------------------- markíza (world/fx/awning.gd)
+
+## Odrazí ho hore (pružná markíza). v = rýchlosť (px/s, záporné = hore). Len keď normálne stojí/beží.
+func bounce(v: float) -> void:
+	if state != State.NORMAL or in_cutscene:
+		return
+	velocity.y = v
+	coyote_timer = 0.0
+	jump_buffer_timer = 0.0
+	_sneak_on = false
+	sprite.play(_hat_anim(&"jump"))
+
+
 # ---------------------------------------------------------------- hák na mäso (world/coldstore/hook_rail.gd)
 
 ## Môže sa chytiť háku? Pýta sa koľajnica – len vo vzduchu a nie hneď po pustení.
@@ -2276,7 +2311,9 @@ func _grab_ladder(l: Node2D, y: float) -> void:
 	sprite.offset = Vector2.ZERO
 	sprite.speed_scale = 1.0
 	global_position = Vector2(top.x - side * (HALF_WIDTH + 0.5), clampf(y, top.y + ledge_hang_depth + 1.0, top.y + l.get(&"length")))
-	sprite.play(&"hang")
+	sprite.play(&"ladder")
+	sprite.pause()
+	_ladder_dist = 0.0
 	aim.visible = false
 	_takedown_hint.visible = false
 	Sfx.play(&"ledge_grab", Vector2.INF, -6.0)
@@ -2330,12 +2367,12 @@ func _process_ladder(delta: float) -> void:
 		if vy > 0.0:
 			_leave_ladder(Vector2.ZERO)
 			return
-	# plutvy sa pri lezení striedajú – obrázok sa jemne zhupne, na každej priečke cinkne železo
+	# plutvy a labky sa pri lezení striedajú (snímok každých 8 px), na každej priečke cinkne železo
+	visual.position.y = 0.0
 	if vy != 0.0:
 		_ladder_step += absf(vy) * delta
-		visual.position.y = roundf(sin(_ladder_step * 0.39) * 1.5)
+		_ladder_dist += absf(vy) * delta
+		sprite.frame = int(_ladder_dist / 8.0) % 4
 		if _ladder_step >= 16.0:
 			_ladder_step = 0.0
-			Sfx.play(&"ledge_grab", Vector2.INF, -16.0, 0.2)
-	else:
-		visual.position.y = 0.0
+			Sfx.play(&"ladder_rung", Vector2.INF, -12.0, 0.08)   # železná priečka (4 varianty)

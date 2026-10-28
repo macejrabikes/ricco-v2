@@ -1,0 +1,399 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/level3/level3.gd" id="1_8f6p0"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/ny_sky.png" id="2_yjo53"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/glow.png" id="3_8gwtu"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/moon.png" id="4_peauo"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/skyline.png" id="5_be7se"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/river_far.png" id="6_s662r"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/bridge.png" id="7_trb7b"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/lamp_post.png" id="8_ph3h5"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/bench.png" id="9_3h6jd"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/tenement.png" id="10_suyw5"]
+[ext_resource type="Script" path="res://world/water/water_zone.gd" id="11_fxe5s"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/docks/water_deep.png" id="12_75iql"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/docks/water_surface.png" id="13_mmg0c"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/ship/lifeboat_boat.png" id="14_1ox2s"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/seawall.png" id="15_c6rvo"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/algae.png" id="16_54qkh"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/coping.png" id="17_0x3p6"]
+[ext_resource type="Script" path="res://world/fx/ladder.gd" id="18_ol7xy"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/waterfront/railing.png" id="19_3fk77"]
+[ext_resource type="Script" path="res://world/fx/flicker.gd" id="20_2nudh"]
+[ext_resource type="Script" path="res://world/stealth/light_zone.gd" id="21_eavk7"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_coppola.tscn" id="22_iqwqk"]
+[ext_resource type="Resource" path="res://weapons/revolver/revolver.tres" id="23_j1051"]
+[ext_resource type="PackedScene" path="res://props/food/food_pickup.tscn" id="24_ff325"]
+[ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="25_cx5lx"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="26_p3gyl"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_gg1vq"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8mwvr"]
+size = Vector2(512, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mv2n7"]
+size = Vector2(32, 760)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_c28ey"]
+size = Vector2(32, 760)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fvxap"]
+size = Vector2(104, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_b6moo"]
+size = Vector2(24, 60)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tt3ay"]
+size = Vector2(1216, 264)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_35ee4"]
+size = Vector2(16, 80)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_axtuc"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_4ltjn"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gbg37"]
+size = Vector2(88, 90)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_kfobu"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_g2134"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_u4c4a"]
+size = Vector2(88, 90)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l3wjp"]
+size = Vector2(16, 80)
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_sxm5y"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vpg0f"]
+size = Vector2(180, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_r4s8d"]
+size = Vector2(30, 60)
+
+[node name="Waterfront" type="Node2D" unique_id=1043377333]
+script = ExtResource("1_8f6p0")
+
+[node name="Sky" type="CanvasLayer" parent="." unique_id=79625244]
+layer = -20
+
+[node name="Gradient" type="TextureRect" parent="Sky" unique_id=1703577316]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2_yjo53")
+
+[node name="MoonGlow" type="Sprite2D" parent="Sky" unique_id=1437369523]
+modulate = Color(0.85, 0.82, 0.65, 0.3)
+material = SubResource("CanvasItemMaterial_gg1vq")
+position = Vector2(90, 50)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("3_8gwtu")
+
+[node name="Moon" type="Sprite2D" parent="Sky" unique_id=180559085]
+position = Vector2(90, 50)
+scale = Vector2(2, 2)
+texture = ExtResource("4_peauo")
+
+[node name="FarCity" type="Parallax2D" parent="." unique_id=703733384]
+z_index = -30
+scroll_scale = Vector2(0.15, 1)
+repeat_size = Vector2(640, 0)
+repeat_times = 4
+
+[node name="Sprite" type="Sprite2D" parent="FarCity" unique_id=254142273]
+position = Vector2(-640, -170)
+texture = ExtResource("5_be7se")
+centered = false
+
+[node name="FarRiver" type="Parallax2D" parent="." unique_id=1260836332]
+z_index = -29
+scroll_scale = Vector2(0.2, 1)
+repeat_size = Vector2(640, 0)
+repeat_times = 4
+
+[node name="Sprite" type="Sprite2D" parent="FarRiver" unique_id=1578459317]
+position = Vector2(-640, -40)
+texture = ExtResource("6_s662r")
+centered = false
+
+[node name="Bridge" type="Parallax2D" parent="." unique_id=281744316]
+z_index = -28
+scroll_scale = Vector2(0.3, 1)
+
+[node name="Sprite" type="Sprite2D" parent="Bridge" unique_id=338118962]
+position = Vector2(-120, -152)
+texture = ExtResource("7_trb7b")
+centered = false
+
+[node name="Props" type="Node2D" parent="." unique_id=860306887]
+z_index = -5
+
+[node name="LampPost" type="Sprite2D" parent="Props" unique_id=2011478429]
+z_index = -3
+position = Vector2(632, -168)
+texture = ExtResource("8_ph3h5")
+centered = false
+
+[node name="@Sprite2D@3" type="Sprite2D" parent="Props" unique_id=91114030]
+z_index = -3
+position = Vector2(1172, -168)
+texture = ExtResource("8_ph3h5")
+centered = false
+
+[node name="Bench" type="Sprite2D" parent="Props" unique_id=2118461944]
+z_index = -3
+position = Vector2(720, -126)
+texture = ExtResource("9_3h6jd")
+centered = false
+
+[node name="Tenement" type="Sprite2D" parent="Props" unique_id=2030839139]
+z_index = -6
+position = Vector2(1300, -544)
+texture = ExtResource("10_suyw5")
+centered = false
+
+[node name="Bed" type="StaticBody2D" parent="." unique_id=1941256196]
+position = Vector2(192, 128)
+
+[node name="Shape" type="CollisionShape2D" parent="Bed" unique_id=664984797]
+shape = SubResource("RectangleShape2D_8mwvr")
+
+[node name="EdgeLeft" type="StaticBody2D" parent="." unique_id=1575077581]
+position = Vector2(-16, -220)
+
+[node name="Shape" type="CollisionShape2D" parent="EdgeLeft" unique_id=984975637]
+shape = SubResource("RectangleShape2D_mv2n7")
+
+[node name="EdgeRight" type="StaticBody2D" parent="." unique_id=1110937856]
+position = Vector2(1616, -220)
+
+[node name="Shape" type="CollisionShape2D" parent="EdgeRight" unique_id=2045460755]
+shape = SubResource("RectangleShape2D_c28ey")
+
+[node name="Water" type="Node2D" parent="." unique_id=1672589781]
+script = ExtResource("11_fxe5s")
+rects = Array[Rect2]([Rect2(0, 0, 448, 96)])
+open_top = Array[bool]([true])
+
+[node name="WaterDeep" type="Sprite2D" parent="." unique_id=9069860]
+z_index = 6
+texture_repeat = 2
+position = Vector2(0, 2)
+texture = ExtResource("12_75iql")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 448, 94)
+
+[node name="WaterSurface" type="Sprite2D" parent="." unique_id=643638023]
+z_index = 6
+texture_repeat = 2
+position = Vector2(0, -3)
+texture = ExtResource("13_mmg0c")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 448, 8)
+
+[node name="Lifeboat" type="Sprite2D" parent="." unique_id=695984656]
+z_index = 1
+position = Vector2(322, -14)
+texture = ExtResource("14_1ox2s")
+centered = false
+
+[node name="BoatDeck" type="StaticBody2D" parent="." unique_id=612128797 groups=["platform"]]
+position = Vector2(326, -1)
+
+[node name="Shape" type="CollisionShape2D" parent="BoatDeck" unique_id=1834088332]
+position = Vector2(52, 2)
+shape = SubResource("RectangleShape2D_fvxap")
+one_way_collision = true
+
+[node name="Spawn0" type="Marker2D" parent="." unique_id=416182163]
+position = Vector2(372, -1)
+
+[node name="LadderBark" type="Area2D" parent="." unique_id=2087913121]
+position = Vector2(422, -30)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="LadderBark" unique_id=1991149746]
+shape = SubResource("RectangleShape2D_b6moo")
+
+[node name="Wall" type="StaticBody2D" parent="." unique_id=1961433859]
+position = Vector2(1056, 28)
+
+[node name="Shape" type="CollisionShape2D" parent="Wall" unique_id=1726198832]
+shape = SubResource("RectangleShape2D_tt3ay")
+
+[node name="Seawall" type="Sprite2D" parent="." unique_id=828129690]
+z_index = -2
+texture_repeat = 2
+position = Vector2(448, -96)
+texture = ExtResource("15_c6rvo")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 96)
+
+[node name="SeawallUnder" type="Sprite2D" parent="." unique_id=1917150454]
+modulate = Color(0.45, 0.55, 0.68, 1)
+z_index = -2
+texture_repeat = 2
+position = Vector2(448, 0)
+texture = ExtResource("15_c6rvo")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 128)
+
+[node name="Algae" type="Sprite2D" parent="." unique_id=740652036]
+z_index = -1
+texture_repeat = 2
+position = Vector2(448, -24)
+texture = ExtResource("16_54qkh")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1152, 24)
+
+[node name="Coping" type="Sprite2D" parent="." unique_id=1663173837]
+z_index = -1
+texture_repeat = 2
+position = Vector2(446, -104)
+texture = ExtResource("17_0x3p6")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 1154, 8)
+
+[node name="Ladder" type="Node2D" parent="." unique_id=1668323271]
+position = Vector2(448, -104)
+script = ExtResource("18_ol7xy")
+length = 126.0
+
+[node name="Railing" type="Sprite2D" parent="." unique_id=58006712]
+z_index = -3
+texture_repeat = 2
+position = Vector2(488, -128)
+texture = ExtResource("19_3fk77")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 792, 24)
+
+[node name="Checkpoint1" type="Area2D" parent="." unique_id=520444197]
+position = Vector2(488, -144)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="Checkpoint1" unique_id=1320320797]
+shape = SubResource("RectangleShape2D_35ee4")
+
+[node name="Spawn1" type="Marker2D" parent="." unique_id=280802765]
+position = Vector2(488, -104)
+
+[node name="Glow" type="Sprite2D" parent="." unique_id=343103696]
+modulate = Color(1, 0.82, 0.5, 0.7)
+z_index = 5
+material = SubResource("CanvasItemMaterial_axtuc")
+position = Vector2(640, -162)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("3_8gwtu")
+script = ExtResource("20_2nudh")
+
+[node name="@Sprite2D@2" type="Sprite2D" parent="." unique_id=1909876448]
+modulate = Color(1, 0.75, 0.45, 0.22)
+z_index = 5
+material = SubResource("CanvasItemMaterial_4ltjn")
+position = Vector2(640, -110)
+scale = Vector2(2.6, 2.6)
+texture = ExtResource("3_8gwtu")
+
+[node name="LightZone" type="Area2D" parent="." unique_id=1712057804]
+position = Vector2(640, -149)
+script = ExtResource("21_eavk7")
+
+[node name="Shape" type="CollisionShape2D" parent="LightZone" unique_id=1216492787]
+shape = SubResource("RectangleShape2D_gbg37")
+
+[node name="@Sprite2D@4" type="Sprite2D" parent="." unique_id=1393382710]
+modulate = Color(1, 0.82, 0.5, 0.7)
+z_index = 5
+material = SubResource("CanvasItemMaterial_kfobu")
+position = Vector2(1180, -162)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("3_8gwtu")
+script = ExtResource("20_2nudh")
+
+[node name="@Sprite2D@5" type="Sprite2D" parent="." unique_id=278192947]
+modulate = Color(1, 0.75, 0.45, 0.22)
+z_index = 5
+material = SubResource("CanvasItemMaterial_g2134")
+position = Vector2(1180, -110)
+scale = Vector2(2.6, 2.6)
+texture = ExtResource("3_8gwtu")
+
+[node name="@Area2D@6" type="Area2D" parent="." unique_id=1120857777]
+position = Vector2(1180, -149)
+script = ExtResource("21_eavk7")
+
+[node name="Shape" type="CollisionShape2D" parent="@Area2D@6" unique_id=1362918355]
+shape = SubResource("RectangleShape2D_u4c4a")
+
+[node name="GuardBark" type="Area2D" parent="." unique_id=211712197]
+position = Vector2(508, -144)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="GuardBark" unique_id=1855439328]
+shape = SubResource("RectangleShape2D_l3wjp")
+
+[node name="Guard" parent="." unique_id=485441963 instance=ExtResource("22_iqwqk")]
+position = Vector2(900, -104)
+kind = "tommy"
+weapon = ExtResource("23_j1051")
+walk_speed = 30.0
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+cooldown = Vector2(1, 1.5)
+needs_light = true
+patrol_span = 150.0
+flashlight = true
+respawn_time = 0.0
+
+[node name="@Sprite2D@7" type="Sprite2D" parent="." unique_id=60304135]
+modulate = Color(1, 0.8, 0.5, 0.25)
+z_index = 5
+material = SubResource("CanvasItemMaterial_sxm5y")
+position = Vector2(1400, -144)
+scale = Vector2(3, 3)
+texture = ExtResource("3_8gwtu")
+
+[node name="@Area2D@8" type="Area2D" parent="." unique_id=166013806]
+position = Vector2(1400, -144)
+script = ExtResource("21_eavk7")
+
+[node name="Shape" type="CollisionShape2D" parent="@Area2D@8" unique_id=1053464326]
+shape = SubResource("RectangleShape2D_vpg0f")
+
+[node name="ExitStreet" type="Area2D" parent="." unique_id=1672497548]
+position = Vector2(1511, -134)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="ExitStreet" unique_id=987722689]
+shape = SubResource("RectangleShape2D_r4s8d")
+
+[node name="Food1" parent="." unique_id=1739669599 instance=ExtResource("24_ff325")]
+position = Vector2(740, -134)
+
+[node name="Ricco" parent="." unique_id=927231827 instance=ExtResource("25_cx5lx")]
+position = Vector2(372, -1)
+
+[node name="HUD" parent="." unique_id=21837754 instance=ExtResource("26_p3gyl")]

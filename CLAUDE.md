@@ -27,8 +27,8 @@ audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty, varianty meno_2/_3), amb/*
 characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/, lou/ (Big Lou – boss kapitoly II, dynamit)
 effects/      burst.gd (Burst – čiastočky), explosion.gd (trieda Explosion – výbuch: ohnivá guľa, tlaková vlna, záblesk, sadza, zranenie, reťaz sudov), art/
 levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň),
-              level3/ (kapitola III – intro = čln pri Soche slobody, waterfront = nábrežná stena), range/ (strelnica)
-world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door, ladder – rebrík na stene…), npc/ (guest, rat, dog – pes na reťazi), fx/lighthouse_beam (otáčavý lúč majáka),
+              level3/ (kapitola III – intro = čln pri Soche slobody, waterfront = nábrežná stena, street = ulica a strechy, roofs = ďalšie strechy k stanici, train = nadzemka, club = jazzový klub, club_back = zákulisie), range/ (strelnica)
+world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door, ladder – rebrík na stene, awning – markíza-trampolína, clothesline – šnúra s kladkou…), npc/ (guest, rat, dog – pes na reťazi, pigeons – holuby), fx/lighthouse_beam (otáčavý lúč majáka),
               coldstore/ (hook_rail – koľajnica s hákmi, carcass – visiace mäso = kryt, conveyor – pás),
               ship/ (storm – blesky a hrom, roll – hojdanie mora a mrakov, ship_crate – debna/kryt, ship_barrel – sud whisky,
               deck_fire – oheň na palube, crane – žeriav so sieťou, falling_cargo – debna zo siete)
@@ -37,7 +37,7 @@ props/        ammo/ (krabička nábojov), food/ (jedlo so sebou + lekárnička, 
 ui/           hud, boss_bar (pás zdravia bossa, značky fáz), dialog, main_menu, pause_menu (menu_pages: nastavenia, AUDIO), cursor, fonts (Tiny5), retro_filter
 settings/     game_settings.gd (GameSettings – ukladá do user://settings.cfg, aj hlasitosti [audio])
 tools/        build_level1.gd (generuje level1.tscn aj cellar.tscn), build_level2.gd (cintorín), build_docks.gd (prístav), build_coldstore.gd (mraziareň), build_margaret.gd (loď + záver kapitoly epilogue.tscn),
-              build_level3.gd (kapitola III – intro.tscn + waterfront.tscn), build_ricco_frames.gd (SpriteFrames Ricca)
+              build_level3.gd (kapitola III – intro.tscn + waterfront.tscn + street.tscn), build_ricco_frames.gd (SpriteFrames Ricca)
 docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 ```
 - **Level 1 a pivnica sa generujú skriptom**, needitovať `.tscn` ručne:
@@ -46,8 +46,11 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   prístav: `godot --headless --path . --script res://tools/build_docks.gd`,
   mraziareň: `godot --headless --path . --script res://tools/build_coldstore.gd` (generuje aj `tiles_cold.tres` s vlastnými dátami „ice“),
   loď: `godot --headless --path . --script res://tools/build_margaret.gd` (generuje aj `tiles_ship.tres` a `epilogue.tscn`),
-  kapitola III: `godot --headless --path . --script res://tools/build_level3.gd` (úvod `intro.tscn` + nábrežie `waterfront.tscn`).
+  kapitola III: `godot --headless --path . --script res://tools/build_level3.gd` (úvod `intro.tscn` + nábrežie `waterfront.tscn` + ulica a strechy `street.tscn`).
   Nové obrázky treba pred generátorom naimportovať (otvoriť editor alebo `godot --headless --path . --import`).
+- **Nové scény (od nadzemky) píše Claude priamo ako `.tscn`** – Python zapisovač `tscn.py` + skript scény (napr. `make_train_scene.py`)
+  v projekte mimo repa (`ricco-v2-kapitola3-nadzemka/_art_src/`). Používateľ nemá nič spúšťať: len otvorí Godot (nové obrázky
+  a zvuky sa naimportujú samé) a hrá. Uzly bez `unique_id` sú v poriadku – Godot ich doplní pri uložení scény.
 - Obrázky sú v **Git LFS**.
 
 ## Čo je hotové (kapitola I hrateľná)
@@ -56,6 +59,8 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   dá sa zložiť F), potom vstane a ide po Riccovi.
 - Streľba, obmedzené zásobníky (prázdne padajú a odrážajú sa), spomalenie (duch Dona), klobúk (hod omráči / zhasne lampu, vracia sa), zdravie.
 - Stealth: svetlo/tma, zneškodnenie zozadu (F, dosah `takedown_range` 44 px), mafiáni s hliadkami, baterkami, rôznymi zbraňami.
+  Tma nerobí Ricca neviditeľným: mafián s `needs_light` ho pred sebou rozozná do `DARK_SIGHT` (80 px) aj prikrčeného;
+  zakrádanie (C) len tlmí kroky – za chrbtom počuje bežné kroky do `HEAR_STEPS` (90 px), potichu `close_sense` · 0,45. Kryt skryje.
 - **Kapitola I:** daždivá ulica (neón, vyhadzovač, intro I1) → súkromná oslava v reštaurácii (hostia s náhodnými tvárami; keď ťa uvidia na svetle,
   majú „!“ a privolajú mafiánov; hat_lamp; z trámu nad barom vedie **vetracie potrubie** – šmyk dnu, plazenie, vypadne na policu nad kuchárom) → kuchyňa, sklad → **herňa za oceľovými dverami s tajným klopaním** (mafián ukáže rytmus,
   Ricco klope F: KLOP KLOP … KLOP KLOP KLOP) → **pivnica = samostatná mapa, bludisko tunelov** (krv, potkany, baterky) → Donov úkryt, cutscéna, prvá prestrelka.
@@ -147,14 +152,113 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   `barks`, `reset()`; `waterfront.tscn`): hladina y 0, dno y 96, kamenná stena od x 448 s promenádou na y −104. Ricco stojí
   v záchrannom člne (`lifeboat_boat.png`, jednosmerná paluba), **železný rebrík** (`world/fx/ladder.gd`, skupina `ladders`,
   `length`, `side`) na čele steny → promenáda (dve lampy = svetlo, lavička, strážnik s revolverom a baterkou) → nájomný dom
-  (`tenement.png`, mierka 120 px na poschodie) – dvere obchodu = zatiaľ koniec (TO BE CONTINUED → menu). Výbava: revolver,
-  lupara, Thompson len s 20 nábojmi (`TOMMY_START_AMMO`, bez rezervy). Obrázky kreslí `_art_src/make_ch3_art.py`
+  (`tenement.png`, mierka 120 px na poschodie) – dvere obchodu = do ulice (`_go_next`, checkpoint 2). Výbava: revolver,
+  lupara, Thompson len s 20 nábojmi (`TOMMY_START_AMMO`, bez rezervy; `Level3.tommy_ammo` sa prenáša medzi časťami).
+  Spoločné veci častí sú v `Level3`: `_setup(map)` (hráč, výbava, tma, spawn), `_fade_in`, `_tick_say`, `_go_next`, `_to_be_continued`.
+  Smrť s checkpointom ≥ 2 na nábreží → rovno `street.tscn`. Obrázky kreslí `_art_src/make_ch3_art.py`
   (v projekte `ricco-v2-kapitola3-zaciatok/`, mimo repa).
   **Rebrík** (Ricco stav `LADDER`): skok pri rebríku (zo zeme, z člna, z hladiny) = chytí sa, vo vzduchu pri páde sám, S pri
   vrchu = zlezie; W / medzerník hore, S dole (`ladder_speed`), smer od steny = pustí sa, so skokom odskočí; hore sa vyšvihne
-  animáciou `climb` (ako pri chytení hrany), dole sa pustí. Na rebríku nestrieľa. Póza je zatiaľ `hang` (vlastná animácia lezenia
-  ešte nie je – najprv návrhy).
-  **Ďalej:** ulica v daždi → požiarne schodisko → strechy so šnúrami (návrh `strechy_AC_vyssie.png`), policajti (najprv návrhy vzhľadu).
+  animáciou `climb` (ako pri chytení hrany), dole sa pustí. Na rebríku nestrieľa. Animácia `ladder` (`sprites/ladder.png`, 4 snímky 64 px,
+  bokom čelom k stene, zarovnaná ako `hang`; kreslí `_art_src/make_ladder_anim.py` mimo repa, návrh `ricco-navrhy/rebrik/`) –
+  snímok sa mení každých 8 px prelezenej výšky, keď stojí, ostane.
+  **Ulica a strechy** (`levels/level3/street.gd extends Level3`, `street.tscn` z `build_level3.gd`, návrh `strechy_AC_vyssie.png`,
+  náhľad mapy `ricco-navrhy/kapitola3/strechy_mapa_nahlad.png`): ulica y 0, domy A pizzeria (strecha −480), B Chop Suey (−360),
+  C holičstvo (−600), D lahôdky (−456) – fasády sú pozadie, strechy a plošiny schodísk sú jednosmerné plošiny. Dážď, neóny, výklady
+  a lampy = svetlo. Cesta: debny → **markíza = trampolína** (`world/fx/awning.gd`, Ricco `bounce(v)`) → požiarne schodisko
+  (3 plošiny + rebríky) → strecha A (holuby – ukážka) → **šnúra s prádlom** (`world/fx/clothesline.gd`: kladka = `hook_trolley.gd`,
+  Ricco ju chytí ako hák na mäso, zvezie sa dole, na konci ho pustí, kladka sa vráti) → strecha B (vodná nádrž, na striežke
+  krabička nábojov = tajomstvo, brokovník) → rebrík na boku C (stena `WallC`) → strecha C (holuby, strelec pri dverách so žiarovkou)
+  → druhá šnúra → strecha D (brokovník) → dvere schodiska → ďalšie strechy (`_leave_door(ROOFS, 5)`). Z ulice sa späť hore ide
+  po schodisku pizzerie alebo lahôdok. Checkpointy 2 = ulica, 3 = strecha A, 4 = strecha C. Plagát WANTED („Penguin $500“).
+  **Holuby** (`world/npc/pigeons.gd`): keď Ricco prebehne alebo vedľa nich dopadne, vyletia (`pigeon_flap`) a `Gangster.noise`
+  privolá mafiánov v okolí; zakrádaním sa dá prejsť aj pomedzi ne. Signál `scattered` (hláška ducha).
+  **Policajti:** gangster `kind = "cop"` (časti tela `characters/gangster/cop/` prefarbené z coppola – `_art_src/make_cop_parts.py`),
+  revolver, baterka, `whistle = true` – keď Ricca prvý raz zbadá, zapíska (`whistle.wav`) a `alarm()` všetkým do `WHISTLE_RANGE`.
+  Obušok zatiaľ nemajú. Obrázky ulice `_art_src/make_ch3_street_art.py`, zvuky `_art_src/make_ch3_sfx.py`
+  (v projekte `ricco-v2-kapitola3-strechy/`, mimo repa).
+  **Strechy k stanici** (`levels/level3/roofs.gd extends Level3`, `roofs.tscn` píše `_art_src/make_roofs_scene.py`,
+  mapa `ROOFS_MAP` 3840 px, ulica y 0): päť domov E–I, medzi nimi uličky s rebríkmi. **E** – reklamný billboard „LUCKY STAR
+  CIGARETTES“ (vymyslená značka) s tromi reflektormi (`hat_lamp.gd`, skupina `billboard_lamps` – zhasnúť klobúkom/strelou,
+  keď sú všetky zhasnuté, hláška), pod ním strážca s Tommym, na billboard vedie rebrík (holuby, tajné náboje). **F** – uličku
+  premosťuje **doska** (`levels/level3/roof_plank.gd`: pri behu vŕzga `plank_creak` a praskne → `Gangster.noise`, spadne a o 5 s
+  je späť; plížením prejde), holubník s chovateľom (Guest – svedok) pod lampou, mafián otočený preč. **G** – krajčírska dielňa:
+  dnu cez **svetlík** (`levels/level3/skylight.gd`: rozbije ho šmyk alebo tvrdý dopad, hluk dole) alebo oknom z požiarneho
+  schodiska; vnútri prierez (`GWall` zmizne, keď je Ricco v `ROOM`), šijacie stoly (plošina + kryt), balíky látok, lampa;
+  vydieranie krajčíra (Collector, Muscle, skorumpovaný policajt CrookedCop – rozhovor `SHAKEDOWN`, spustí ho `ShopVoices`
+  na streche), na streche hliadka. Keď je celá partia mŕtva, krajčír poďakuje. **H** – vysoká vodná veža (rebrík) a najdlhšia
+  šnúra s prádlom. **I** – stanica Delancey St: markíza (rebrík, jednosmerná plošina), lampy, dvaja policajti na nástupišti.
+  Spúšťače `TrainCall`/`TrainCall2` → vlak príde zľava a zabrzdí (Tween EASE_OUT QUAD, `ARRIVE_TIME`), zvonček, „ALL ABOARD“,
+  potom `Board` na streche vozňa → `_go_next(TRAIN, 9)`. Checkpointy 5 = za dverami schodiska, 6 = za doskou, 7 = strecha
+  dielne, 8 = požiarne schodisko dielne. Repliky postáv nad hlavou `Level3._speak(who, text, dy)`.
+  Obrázky `_art_src/make_ch3_roofs_art.py`, zvuky `plank_creak`, `wheel_squeal`, `train_horn` `_art_src/make_ch3_more_sfx.py`.
+  **Nadzemka** (`levels/level3/train.gd extends Level3`, `train.tscn` píše `_art_src/make_train_scene.py`, návrhy
+  `nadzemka_A_strecha.png` + `nadzemka_B_vozen.png`, náhľad `ricco-navrhy/kapitola3/nadzemka_mapa_nahlad.png`): Third Avenue El do Harlemu.
+  Vlak v scéne stojí, ubieha svet: `Parallax2D.autoscroll` (skupina `train_scroll` – mesto, domy pri trati, konštrukcia nadzemky),
+  `_speed` 1 → 0 pri brzdení. Podlaha vozňov y 0, strechy y −150, **šesť vozňov** po 400 px s medzerami 32 px (0, 432, 864,
+  1296, 1728, 2160; mapa 2764 px), v medzerách plech na podlahe a rebrík na čele ďalšieho vozňa. Vozne 1, 2, 4 sú plné telesá,
+  vozne 3, 5, 6 sú **prierezy**: strop, čelné steny s dverami (50 px) a predná stena `CarNWall`, ktorá zmizne, keď je Ricco dnu
+  (`WALLS` v train.gd; strecha `CarNRoofStrip` ostane).
+  **Nosníky mostov** (`_spawn_beam`, každé 3–4,6 s, keď je Ricco na streche; neskôr občas dva za sebou): letia doľava `TRAIN_SPEED`,
+  spodok 30 px nad strechou – šmyk (24 px) a skrčenie za vetrákom (22 px, vetráky sú kryt na vrstve 32) prejdú, postava (38 px) nie:
+  2 kúsky zdravia a odhodí dozadu. Pred príletom zvonček a blikajúci „!“ na pravom okraji. Mafiáni na streche, čo o Riccovi
+  nevedia, sa prikrčia (`rig.scale.y`); kto mieri/strieľa/beží (stavy AIM–RECOVER), toho nosník zloží (prostredie zabíja).
+  **Vozeň 3:** vľavo tma (rozbité žiarovky), sediaci cestujúci a mafián s luparou na hliadke; v strede svetlo (`LightCar3`,
+  x 1010–1140) a stojaci cestujúci (Guest – zbadajú, skríknu, zásah = výčitka ducha); ponad nich **remienky**
+  (`levels/level3/train_strap.gd` – statický „hák“, úchyt 128 px nad podlahou, 44 px od seba, zo zeme nedočiahne → z lavice na x 992;
+  kto visí, je nad hlavami a mimo svetla); vpravo v tme **ochrankár v smokingu** (`kind = "tux"`, `weapons/pistol/pistol.tres` =
+  Colt 1911, stojí chrbtom k Riccovi pri dverách) – po ňom ostane Colt (výmena za revolver F). Lavice: sedák = jednosmerná
+  plošina 18 px, opierka = kryt. Cestou sa dá aj po streche vozňa 3 (nosníky, strelec).
+  **Vozeň 2 – expres:** spúšťač `ExpressStart` → po vedľajšej koľaji dobehne expres (`Express`, z −14, strecha y −178 na vrstve
+  256 – train.gd prestaví strelcom `collision_mask` na 256 a do príchodu ich vypne), strelci Tommy + 2× revolver
+  (`walk_speed` 0, aby nezišli zo strechy); dobehne (EASE_OUT), ide vedľa 14 s, odíde (EASE_IN, `train_horn`) – keď sú strelci
+  mŕtvi, skôr. Nosníky zasiahnu aj ich. Po checkpointe ≥ 10 sa expres nezjaví.
+  **Vozeň 4 – zákruta:** `CurveStart` → 9 s náklon kamery (`Camera2D.ignore_rotation = false`, Tween `pcam.rotation`),
+  `wheel_squeal`, odstredivá sila tlačí Ricca na streche dozadu (`move_and_collide`, `CURVE_PUSH` 70 px/s – plížením neprejde,
+  prikrčený za vetrákom / šmyk / rebrík drží); nosníky v zákrute redšie.
+  **Vozeň 5 – pošta:** tma, vrecia (kryt) a debny (pevné), Tommy s baterkou na hliadke, mafián pri dverách; cez otvorené bočné
+  dvere občas prebehne svetlo pouličnej lampy – LightZone `MailSweep` ide z x 2058 na 1768 rýchlosťou vlaku, medzi lampami
+  je zaparkovaný na y 400.
+  **Vozeň 6 – rukojemník:** lavice (kryt), svetlo; v kabíne kľačí motorovodič (Guest, `loop`, nie svedok) a za ním únosca
+  (tux, Colt, 2 životy, stojí). Riccove guľky motorovodiča zasiahnu (mieri sa nad neho). Keď únosca padne, motorovodič zabrzdí;
+  keď padne motorovodič, zabrzdí „mŕtvy muž“ (výčitka ducha).
+  **Stanica:** brzdy, stanica 125 St (`station.png`, 800 px) sa prisunie spoza okraja mapy a zastane na x 1964 (rovnomerné
+  brzdenie, `BRAKE_TIME` 6 s), potom zmiznú `FrontStop` (čelo vlaku od strechy po podlahu) a `Car6WallR` → von na nástupište →
+  `ExitStation` → klub (`_leave_door(CLUB, 14, false)`). Checkpointy 9 = strecha vozňa 1, 10 = pred vozňom 3,
+  11 = pred vozňom 4, 12 = pred vozňom 5, 13 = pred vozňom 6 (spúšťače `CheckpointN` dole aj `CheckpointNRoof` hore).
+  Smrť: `Level3.part_for(checkpoint)` – 2–4 ulica, 5–8 strechy, 9–13 nadzemka, 14–16 klub, 17+ zákulisie.
+  **Výbava medzi časťami:** `Level3.carried` (čo mal Ricco pri odchode – napr. Colt namiesto revolvera) a `tommy_ammo`
+  (hľadá Thompson vo výbave, nie index 2). `_leave_door(path, cp, sound := true)` = odchod dverami so stmievačkou.
+  Obrázky `_art_src/make_ch3_train_art.py`, cestujúci + tux + oprava zadnej ruky policajta `_art_src/make_ch3_passengers.py`,
+  zvuky (`train_rumble` slučka, `train_bell`, `beam_whoosh`, `beam_clang`, `brakes`) `_art_src/make_ch3_train_sfx.py`
+  (v projekte `ricco-v2-kapitola3-nadzemka/`, mimo repa).
+  **Jazzový klub The Blue Canary** (Harlem, Lenox Ave – boss Velvet Sal). Scény píšu `_art_src/make_club_scene.py`
+  a `make_club_back_scene.py`, obrázky `make_ch3_club_art.py` (exteriér, sála), `make_ch3_club_back_art.py` (zákulisie,
+  pivnica, herňa, kancelária, dokumenty z trezoru), `make_ch3_club_people.py` (hostia, čašníci, kapela, Sal = kind `sal`)
+  – všetko v projekte `ricco-v2-kapitola3-klub/` mimo repa. Spoločný základ `levels/level3/club_level.gd` (`class_name ClubLevel
+  extends Level3`): poplach = mafián v klube si Ricca všimne (stav AIM…RECOVER), Riccov výstrel v klube alebo pád lustra →
+  hudba `intensity`, kapela (skupina `band`) prestane hrať, sediaci hostia (`seated`) sa skrčia, stojaci/čašníci/kapela
+  (`runners`) utečú k východu (`exits`), posily na značkách `reinforce` (najbližšie k Riccovi, aspoň 260 px).
+  **Časť 5 – `club.gd`/`club.tscn`** (checkpointy 14 stanica 125 St, 15 vnútri, 16 lávka): predné dvere strážia dvaja
+  vyhadzovači (`passive`, kind `bouncer`) – dvere sú pevné, kým je niektorý do 90 px od nich; mačka na smetiaku
+  (`alley_cat.gd`, zobudí ju beh, aj klobúk/guľka zďaleka) ich na ~15 s odláka. Zasiahnutý vyhadzovač naštve oboch.
+  Ďalšie cesty: rebrík na konštrukciu nadzemky → požiarne schodisko → okno kabíny na balkóne; uhoľný poklop
+  (`club_hatch.gd`, F) → tunel (plaziť sa) → kotolňa s kuričom → rebrík za bar. Sála: lampičky na stoloch sú `hat_lamp`
+  (skupina `table_lamps`), hostia vidia 80 px; reflektor (`club_spotlight.gd`) prechádza sálou, keď osvetľovač (Operator)
+  Ricca zbadá, sleduje ho, po jeho smrti svieti na pódium, klobúk ho zhasne. Luster (`drop_weight.gd`, heavy) nad stolom
+  mafiánov: guľka/klobúk do lana → zabije do 42 px, zhasne, ostane ako kryt, spustí poplach. Rekvizitný ťah: háky
+  `train_strap.gd` (nový export `texture` = `rig_hook.png`) na y −275, 44 px od seba, lávka (truss) v strede, catwalk nad
+  pódiom → `ExitBackstage` (`club_loud` = či bol v sále poplach).
+  **Časť 6 – `club_back.gd`/`club_back.tscn`** (checkpointy 17 zákulisie, 18 šatne, 19 pivnica, 20 šachta pri herni,
+  21 strecha): vrecia s pieskom (`drop_weight.gd`), šatňa speváčky (bubon do Thompsonu 50 nábojov – `weapon_pickup` z kódu,
+  telegram READ), klopacie dvere (`knock_door.gd` – F zaklope, vyjde ďalší živý z `inside`, obzerá sa, vráti sa),
+  poklop z izieb personálu (spáč = Guest), pivnica so sudmi (`whisky_barrel.gd` – vrstva 32, prestrelený → úsek podlahy
+  do skupiny `ice`, mafián cez mláku `trip()`), svorky na rúrach (y 40) z debien, šachta s rebríkom až na strechu.
+  Herňa: lampa nad pokrovým stolom (zhasne → poručíci `hear`), stôl `flip_table.gd` (F, kryt, hluk). Kancelária: Sal
+  (gangster_tommy, kind `sal`, 14 životov, vesta), bodyguard; pri poplachu (alebo `club_loud`) sa zamkne – `lock_door.gd`
+  (3 výstrely do dverí), stôl sa prevráti, Sal za ním. Inak svetlík v streche (`skylight.gd`). Po Salovi trezor:
+  pozvánka + fotka (ReadCard), duch „THAT VEIL... I KNOW THAT VEIL.“, otvorí sa okno → `ExitWindow` → TO BE CONTINUED.
+  **Ďalej:** hotel Majestic. **Akimbo (dve pištole naraz) odložené** – samostatný krok, zasahuje celú streľbu v ricco.gd.
   **Ľad:** dlaždica s vlastnými dátami `ice` (TileSet) alebo kolízia v skupine `ice` → `ricco.on_ice` (malé trenie, dlhý šmyk, `ground_friction()`).
   **Háky:** `world/coldstore/hook_rail.gd` – vozíky idú po koľajnici (vzor `pattern`: C = mäso, H = voľný hák, - = nič); Ricco vo vzduchu
   chytí voľný hák (stav HOOK = 6, animácia `hook` = jedna plutva hore, `sprites/hook.png` z `jump.png`; vezie sa, strieľa,
@@ -225,6 +329,14 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   - Väčšina efektov sú CC0 nahrávky (Kenney Impact/RPG/Casino Audio, Organic Wooshes, Smol Mechanisms, Warfork ricochety, 40 CC0 water – dážď),
     zvyšok syntetizovaný (spomalenie, Riccov zásah/smrť, zásah do tela, výstrely, menu, dav, kuchyňa, tunely, neón, potkan, tlkot srdca).
   - Klobúk: `hat_throw` (hod) + `hat_return` (keď sa vracia, `hat_projectile.gd`).
+  - **Riccove zvuky** (október 2026, 2 kolá vypočúvania): nové sú iba kroky `step_1`/`step_2` (žabky na dreve o tón nižšie
+    + mäkké dupnutie, 3 varianty), `ladder_rung` (ťuknutie pilníkom o železo, všetky 4 súbory rovnaké, rozdiel robí pitch_var)
+    a `takedown` (344 Audio Cinematic Fight – úder do tela). `hurt`/`death` = pôvodné syntetické zvuky o kúsok hlbšie
+    (hurt ×0,9 / ×0,86 / ×0,94, death ×0,92). Všetko ostatné (jump, wall_jump, land, ledge_grab, climb, belly_slide, slide_getup,
+    klobúk, splash, hook_grab, pickup_ammo) je **pôvodné** – vrstvené náhrady aj iné nahrávky zo Sonniss GDC boli zamietnuté
+    („úplne od veci“). Súbory `meno_2.wav`/`_3` pri pôvodných sú len ich kópie. Skripty: `_art_src/make_ricco_sfx.py` (kroky, rebrík),
+    `kand.py` (takedown = kandidát A), `hlas2.py` (zásah/smrť) v projekte `ricco-v2-zvuky/` mimo repa.
+    Hlasitosť (najsilnejších 50 ms) drží pri starých zvukoch. Jedlo (chomp, gulp, slurp, can_peel, lid_pop, medkit) ostalo staré.
   - **Mafiáni ani hostia nehovoria** – iba žltý „!“ nad hlavou + krátky tón `alert.wav`. Hlasy (TTS) som zamietol – znelo to hrozne.
   - Muzzle flash štýl A, väčší recoil, lupara odhodí Ricca dozadu.
 

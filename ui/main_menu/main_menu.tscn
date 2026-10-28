@@ -1,23 +1,20 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene format=3 uid="uid://d0j63rnu3vq73"]
 
-[ext_resource type="Script" path="res://ui/main_menu/main_menu.gd" id="1_s"]
-[ext_resource type="Script" path="res://ui/cursor/cursor_controller.gd" id="20_cursor"]
-[ext_resource type="Texture2D" path="res://ui/main_menu/menu_buildings.png" id="2_bg"]
+[ext_resource type="Script" uid="uid://c0x2rxhaop4op" path="res://ui/main_menu/main_menu.gd" id="1_s"]
+[ext_resource type="Texture2D" uid="uid://dsuoiqvnbp3d3" path="res://ui/main_menu/menu_buildings.png" id="2_bg"]
 [ext_resource type="Theme" path="res://ui/theme/hud_theme.tres" id="3_theme"]
-[ext_resource type="Script" path="res://world/fx/neon_flicker.gd" id="4_neon"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/neon_on.png" id="5_on"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/neon_off.png" id="6_off"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/glow.png" id="7_glow"]
-[ext_resource type="Script" path="res://world/fx/rain.gd" id="8_rain"]
-[ext_resource type="SpriteFrames" path="res://characters/ricco/ricco_frames.tres" id="9_frames"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/skyline_far.png" id="10_far"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/skyline_mid.png" id="11_mid"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/moon.png" id="12_moon"]
-[ext_resource type="Texture2D" path="res://ui/main_menu/car.png" id="13_car"]
-[ext_resource type="Script" path="res://world/fx/scroll_loop.gd" id="14_scroll"]
-
-[sub_resource type="CanvasItemMaterial" id="Mat_add"]
-blend_mode = 1
+[ext_resource type="Script" uid="uid://ce2naety4livg" path="res://world/fx/neon_flicker.gd" id="4_neon"]
+[ext_resource type="Texture2D" uid="uid://c15qmirc88fao" path="res://levels/level1/art/neon_on.png" id="5_on"]
+[ext_resource type="Texture2D" uid="uid://hsctjwg62161" path="res://levels/level1/art/neon_off.png" id="6_off"]
+[ext_resource type="Texture2D" uid="uid://dhvddbonsxjxk" path="res://levels/level1/art/glow.png" id="7_glow"]
+[ext_resource type="Script" uid="uid://k3ow3ralokix" path="res://world/fx/rain.gd" id="8_rain"]
+[ext_resource type="SpriteFrames" uid="uid://dvy4gprwg3jv0" path="res://characters/ricco/ricco_frames.tres" id="9_frames"]
+[ext_resource type="Texture2D" uid="uid://d250e7a5cug0f" path="res://levels/level1/art/skyline_far.png" id="10_far"]
+[ext_resource type="Texture2D" uid="uid://bdhk7id4dd61i" path="res://levels/level1/art/skyline_mid.png" id="11_mid"]
+[ext_resource type="Texture2D" uid="uid://bo4gc7vkcyi50" path="res://levels/level1/art/moon.png" id="12_moon"]
+[ext_resource type="Texture2D" uid="uid://mml5yk4a5ii7" path="res://ui/main_menu/car.png" id="13_car"]
+[ext_resource type="Script" uid="uid://cx4vjpo5mlykn" path="res://world/fx/scroll_loop.gd" id="14_scroll"]
+[ext_resource type="Script" uid="uid://c537nwh0dfdu8" path="res://ui/cursor/cursor_controller.gd" id="20_cursor"]
 
 [sub_resource type="Gradient" id="Grad_sky"]
 colors = PackedColorArray(0.055, 0.047, 0.1, 1, 0.227, 0.141, 0.196, 1)
@@ -26,6 +23,9 @@ colors = PackedColorArray(0.055, 0.047, 0.1, 1, 0.227, 0.141, 0.196, 1)
 gradient = SubResource("Grad_sky")
 fill_to = Vector2(0, 1)
 
+[sub_resource type="CanvasItemMaterial" id="Mat_add"]
+blend_mode = 1
+
 [sub_resource type="Gradient" id="Grad_shade"]
 offsets = PackedFloat32Array(0, 0.42, 0.7, 1)
 colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0.02, 0.01, 0.03, 0.8, 0.02, 0.01, 0.03, 0.92)
@@ -33,7 +33,7 @@ colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0, 0.02, 0.01, 0.03, 0.8, 0.02, 0
 [sub_resource type="GradientTexture2D" id="Shade"]
 gradient = SubResource("Grad_shade")
 
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=663047874]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -43,7 +43,7 @@ grow_vertical = 2
 theme = ExtResource("3_theme")
 script = ExtResource("1_s")
 
-[node name="Sky" type="TextureRect" parent="."]
+[node name="Sky" type="TextureRect" parent="." unique_id=487556392]
 layout_mode = 0
 offset_right = 640.0
 offset_bottom = 360.0
@@ -51,58 +51,58 @@ mouse_filter = 2
 texture = SubResource("Sky")
 expand_mode = 1
 
-[node name="Lightning" type="ColorRect" parent="."]
+[node name="Lightning" type="ColorRect" parent="." unique_id=1972982205]
 layout_mode = 0
 offset_right = 640.0
 offset_bottom = 300.0
 mouse_filter = 2
 color = Color(0.75, 0.8, 1, 0)
 
-[node name="World" type="Node2D" parent="."]
+[node name="World" type="Node2D" parent="." unique_id=2015491633]
 
-[node name="Moon" type="Sprite2D" parent="World"]
+[node name="Moon" type="Sprite2D" parent="World" unique_id=88380871]
 position = Vector2(571, 51)
 texture = ExtResource("12_moon")
 
-[node name="SkylineFar" type="Node2D" parent="World"]
+[node name="SkylineFar" type="Node2D" parent="World" unique_id=788023058]
 script = ExtResource("14_scroll")
 speed = 3.0
 
-[node name="Sprite" type="Sprite2D" parent="World/SkylineFar"]
+[node name="Sprite" type="Sprite2D" parent="World/SkylineFar" unique_id=2128638417]
 position = Vector2(0, 16)
 texture = ExtResource("10_far")
 centered = false
 
-[node name="SkylineMid" type="Node2D" parent="World"]
+[node name="SkylineMid" type="Node2D" parent="World" unique_id=1249018168]
 script = ExtResource("14_scroll")
 speed = 7.0
 
-[node name="Sprite" type="Sprite2D" parent="World/SkylineMid"]
+[node name="Sprite" type="Sprite2D" parent="World/SkylineMid" unique_id=1319360172]
 position = Vector2(0, 62)
 texture = ExtResource("11_mid")
 centered = false
 
-[node name="Buildings" type="Sprite2D" parent="World"]
+[node name="Buildings" type="Sprite2D" parent="World" unique_id=395555113]
 texture = ExtResource("2_bg")
 centered = false
 
-[node name="Windows" type="Node2D" parent="World"]
+[node name="Windows" type="Node2D" parent="World" unique_id=44343718]
 
-[node name="LampGlow" type="Sprite2D" parent="World"]
+[node name="LampGlow" type="Sprite2D" parent="World" unique_id=891368364]
 modulate = Color(1, 0.78, 0.45, 0.55)
 material = SubResource("Mat_add")
 position = Vector2(147, 224)
 scale = Vector2(2.6, 2.6)
 texture = ExtResource("7_glow")
 
-[node name="LampFloor" type="Sprite2D" parent="World"]
+[node name="LampFloor" type="Sprite2D" parent="World" unique_id=618517091]
 modulate = Color(1, 0.7, 0.4, 0.3)
 material = SubResource("Mat_add")
 position = Vector2(170, 298)
 scale = Vector2(2.4, 1.2)
 texture = ExtResource("7_glow")
 
-[node name="Neon" type="Sprite2D" parent="World"]
+[node name="Neon" type="Sprite2D" parent="World" unique_id=1727629709]
 position = Vector2(222, 194)
 texture = ExtResource("5_on")
 centered = false
@@ -110,45 +110,45 @@ script = ExtResource("4_neon")
 on_texture = ExtResource("5_on")
 off_texture = ExtResource("6_off")
 
-[node name="Glow" type="Sprite2D" parent="World/Neon"]
+[node name="Glow" type="Sprite2D" parent="World/Neon" unique_id=702945190]
 modulate = Color(1, 0.25, 0.2, 0.5)
 material = SubResource("Mat_add")
 position = Vector2(62, 17)
 scale = Vector2(2.2, 2.2)
 texture = ExtResource("7_glow")
 
-[node name="Ricco" type="AnimatedSprite2D" parent="World"]
+[node name="Ricco" type="AnimatedSprite2D" parent="World" unique_id=1987408243]
 position = Vector2(186, 277)
 sprite_frames = ExtResource("9_frames")
 animation = &"idle"
 autoplay = "idle"
 
-[node name="Car" type="Node2D" parent="World"]
+[node name="Car" type="Node2D" parent="World" unique_id=991967972]
 position = Vector2(-110, 322)
 
-[node name="Beam" type="Sprite2D" parent="World/Car"]
+[node name="Beam" type="Sprite2D" parent="World/Car" unique_id=288820260]
 modulate = Color(1, 0.92, 0.7, 0.45)
 material = SubResource("Mat_add")
 position = Vector2(74, 1)
 scale = Vector2(2.2, 0.6)
 texture = ExtResource("7_glow")
 
-[node name="Tail" type="Sprite2D" parent="World/Car"]
+[node name="Tail" type="Sprite2D" parent="World/Car" unique_id=398365190]
 modulate = Color(1, 0.15, 0.1, 0.5)
 material = SubResource("Mat_add")
 position = Vector2(-37, -1)
 scale = Vector2(0.4, 0.4)
 texture = ExtResource("7_glow")
 
-[node name="Sprite" type="Sprite2D" parent="World/Car"]
+[node name="Sprite" type="Sprite2D" parent="World/Car" unique_id=926952234]
 texture = ExtResource("13_car")
 offset = Vector2(0, -2)
 
-[node name="Rain" type="CPUParticles2D" parent="World"]
+[node name="Rain" type="CPUParticles2D" parent="World" unique_id=518552788]
 position = Vector2(280, -20)
 script = ExtResource("8_rain")
 
-[node name="Shade" type="TextureRect" parent="."]
+[node name="Shade" type="TextureRect" parent="." unique_id=1652797975]
 layout_mode = 0
 offset_right = 640.0
 offset_bottom = 360.0
@@ -156,7 +156,7 @@ mouse_filter = 2
 texture = SubResource("Shade")
 expand_mode = 1
 
-[node name="Title" type="Label" parent="."]
+[node name="Title" type="Label" parent="." unique_id=464700445]
 layout_mode = 0
 offset_left = 32.0
 offset_top = 30.0
@@ -169,9 +169,9 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 40
 text = "RICCO"
 
-[node name="Glow" type="TextureRect" parent="Title"]
-show_behind_parent = true
+[node name="Glow" type="TextureRect" parent="Title" unique_id=966018458]
 modulate = Color(1, 0.3, 0.2, 0.4)
+show_behind_parent = true
 material = SubResource("Mat_add")
 layout_mode = 0
 offset_left = -50.0
@@ -182,7 +182,7 @@ mouse_filter = 2
 texture = ExtResource("7_glow")
 expand_mode = 1
 
-[node name="Underline" type="ColorRect" parent="Title"]
+[node name="Underline" type="ColorRect" parent="Title" unique_id=1662992032]
 layout_mode = 0
 offset_left = 2.0
 offset_top = 40.0
@@ -190,7 +190,7 @@ offset_right = 122.0
 offset_bottom = 41.0
 color = Color(0.78, 0.6, 0.28, 1)
 
-[node name="Subtitle" type="Label" parent="Title"]
+[node name="Subtitle" type="Label" parent="Title" unique_id=937188280]
 layout_mode = 0
 offset_left = 2.0
 offset_top = 44.0
@@ -199,7 +199,7 @@ offset_bottom = 54.0
 theme_override_colors/font_color = Color(0.6, 0.55, 0.47, 1)
 text = "THE DON'S GHOST"
 
-[node name="Version" type="Label" parent="."]
+[node name="Version" type="Label" parent="." unique_id=883709452]
 layout_mode = 0
 offset_left = 8.0
 offset_top = 346.0
@@ -208,7 +208,7 @@ offset_bottom = 356.0
 theme_override_colors/font_color = Color(0.47, 0.44, 0.38, 1)
 text = "v0.1  DEV BUILD"
 
-[node name="Root" type="Control" parent="."]
+[node name="Root" type="Control" parent="." unique_id=2057563291]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -217,7 +217,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Column" type="VBoxContainer" parent="Root"]
+[node name="Column" type="VBoxContainer" parent="Root" unique_id=1545649078]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -230,10 +230,10 @@ offset_right = -32.0
 offset_bottom = 130.0
 grow_horizontal = 0
 grow_vertical = 2
-alignment = 1
 theme_override_constants/separation = 4
+alignment = 1
 
-[node name="Fade" type="ColorRect" parent="."]
+[node name="Fade" type="ColorRect" parent="." unique_id=662791720]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -243,7 +243,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
 
-[node name="Cursor" type="Node" parent="."]
+[node name="Cursor" type="Node" parent="." unique_id=1371488157]
 process_mode = 3
 script = ExtResource("20_cursor")
 in_game = false

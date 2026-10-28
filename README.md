@@ -60,7 +60,23 @@ The letter from "M." leads Ricco and the ghost to New York.
 
 - **The arrival** – a night cutscene: rowing the Margaret's lifeboat past the Statue of Liberty, Manhattan lit up behind her.
 - **The waterfront** – climb an iron ladder up the East River seawall to a promenade with street lamps and a guard with a flashlight.
-- Coming next: rainy streets, fire escapes and rooftops with laundry lines, the elevated train, a jazz club in Harlem and the Hotel Majestic.
+- **The Lower East Side** – a rainy street with neon signs and cops on the take (they blow a whistle and call their buddies),
+  bounce off a shop awning onto the fire escape, ride a pulley down a laundry line across the alley, and don't spook the pigeons.
+- **The rooftops** – sneak past a billboard guard under its spotlights (or shoot them out), tiptoe across a creaky plank,
+  slip past a pigeon keeper, drop through the skylight of a sweatshop where the mob is squeezing a tailor, climb a water tower
+  and ride the longest laundry line in town down to the Delancey Street El station.
+- **The El train** – six cars uptown on the Third Avenue El: slide under low bridges (they knock goons off too), trade shots
+  with gunmen on an express racing alongside, drop into a crowded carriage and swing over the commuters on the hand straps,
+  take the Colt 1911 from a bodyguard in a tuxedo, hold on in a tight curve, creep through a pitch-dark mail car between
+  passing streetlights and free the motorman from a hijacker so he can brake into 125th Street.
+- **The Blue Canary** – Velvet Sal's jazz club on Lenox Avenue. Get past two bouncers (spook the alley cat to lure them away),
+  climb the El to the fire escape, or crawl in through the coal chute and the boiler room. Inside, a spotlight sweeps the hall,
+  every table lamp can give you away to the guests, and a chandelier hangs over Sal's boys by one rope – or swing across
+  the stage rigging above everyone's heads. Go loud and the band stops, the crowd runs and reinforcements pour in.
+- **Backstage** – sandbags on the fly grid, a knock on the dressing-room door to lure out drinkers one by one, bootleg whisky
+  barrels in the cellar that turn the floor into an ice rink, Sal's lieutenants at the poker table and Sal himself – who locks
+  his office when he hears trouble. His safe holds an invitation to a gala at the Hotel Majestic… and a photo of a veiled woman.
+- Coming next: the Hotel Majestic.
 
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
@@ -113,7 +129,7 @@ All keys can be changed in **Settings → Controls → Keyboard**. Defaults:
 - [x] **Chapter II – Wharf Rats** – the Don's funeral at the cemetery, the foggy docks, Big Lou's cold storage, the S.S. Margaret in a storm, **boss fight with Big Lou**, the escape from the burning ship and a cliffhanger
 - [x] Weapons: derringer, revolver, lupara, Tommy gun, fire modes, Arsenal, shooting range
 - [ ] More period weapons (Colt 1911, Winchester 1897, Mauser C96…), human shield, loadout screen with weapon stats between levels
-- [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops, the El train, a Harlem jazz club, the Hotel Majestic, boss Iron Mike, a car chase
+- [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops ✔, the El train ✔, a Harlem jazz club ✔, the Hotel Majestic, boss Iron Mike, a car chase
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
 - [ ] Style meter, more secrets (swimming ✔, ice ✔, meat hooks ✔)
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)
@@ -130,7 +146,7 @@ characters/   ricco (player + slow-mo), gangster (goons built from body parts), 
 effects/      particles, explosions, gun smoke
 levels/       level1 (street → restaurant → casino) + cellar (tunnels, catacombs),
               level2 (cemetery → docks → cold storage → S.S. Margaret → ending at sea),
-              level3 (arrival in New York → waterfront), range (shooting range)
+              level3 (arrival in New York → waterfront → Lower East Side rooftops → El train → Harlem jazz club), range (shooting range)
 world/        stealth (light zones), fx (rain, neon, lighthouse beam, doors, ladders…), npc (guests, rats, the dog),
               water, coldstore (hook rails, carcasses, conveyor), ship (storm, crates, barrels, crane, deck fire)
 weapons/      derringer, revolver, pistol, lupara, tommy, hat, WeaponData, pickups
@@ -163,6 +179,7 @@ godot --headless --path . --script res://tools/build_range.gd      # shooting ra
 - **Font:** [Tiny5](https://github.com/Gissio/font_tiny5) by Gissio – SIL Open Font License (`ui/fonts/Tiny5_OFL.txt`)
 - **Character art:** generated with PixelLab and Google Gemini, then cleaned up into pixel art by hand/script
 - **Sound effects:** CC0 (public domain) recordings – [Kenney](https://kenney.nl) (Impact Sounds, RPG Audio, Casino Audio), Ben Burnes (Organic Wooshes, Smol Mechanisms), [Warfork](https://github.com/Warfork) and *40 CC0 water SFX*, collected in [CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds); the rest is generated procedurally
+- **Ricco's footsteps, ladder and takedown**: cut and pitched from the [Sonniss #GameAudioGDC Bundle](https://sonniss.com/gameaudiogdc) (royalty-free) – TheWorkRoom *Flip Flops*, Epic Stock Media *HD Game Materials*, 344 Audio *Cinematic Fight*
 - **Gunshots:** layered from CC0 samples – Warfork weapon sounds, Ben Burnes *2HTC Samples Vol 4* (snaps, kicks, clicks), Kenney RPG Audio and *metal interactions* (CC0-Public-Domain-Sounds), with saturation and a short room reverb
 - **Music:** loops from *2HTC Samples Vol 4* (+ Addendum) by Ben Burnes – CC0 (public domain): *At the Threshold – Smooth Jazz Loop*, *Midnight Murmurs – Rainy Noir*, *Chasing Crop Circles – Spooky*, *Sometimes, You Don't Make it to Level Two – Night Cafe Vibes*, *The Infested Power Grid – Desolation*, *I Should Be Sleeping – Intensity*
 - **Addons:** see each addon's own license in `addons/`

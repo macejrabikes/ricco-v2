@@ -59,6 +59,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var patrol_span: float = 0.0              ## px – hliadkuje len ±toľko od miesta, kde začal (0 = kým nenarazí)
 @export var flashlight: bool = false              ## svieti si baterkou pred seba – v kuželi Ricca vidno (pivnica)
 @export var passive: bool = false                 ## Ricca si nevšíma (napr. vyhadzovač pred pizzeriou) – kým ho Ricco nezasiahne
+@export var whistle: bool = false                 ## policajt: keď Ricca prvý raz zbadá, zapíska a privolá ostatných v okolí (WHISTLE_RANGE)
 
 @export_group("Armor & cold")
 @export var vest: bool = false                    ## nepriestrelná vesta (dobová, plátovaná pod sakom) – do trupu len vest_factor damage, hlava a nohy nie
@@ -106,6 +107,9 @@ const RIGS := {
 	"toro": {"torso": Vector2(14, 28)},
 	"bouncer": {"torso": Vector2(14, 28), "hat": Vector2(11, 8)},
 	"slugger": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},
+	"cop": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # policajt v kapitole III (modrá uniforma, čiapka)
+	"tux": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # ochrankár v smokingu (kapitola III – nadzemka, Colt 1911)
+	"sal": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Velvet Sal (kapitola III – klub The Blue Canary, fialový zamat)
 }
 ## Pózy dvojdielnych rúk: [nadlaktie predné, predlaktie predné, nadlaktie zadné, predlaktie zadné, náklon px]
 ## uhly sú v kostre otočenej doprava (0 = vpred, PI/2 = dole), predlaktie má globálny uhol
@@ -126,6 +130,9 @@ const HEAR_SCUFFLE := 64.0     ## px – zápas / pád kamaráta tesne vedľa po
 const SEE_BODY := 200.0        ## px – pád kamaráta vidí, ak sa tým smerom pozerá a nič nie je medzi nimi
 const HEAR_BODY := 150.0       ## px – pád kamaráta počuje → ide sa pozrieť
 const KEEP_APART := 22.0       ## px – takto blízko pri kamarátovi sa na hliadke otočí
+const WHISTLE_RANGE := 480.0   ## px – píšťalku policajta počujú všetci do tejto vzdialenosti
+const DARK_SIGHT := 80.0       ## px – v tme (needs_light) rozozná Ricca pred sebou do tejto vzdialenosti, aj prikrčeného
+const HEAR_STEPS := 90.0       ## px – za chrbtom počuje Riccove kroky, keď nejde potichu (zakrádanie: close_sense · 0,45)
 
 var state: State = State.PATROL
 var health: float   ## damage zbraní je desatinný (WeaponData.damage, pokles so vzdialenosťou)
@@ -143,6 +150,7 @@ var home_facing: float = -1.0
 var look_timer: float = 0.0
 var _alert_mark: Label
 var goto_x: float = NAN   ## px – skriptovaný presun (napr. mafián ide zaklopať na dvere); NAN = normálne správanie
+var _whistled: bool = false   ## policajt už zapískal (len raz)
 var _aggro: float = 0.0   ## s – po zásahu klobúkom vie, kde Ricco je (vidí ho aj v tme a za chrbtom)
 var _investigate_x: float = 0.0   ## px – kam sa ide pozrieť (počul výstrel / pád kamaráta)
 var _investigate_phase: int = 0   ## 0 = zarazí sa, 1 = ide tam, 2 = obzerá sa, 3 = vracia sa
@@ -466,6 +474,8 @@ func _physics_process(delta: float) -> void:
 func _alert() -> void:
 	if state in [State.PATROL, State.IDLE, State.STUN, State.INVESTIGATE]:
 		_show_alert_mark()
+	if whistle and not _whistled:
+		_blow_whistle()
 	if _question_mark:
 		_question_mark.visible = false
 	_face_player()
@@ -474,6 +484,16 @@ func _alert() -> void:
 	else:
 		_start_aim()
 	lost_sight = 0.0
+
+
+## Policajná píšťalka: ostrý trilok, všetci v okolí vedia, kde Ricco je (alarm)
+func _blow_whistle() -> void:
+	_whistled = true
+	Sfx.play(&"whistle", global_position + Vector2(0, -56), -2.0)
+	for n in get_tree().get_nodes_in_group(&"enemies"):
+		var g := n as Gangster
+		if g and g != self and g.global_position.distance_to(global_position) < WHISTLE_RANGE:
+			g.alarm()
 
 
 ## „!“ nad hlavou, keď si Ricca všimne
@@ -767,12 +787,23 @@ func _can_see_player() -> bool:
 		pass   # nahnevaný (po klobúku) – vie, kde Ricco je
 	elif needs_light:
 		# zakrádanie: za chrbtom ani v tme nevidí – len keď je Ricco celkom blízko (počuje ho)
+		# v tme pred sebou ho rozozná zblízka (DARK_SIGHT) – aj prikrčeného; zakrádanie len tlmí kroky (počuť ho za chrbtom)
 		var lit: bool = player.has_method(&"is_lit") and player.is_lit()
-		var sense: float = close_sense * (0.45 if player.get(&"sneaking") else 1.0)   # prikrčeného zacíti len celkom zblízka
-		var near: bool = absf(dx) < sense and absf(player.global_position.y - global_position.y) < 40.0   # tesne vedľa, na tej istej úrovni
+		var dy: float = absf(player.global_position.y - global_position.y)
+		var ahead: bool = signf(dx) == facing
+		var pv: Variant = player.get(&"velocity")
+		var moving: bool = pv is Vector2 and absf((pv as Vector2).x) > 20.0
+		var sense: float = close_sense
+		if player.get(&"sneaking"):
+			sense = close_sense * 0.45   # potichu – za chrbtom ho počuje len celkom zblízka
+		elif moving:
+			sense = maxf(close_sense, HEAR_STEPS)   # normálne kroky počuť ďalej
+		var near: bool = absf(dx) < sense and dy < 40.0   # tesne vedľa, na tej istej úrovni
+		if ahead and absf(dx) < DARK_SIGHT and dy < 60.0:
+			near = true   # stojí mu pred nosom – v tme ho vidí aj prikrčeného
 		if state == State.INVESTIGATE and absf(dx) < 70.0:
 			near = true   # pozorne sa obzerá – zblízka si ho všimne aj v tme
-		if not alerted and signf(dx) != facing and not near:
+		if not alerted and not ahead and not near:
 			return false
 		if not lit and not near and not (alerted and d < 110.0):
 			return false

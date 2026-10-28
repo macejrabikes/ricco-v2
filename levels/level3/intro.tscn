@@ -1,0 +1,104 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/level3/intro.gd" id="1_7gr44"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/ny_sky.png" id="2_n4hal"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/glow.png" id="3_b6pkq"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/moon.png" id="4_s8bv4"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/ny_skyline.png" id="5_5r0n5"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/liberty.png" id="6_arckn"]
+[ext_resource type="Script" path="res://world/fx/flicker.gd" id="7_fx2lr"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/ferry.png" id="8_m1wgc"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/ny_sea.png" id="9_pn5lp"]
+[ext_resource type="SpriteFrames" path="res://characters/ricco/ricco_frames.tres" id="10_gj555"]
+[ext_resource type="Texture2D" path="res://characters/don/ghost_don.png" id="11_5mgcr"]
+[ext_resource type="Texture2D" path="res://levels/level2/art/ship/lifeboat_boat.png" id="12_arxcq"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/intro/ny_waves.png" id="13_lfkqq"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_uavis"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_dahmk"]
+blend_mode = 1
+
+[node name="Intro" type="Node2D" unique_id=1143440415]
+script = ExtResource("1_7gr44")
+
+[node name="Sky" type="Sprite2D" parent="." unique_id=256860444]
+z_index = -10
+texture = ExtResource("2_n4hal")
+centered = false
+
+[node name="MoonGlow" type="Sprite2D" parent="." unique_id=154119342]
+modulate = Color(0.85, 0.82, 0.65, 0.3)
+z_index = -9
+material = SubResource("CanvasItemMaterial_uavis")
+position = Vector2(520, 60)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("3_b6pkq")
+
+[node name="Moon" type="Sprite2D" parent="." unique_id=1450190214]
+z_index = -9
+position = Vector2(520, 60)
+scale = Vector2(2, 2)
+texture = ExtResource("4_s8bv4")
+
+[node name="Skyline" type="Sprite2D" parent="." unique_id=1852499061]
+z_index = -8
+position = Vector2(0, 120)
+texture = ExtResource("5_5r0n5")
+centered = false
+
+[node name="Liberty" type="Sprite2D" parent="." unique_id=828410578]
+z_index = -7
+position = Vector2(16, 50)
+texture = ExtResource("6_arckn")
+centered = false
+
+[node name="Glow" type="Sprite2D" parent="Liberty" unique_id=990306449]
+modulate = Color(1, 0.75, 0.35, 0.6)
+material = SubResource("CanvasItemMaterial_dahmk")
+position = Vector2(113, 16)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("3_b6pkq")
+script = ExtResource("7_fx2lr")
+
+[node name="Ferry" type="Sprite2D" parent="." unique_id=1013510816]
+z_index = -7
+position = Vector2(250, 248)
+texture = ExtResource("8_m1wgc")
+centered = false
+
+[node name="Sea" type="Sprite2D" parent="." unique_id=2043330858]
+z_index = -6
+position = Vector2(0, 270)
+texture = ExtResource("9_pn5lp")
+centered = false
+
+[node name="Boat" type="Node2D" parent="." unique_id=2044685171]
+position = Vector2(-130, 318)
+
+[node name="Ricco" type="AnimatedSprite2D" parent="Boat" unique_id=1253600815]
+position = Vector2(46, -14)
+sprite_frames = ExtResource("10_gj555")
+animation = &"idle"
+
+[node name="Ghost" type="Sprite2D" parent="Boat" unique_id=1748984980]
+modulate = Color(1, 1, 1, 0)
+position = Vector2(66, -84)
+texture = ExtResource("11_5mgcr")
+centered = false
+
+[node name="Hull" type="Sprite2D" parent="Boat" unique_id=1973610032]
+z_index = 1
+position = Vector2(0, -6)
+texture = ExtResource("12_arxcq")
+centered = false
+
+[node name="Waves" type="Sprite2D" parent="." unique_id=1347530316]
+z_index = 3
+texture_repeat = 2
+position = Vector2(0, 330)
+texture = ExtResource("13_lfkqq")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 0, 640, 24)
