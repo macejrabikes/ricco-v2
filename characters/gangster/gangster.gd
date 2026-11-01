@@ -39,6 +39,8 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var spread_deg: float = 3.0
 @export var bullet_speed: float = 380.0           ## pomalšie ako Riccove, aby sa dali preskočiť
 @export var bullet_lifetime: float = 1.4
+@export var bullet_damage: float = 0.0            ## > 0 = guľka vezme toľko kúskov pizze (odstreľovač so Springfieldom 2)
+@export var drops_weapon: bool = true             ## false = zbraň po smrti nevypadne (Ricco ju nevie použiť – Springfield)
 @export var cooldown: Vector2 = Vector2(0.9, 1.4)
 @export var preferred_range: float = 0.0          ## > 0 = najprv sa priblíži na túto vzdialenosť (lupara)
 
@@ -110,6 +112,10 @@ const RIGS := {
 	"cop": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # policajt v kapitole III (modrá uniforma, čiapka)
 	"tux": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # ochrankár v smokingu (kapitola III – nadzemka, Colt 1911)
 	"sal": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Velvet Sal (kapitola III – klub The Blue Canary, fialový zamat)
+	"butcher": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # mäsiar v hotelovej kuchyni (biela zástera, sekáčik – kapitola III)
+	"bellhop": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # liftboy / poslíček hotela Majestic (bordová uniforma)
+	"riveter": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # nitovač na stavbe veže Iron Mikea (biela košeľa, traky, baretka)
+	"mike": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Iron Mike – stavbyvedúci (vesta, kravata, tvrdý klobúk) – characters/iron_mike/
 }
 ## Pózy dvojdielnych rúk: [nadlaktie predné, predlaktie predné, nadlaktie zadné, predlaktie zadné, náklon px]
 ## uhly sú v kostre otočenej doprava (0 = vpred, PI/2 = dole), predlaktie má globálny uhol
@@ -857,6 +863,8 @@ func _fire() -> void:
 		b.shooter = self
 		b.speed = bullet_speed * (randf_range(0.85, 1.05) if pellets > 1 else 1.0)
 		b.lifetime = bullet_lifetime
+		if bullet_damage > 0.0:
+			b.damage = bullet_damage
 		b.hit_mask = 1 | 2 | COVER_LAYER     # svet + Ricco + kryt (mäso, debny)
 		b.modulate = Color(1.0, 0.6, 0.5)
 		b.global_position = muzzle.global_position
@@ -1110,7 +1118,7 @@ func _die(dir: Vector2, quiet: bool = false) -> void:
 	velocity = Vector2(fall * 80.0, -90.0)
 	_knock_hat(dir)
 	# zbraň vyletí z ruky a ostane ležať – Ricco ju môže zobrať (weapons/weapon_pickup.gd)
-	if gun:
+	if gun and drops_weapon:
 		var d := WEAPON_PICKUP.new()
 		d.weapon = weapon
 		d.ammo = weapon.mag_size

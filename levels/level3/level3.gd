@@ -5,7 +5,10 @@ extends Node2D
 ## Ricco pristane v člne z Margaret pri kamennej stene, vylezie po železnom rebríku (world/fx/ladder.gd) na promenádu
 ## (lampa, lavička, strážnik s baterkou) a dverami obchodu v nájomnom dome prejde do ulice (časť 2 – street.gd),
 ## odtiaľ po strechách k stanici Delancey St (časť 3 – roofs.gd), nadzemkou do Harlemu (časť 4 – train.gd)
-## a do jazzového klubu The Blue Canary (časť 5 – club.gd: ulica a sála, časť 6 – club_back.gd: zákulisie, Sal).
+## a do jazzového klubu The Blue Canary (časť 5 – club.gd: ulica a sála, časť 6 – club_back.gd: zákulisie, Sal),
+## potom zadným vchodom do hotela Majestic (časť 7 – hotel.gd: kuchyňa, práčovňa, nákladný výťah) a na gala „M.“
+## v Starlight Room a na strechu s nápisom MAJESTIC (časť 8 – hotel_gala.gd) a za svitania na vrchol rozostavaného
+## mrakodrapu Iron Mikea (časť 9 – tower.gd: boss Iron Mike, vzducholoď „M.“).
 ## Celé nábrežie je „tma“ (player.dark_area): vidno ťa len na svetle lámp a v kuželi baterky.
 ## Scény nábrežia a ulice generuje tools/build_level3.gd (úpravy mapy rob tam, inak sa pri ďalšom generovaní prepíšu),
 ## scény striech a nadzemky píšu _art_src/make_roofs_scene.py a make_train_scene.py priamo (bez spúšťania Godotu).
@@ -18,6 +21,9 @@ const ROOFS := "res://levels/level3/roofs.tscn"     ## časť 3: strechy (billbo
 const TRAIN := "res://levels/level3/train.tscn"     ## časť 4: nadzemka do Harlemu (strechy vozňov, vozeň s cestujúcimi)
 const CLUB := "res://levels/level3/club.tscn"       ## časť 5: Lenox Ave a sála klubu The Blue Canary
 const CLUB_BACK := "res://levels/level3/club_back.tscn"   ## časť 6: zákulisie, pivnica, herňa a kancelária Velvet Sala
+const HOTEL := "res://levels/level3/hotel.tscn"     ## časť 7: hotel Majestic – ulička, kuchyňa, poschodie, práčovňa, výťah
+const HOTEL_GALA := "res://levels/level3/hotel_gala.tscn"   ## časť 8: gala v Starlight Room, strecha s nápisom MAJESTIC
+const TOWER := "res://levels/level3/tower.tscn"     ## časť 9: veža Iron Mikea – oceľová kostra, žeriav, boss, vzducholoď
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const REVOLVER := preload("res://weapons/revolver/revolver.tres")
 const LUPARA := preload("res://weapons/lupara/lupara.tres")
@@ -32,7 +38,10 @@ const TOMMY_START_AMMO := 20                        ## náboje do Thompsonu sú 
 ## 5–8 = strechy (roofs.gd: za dverami schodiska, za doskou, strecha dielne, požiarne schodisko),
 ## 9–13 = nadzemka (train.gd – strecha vozňa 1, potom pred vozňami 3, 4, 5 a 6),
 ## 14–16 = klub (club.gd – stanica 125 St, vnútri, lávka nad sálou),
-## 17–21 = zákulisie (club_back.gd – zákulisie, šatne, pivnica, šachta pri herni, strecha).
+## 17–21 = zákulisie (club_back.gd – zákulisie, šatne, pivnica, šachta pri herni, strecha),
+## 22–25 = hotel (hotel.gd – ulička, príjem / galéria, poschodie, práčovňa),
+## 26–29 = gala (hotel_gala.gd – špajza čašníkov, Starlight Room, balkón, strecha),
+## 30–32 = veža (tower.gd – stavenisko, 3. poschodie, vrchol – boj s Iron Mikeom).
 ## Statické premenné prežijú smrť (reload scény), úvodné menu a koniec kapitoly II ich vynulujú (reset()).
 static var checkpoint: int = 0
 static var arrived: bool = false                    ## Riccove myšlienky po pristátí už zazneli
@@ -44,6 +53,14 @@ static var train_arrived: bool = false              ## Riccove myšlienky na str
 static var club_arrived: bool = false               ## Riccove myšlienky pred klubom už zazneli
 static var club_back_arrived: bool = false          ## Riccove myšlienky v zákulisí už zazneli
 static var club_loud: bool = false                  ## v sále bol poplach – Sal sa v kancelárii zamkne (club_back.gd)
+static var hotel_arrived: bool = false              ## Riccove myšlienky v uličke za hotelom už zazneli
+static var lift_key: bool = false                   ## Ricco má kľúč od nákladného výťahu (hotel.gd – búdka predáka práčovne)
+static var hotel_loud: bool = false                 ## v hoteli bol poplach – na gale sú bossovia pripravení (hotel_gala.gd)
+static var gala_arrived: bool = false               ## Riccove myšlienky v špajzi čašníkov už zazneli
+static var toast_done: bool = false                 ## prípitok Iron Mikea na gale už bol (po smrti sa neopakuje)
+static var tower_arrived: bool = false              ## Riccove myšlienky na stavenisku veže už zazneli
+static var mike_phase: int = 0                      ## dosiahnutá fáza boja s Iron Mikeom (po smrti pokračuje v nej; 0 = ešte nezačal)
+static var mike_revealed: bool = false              ## Mike už raz vyšiel na nosníku hore (po smrti bez úvodu)
 static var carried: Array[WeaponData] = []          ## výbava pri vstupe do časti (napr. Colt 1911 namiesto revolvera); prázdne = začiatočná
 
 const ARRIVE: Array[String] = [
@@ -69,6 +86,14 @@ static func reset() -> void:
 	club_arrived = false
 	club_back_arrived = false
 	club_loud = false
+	hotel_arrived = false
+	lift_key = false
+	hotel_loud = false
+	gala_arrived = false
+	toast_done = false
+	tower_arrived = false
+	mike_phase = 0
+	mike_revealed = false
 	barks.clear()
 	tommy_ammo = [TOMMY_START_AMMO, 0]
 	carried.clear()
@@ -96,6 +121,12 @@ func _ready() -> void:
 
 ## Scéna časti kapitoly podľa checkpointu (po smrti sa pokračuje tam)
 static func part_for(cp: int) -> String:
+	if cp >= 30:
+		return TOWER
+	if cp >= 26:
+		return HOTEL_GALA
+	if cp >= 22:
+		return HOTEL
 	if cp >= 17:
 		return CLUB_BACK
 	if cp >= 14:

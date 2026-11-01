@@ -60,3 +60,16 @@ enum AltMode { NONE, SEMI, DOUBLE }
 @export var barrel_texture: Texture2D
 @export var hinge_px: Vector2 = Vector2.ZERO       ## pánt – okolo neho sa hlavne otáčajú
 @export var open_deg: float = 35.0                 ## o koľko sa hlavne vyklopia
+
+@export_group("Pump")
+## Pumpovačka (Winchester 1897): po každom výstrele druhá ruka potiahne predpažbie (pumpu) dozadu – vyletí nábojnica – a dopredu.
+## pump_body_texture = zbraň bez pumpy, pump_texture = samotná pumpa (jej ľavý horný roh je v zbrani na pump_px).
+## null = zbraň nemá pumpu. Nepriatelia kreslia celú zbraň (texture).
+@export var pump_texture: Texture2D
+@export var pump_body_texture: Texture2D
+@export var pump_px: Vector2 = Vector2.ZERO
+@export var pump_travel: float = 5.0               ## px – o koľko ide pumpa dozadu
+@export var pump_delay: float = 0.12               ## s po výstrele, kým potiahne
+@export var pump_time: float = 0.24                ## s – celý ťah (dozadu aj dopredu)
+## Nabíja sa po jednom náboji (reload_time = jeden náboj) – streľba nabíjanie preruší, zbraň vystrelí, čo v nej je
+@export var shell_reload: bool = false

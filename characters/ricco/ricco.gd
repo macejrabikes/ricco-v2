@@ -209,6 +209,10 @@ var last_weapon_index: int = 0
 var weapon_ammo: Array = []           ## pre každú zbraň výbavy [v zásobníku, rezerva]
 var _reload_tween: Tween
 var _barrels: Sprite2D                ## hlavne lámacej zbrane počas prebíjania (dieťa Gun, otáča sa na pánte)
+var _pump: Sprite2D                   ## pumpa pumpovačky (dieťa Gun) – po výstrele ide dozadu a dopredu
+var _pump_tween: Tween
+var _reload_cancel: bool = false      ## pumpovačka: streľba počas nabíjania – dobije náboj v ruke a prestane
+var _reload_empty: bool = false       ## nabíjanie začalo s prázdnou zbraňou – na konci treba potiahnuť pumpu
 var _bloom: float = 0.0               ## ° – rozptyl navyše zo streľby za sebou (WeaponData.spread_bloom_deg)
 var alt_fire: Dictionary = {}         ## WeaponData → true = druhý režim (WeaponData.alt_mode); pamätá sa pre každú zbraň
 var _heat: float = 0.0                ## zahriatie hlavne pri streľbe dávkou – viac dymu, po dávke z hlavne chvíľu stúpa dym
@@ -272,6 +276,11 @@ func _ready() -> void:
 	_barrels.centered = false
 	_barrels.visible = false
 	gun.add_child(_barrels)
+	_pump = Sprite2D.new()
+	_pump.centered = false
+	_pump.visible = false
+	gun.add_child(_pump)
+	gun.move_child(_pump, mag.get_index() + 1)   # nad telom zbrane, pod rukou ducha
 	for w in loadout:
 		weapon_ammo.append([w.mag_size, w.reserve_start])
 	_equip(0, false)
@@ -933,6 +942,8 @@ func _update_weapons() -> void:
 	if weapon and not holstered:   # bez zbrane (začiatok levelu 1) sa len hádže klobúk
 		var auto: bool = weapon.automatic and not is_alt_fire()   # samopal prepnutý na SEMI strieľa po jednom
 		pull = Input.is_action_pressed("shoot") if auto else Input.is_action_just_pressed("shoot")
+	if reloading and weapon and weapon.shell_reload and ammo_in_mag > 0 and Input.is_action_just_pressed("shoot"):
+		_reload_cancel = true   # pumpovačka: streľba preruší nabíjanie po náboji, ktorý má ruka práve pri otvore
 	if pull and fire_timer <= 0.0 and aim.visible and not reloading:
 		if ammo_in_mag > 0:
 			_shoot()
@@ -1001,6 +1012,8 @@ func _shoot() -> void:
 	_cam_kick = -aim_dir * (2.5 + recoil * 1.3)
 	Gangster.gunshot(global_position, SHOT_NOISE)   # výstrel počuť ďaleko, záblesk vidno aj v tme
 	shot_fired.emit()
+	if weapon.pump_texture:
+		_pump_action()
 
 
 # ---------------------------------------------------------------- schovanie zbrane
@@ -1049,7 +1062,7 @@ func _draw_weapon(animate: bool = true) -> void:
 # ---------------------------------------------------------------- záblesk z hlavne
 const FLASH_TEX := preload("res://weapons/pistol/muzzle_flash_big.png")
 const GLOW_TEX := preload("res://levels/level1/art/glow.png")
-const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8}
+const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8, "Winchester": 1.7}
 var _flash_glow: Sprite2D
 var _flash_light: PointLight2D   ## záblesk na okamih osvetlí okolie (aj v tme – CanvasModulate „Darkness“)
 # Jeden tween na každú časť záblesku: nový výstrel starý zruší. Inak pri dávke dobehol tween
@@ -1160,6 +1173,9 @@ func _start_reload() -> void:
 	if weapon.frame_texture:
 		_start_break_reload()
 		return
+	if weapon.shell_reload:
+		_start_shell_reload()
+		return
 	var k: float = weapon.reload_time / 1.0   # časovanie nižšie je pre 1 s
 	var tilt: float = -0.35 * gun.scale.y   # hlaveň mierne hore, pažba k Riccovi
 	var mag_in: Vector2 = _gun_px(weapon.mag_px)
@@ -1263,6 +1279,118 @@ func _close_barrels() -> void:
 	_barrels.rotation = 0.0
 
 
+# ---------------------------------------------------------------- pumpovačka (Winchester 1897)
+
+## Po výstrele druhá ruka ducha potiahne pumpu dozadu (vyletí nábojnica) a dopredu (náboj do komory).
+## delay < 0 = weapon.pump_delay (po výstrele chvíľu počká, kým zbraň „dosadne“)
+func _pump_action(delay: float = -1.0) -> void:
+	if weapon == null or weapon.pump_texture == null:
+		return
+	if _pump_tween:
+		_pump_tween.kill()
+	var rest: Vector2 = _gun_px(weapon.pump_px)
+	var hand: Vector2 = _offhand_rest()
+	var back := Vector2(-weapon.pump_travel, 0.0)
+	var t: float = weapon.pump_time * 0.5
+	_pump.position = rest
+	var tw := create_tween()
+	_pump_tween = tw
+	tw.tween_interval(weapon.pump_delay if delay < 0.0 else delay)
+	tw.tween_callback(func(): Sfx.play(&"pump_back", Vector2.INF, -5.0, 0.05))
+	tw.tween_property(_pump, "position", rest + back, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(offhand, "position", hand + back, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(_eject_shell)
+	tw.tween_callback(func(): Sfx.play(&"pump_fwd", Vector2.INF, -4.0, 0.05))
+	tw.tween_property(_pump, "position", rest, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(offhand, "position", hand, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): _pump_tween = null)
+
+
+## Vystrelená nábojnica vyletí z okienka pri puzdre (mag_px) hore a dozadu
+func _eject_shell() -> void:
+	if weapon == null or weapon.mag_texture == null:
+		return
+	var m := magazine_scene.instantiate()
+	m.texture = weapon.mag_texture
+	get_tree().current_scene.add_child(m)
+	m.global_position = gun.to_global(_gun_px(weapon.mag_px))
+	m.velocity = Vector2(-facing * randf_range(40.0, 75.0), randf_range(-130.0, -85.0))
+	m.spin = randf_range(-12.0, 12.0)
+
+
+## Pumpovačka sa nabíja po jednom náboji: druhá ruka pustí pumpu, prinesie náboj k otvoru pod puzdrom a zasunie ho –
+## znova a znova, kým je miesto a náboje. Streľba to preruší (dobije sa ešte náboj v ruke). Ak bola zbraň celkom prázdna,
+## na konci potiahne pumpu (náboj do komory).
+func _start_shell_reload() -> void:
+	_reload_cancel = false
+	_reload_empty = ammo_in_mag == 0
+	if _pump_tween:   # pumpa ešte dobieha – dorovnať
+		_pump_tween.kill()
+		_pump_tween = null
+		_pump.position = _gun_px(weapon.pump_px)
+	offhand.visible = true
+	offhand.fade = 1.0
+	var tw := create_tween()
+	_reload_tween = tw
+	tw.tween_property(gun, "rotation", 0.2 * gun.scale.y, 0.08)   # ústie trochu dole, otvor k ruke
+	tw.tween_callback(_load_one_shell)
+
+
+func _load_one_shell() -> void:
+	if weapon == null or not weapon.shell_reload:
+		return
+	var k: float = weapon.reload_time
+	var port: Vector2 = _gun_px(weapon.mag_px) - OFFHAND_MAG
+	var hand: Node = offhand.get_node("NewMag")
+	hand.texture = weapon.new_mag_texture
+	hand.visible = true
+	var tw := create_tween()
+	_reload_tween = tw
+	tw.tween_property(offhand, "position", port + Vector2(-5.0, 9.0), 0.45 * k).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(offhand, "position", port, 0.2 * k).set_ease(Tween.EASE_IN)
+	tw.tween_callback(_shell_in)
+	tw.tween_property(gun, "rotation", 0.2 * gun.scale.y - 0.06 * gun.scale.y, 0.05 * k)
+	tw.tween_property(gun, "rotation", 0.2 * gun.scale.y, 0.1 * k)
+	tw.parallel().tween_property(offhand, "position", port + Vector2(-3.0, 7.0), 0.15 * k)
+	tw.tween_callback(_after_shell)
+
+
+func _shell_in() -> void:
+	Sfx.play(&"shell_insert", Vector2.INF, -3.0)
+	offhand.get_node("NewMag").visible = false
+	if ammo_reserve > 0 and ammo_in_mag < mag_size:
+		ammo_in_mag += 1
+		ammo_reserve -= 1
+		_store_ammo()
+		ammo_changed.emit(ammo_in_mag, ammo_reserve, true)
+
+
+func _after_shell() -> void:
+	if not _reload_cancel and ammo_in_mag < mag_size and ammo_reserve > 0:
+		_load_one_shell()
+		return
+	var tw := create_tween()
+	_reload_tween = tw
+	tw.tween_property(offhand, "position", _offhand_rest(), 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(gun, "rotation", 0.0, 0.14)
+	tw.tween_callback(_finish_shell_reload)
+
+
+func _finish_shell_reload() -> void:
+	reloading = false
+	_reload_tween = null
+	offhand.get_node("NewMag").visible = false
+	offhand.position = _offhand_rest()
+	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
+	if _reload_empty and ammo_in_mag > 0:   # z prázdnej zbrane – náboj do komory
+		_pump_action(0.0)
+		fire_timer = maxf(fire_timer, weapon.pump_time + 0.05)
+	_reload_empty = false
+	if _holster_after_reload:
+		_holster_after_reload = false
+		_holster()
+
+
 ## Starý zásobník / nábojnice / broky sa pustia – ďalej padajú samé (magazine_drop.gd)
 func _drop_magazine() -> void:
 	Sfx.play(&"cylinder_spin" if weapon.name == "Revolver" else &"mag_out", Vector2.INF, -4.0)
@@ -1343,10 +1471,18 @@ func _equip(i: int, animate: bool = true) -> void:
 	_bloom = 0.0
 	_barrels.visible = false   # prerušené lámacie prebíjanie
 	_barrels.rotation = 0.0
+	if _pump_tween:
+		_pump_tween.kill()
+		_pump_tween = null
 	ammo_in_mag = weapon_ammo[i][0]
 	ammo_reserve = weapon_ammo[i][1]
 	gun.texture = weapon.texture
 	gun.rotation = 0.0
+	if weapon.pump_texture:   # pumpovačka: telo zvlášť, pumpa ako samostatný obrázok (hýbe sa)
+		gun.texture = weapon.pump_body_texture if weapon.pump_body_texture else weapon.texture
+		_pump.texture = weapon.pump_texture
+		_pump.position = _gun_px(weapon.pump_px)
+	_pump.visible = weapon.pump_texture != null
 	gun.position = PISTOL_GRIP - _gun_px(weapon.grip_px)
 	gun_base_x = gun.position.x
 	ghost_hand.position = _gun_px(weapon.grip_px) + Vector2(-10, -6)

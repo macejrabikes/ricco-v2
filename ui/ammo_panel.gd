@@ -129,8 +129,8 @@ func _on_ammo_changed(new_mag: int, new_reserve: int, new_reloading: bool) -> vo
 	if reloading and not new_reloading and new_mag > mag:
 		_fill_from = mag
 		_fill_t = 0.0
-	if new_reloading and not reloading:
-		_reload_t = 0.0
+	if new_reloading and (not reloading or new_mag > mag):
+		_reload_t = 0.0   # pumpovačka nabíja po jednom náboji – prúžok ide znova pri každom
 	mag = new_mag
 	reserve = new_reserve
 	reloading = new_reloading

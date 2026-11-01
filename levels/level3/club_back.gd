@@ -10,7 +10,8 @@ extends ClubLevel
 ##   C1 herňa – štyria Salovi poručíci pri pokrovom stole (lampa nad stolom; stôl sa dá prevrátiť na kryt).
 ##   C2 kancelária – Sal (Thompson, vesta) a bodyguard. Keď je poplach (alebo bol v sále – club_loud), Sal sa zamkne,
 ##      prevráti stôl a čaká za ním: dvere treba vystreliť, alebo ísť strechou cez svetlík.
-## Keď Sal padne, trezor: pozvánka od „M.“ na gala v hoteli Majestic a fotka ženy v závoji. Potom oknom von.
+## Keď Sal padne, trezor: pozvánka od „M.“ na gala v hoteli Majestic a fotka ženy v závoji. Potom oknom von –
+## do časti 7 (hotel.gd, zadný vchod hotela Majestic).
 ## Checkpointy (Level3.checkpoint): 17 = zákulisie, 18 = šatne / izby personálu, 19 = pivnica, 20 = šachta pri herni,
 ## 21 = strecha.
 ## Godot docs: classes/class_tween, classes/class_collisionshape2d
@@ -261,4 +262,4 @@ func _on_exit_window() -> void:
 	player.set_cutscene(true)
 	bark("SUBTLE AS A BRASS BAND, KID." if club_loud or alarm_on else "QUIET AS A CHURCH MOUSE, KID.")
 	await _wait(2.6)
-	_to_be_continued()
+	_leave_door(HOTEL, 22, false)   # požiarnym schodiskom dolu a taxíkom k hotelu Majestic

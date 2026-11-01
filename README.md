@@ -76,14 +76,26 @@ The letter from "M." leads Ricco and the ghost to New York.
 - **Backstage** – sandbags on the fly grid, a knock on the dressing-room door to lure out drinkers one by one, bootleg whisky
   barrels in the cellar that turn the floor into an ice rink, Sal's lieutenants at the poker table and Sal himself – who locks
   his office when he hears trouble. His safe holds an invitation to a gala at the Hotel Majestic… and a photo of a veiled woman.
-- Coming next: the Hotel Majestic.
+- **The Hotel Majestic** – in through the back: a cop on the take at the loading dock, a kitchen full of cooks where you
+  swing from pot hooks over the goons' heads, bounce bullets off copper pans into the nearest hood, pop a steam valve in
+  someone's face or turn the floor into an oil slick. Lure card-playing cops out of the staff quarters, slide down the
+  linen chute, steal the freight-car key from the laundry foreman – or climb the elevator shaft past a moving counterweight.
+- **The gala** – the Starlight Room: a big band, chandeliers, eight crime families at one long table and an empty ninth chair
+  with a blue veil. Iron Mike raises a toast to "M." and walks out. Up on the roof a sniper waits behind the giant
+  MAJESTIC sign – its letters hang by a single bolt each.
+- **Iron Mike's tower** – dawn over an unfinished skyscraper, red-primed steel all the way up. Dodge hot rivets pitched
+  between riveters, drop a bundle of girders on a lunch break, belly-slide under a beam the crane swings through a floor
+  and fight the wind on the top floors. At the very top Iron Mike rides the last beam of his tower on the crane hook,
+  pumping a Winchester trench gun – then it's twelve-gauge on the deck, falling rivet kegs, and a final duel on the
+  mast of a zeppelin with "M." waiting in the gondola.
+- Coming next: a car chase.
 
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
 - **Tight platforming** – coyote time, jump buffering, variable jump, ledge grab, wall jump, penguin belly slide (slide into a goon to trip him)
 - **Stealth** – light and darkness, sneaking, ducking behind low cover, silent takedowns from behind, a hat throw that stuns (or puts out a lamp)
 - **The Don's ghost** – a spectral hand holds the gun and reloads it; slow‑mo turns the screen ghost‑blue
-- **Period weapons** – Don's derringer, a .38 revolver, the lupara, the Thompson. One sidearm + two primaries, pick up from the ground or swap with `F`
+- **Period weapons** – Don's derringer, a .38 revolver, a Colt 1911, the lupara, the Thompson, Iron Mike's Winchester 1897 pump gun (shell-by-shell reload). One sidearm + two primaries, pick up from the ground or swap with `F`
 - **Real ammo** – limited magazines and reserves, empty mags and shells drop and bounce, every gun has its own reload animation (the derringer breaks open)
 - **Fire modes** – the Tommy gun switches between full auto and semi, the lupara can fire both barrels at once
 - **Gunfeel** – spread and bloom, damage falloff with distance, muzzle flash that lights up the dark, lingering smoke, camera kick; enemies hear shots
@@ -129,7 +141,7 @@ All keys can be changed in **Settings → Controls → Keyboard**. Defaults:
 - [x] **Chapter II – Wharf Rats** – the Don's funeral at the cemetery, the foggy docks, Big Lou's cold storage, the S.S. Margaret in a storm, **boss fight with Big Lou**, the escape from the burning ship and a cliffhanger
 - [x] Weapons: derringer, revolver, lupara, Tommy gun, fire modes, Arsenal, shooting range
 - [ ] More period weapons (Colt 1911, Winchester 1897, Mauser C96…), human shield, loadout screen with weapon stats between levels
-- [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops ✔, the El train ✔, a Harlem jazz club ✔, the Hotel Majestic, boss Iron Mike, a car chase
+- [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops ✔, the El train ✔, a Harlem jazz club ✔, the Hotel Majestic ✔, boss Iron Mike ✔, a car chase
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
 - [ ] Style meter, more secrets (swimming ✔, ice ✔, meat hooks ✔)
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)

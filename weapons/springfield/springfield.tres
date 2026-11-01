@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://weapons/weapon_data.gd" id="1_s"]
+[ext_resource type="Texture2D" path="res://weapons/springfield/springfield.png" id="2_t"]
+
+[resource]
+script = ExtResource("1_s")
+name = "Springfield"
+texture = ExtResource("2_t")
+slot_name = "PRIMARY"
+grip_px = Vector2(15, 6)
+muzzle_px = Vector2(53.0, 2.0)
+two_handed = true
+foregrip_px = Vector2(30, 4)
+automatic = false
+fire_cooldown = 1.2
+pellets = 1
+spread_deg = 0.5
+damage = 2.0
+bullet_speed = 900.0
+bullet_lifetime = 1.2
+recoil_px = 4.0
+shake = 3.0
+mag_size = 5
+reserve_start = 0
+reserve_max = 0

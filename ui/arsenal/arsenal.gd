@@ -46,7 +46,8 @@ const ENTRIES: Array[Dictionary] = [
 	{"res": ""},   # Mauser C96
 	{"res": "res://weapons/lupara/lupara.tres", "title": "LUPARA", "model": "SAWN-OFF DOUBLE   12 GA",
 		"text": ["AN OLD SICILIAN TRADITION.", "UP CLOSE, NOTHING ARGUES BACK."]},
-	{"res": ""},   # Winchester 1897
+	{"res": "res://weapons/winchester/winchester.tres", "title": "WINCHESTER 1897", "model": "TRENCH GUN   12 GA",
+		"text": ["IRON MIKE BROUGHT IT HOME", "FROM THE TRENCHES OF FRANCE.", "PUMP. BOOM. PUMP."]},
 	{"res": "res://weapons/tommy/tommy.tres", "title": "THOMPSON", "model": "M1928   .45 ACP",
 		"text": ["THE CHICAGO TYPEWRITER.", "LOUD, HUNGRY, AND IT", "NEVER STOPS TALKING."]},
 	{"res": ""},   # Winchester 1894
