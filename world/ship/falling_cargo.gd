@@ -1,6 +1,7 @@
 extends Sprite2D
 ## Debna, ktorú Big Lou pustí zo siete žeriavu (world/ship/crane.gd). Padá, kto stojí pod ňou, príde o 2 kúsky pizze
-## (Louovi na hlavu za 3 HP). Po dopade sa buď rozletí (možno náboje), alebo ostane stáť ako nový kryt (world/ship/ship_crate.gd).
+## (Louovi na hlavu za 3 HP). Po dopade ostane stáť ako dočasný kryt (world/ship/ship_crate.gd, slabšia – CRATE_HP),
+## alebo sa rozletí (stay = false, dopad na vysokú kopu, alebo by niekoho zavrela do seba).
 ## Godot docs: classes/class_sprite2d, classes/class_physicsdirectspacestate2d
 
 const CRATE := preload("res://world/ship/ship_crate.gd")
@@ -8,8 +9,10 @@ const TEXTURES: Array[String] = ["crate.png", "crate_maple.png", "crate_whisky.p
 const DOCKS := "res://levels/level2/art/docks/"
 const GRAVITY := 640.0
 const SIZE := Vector2(30, 20)
+const CRATE_HP := 5.0   ## debna zo žeriavu vydrží pár Louových guliek (pevné debny na palube 10)
 
 var velocity: Vector2 = Vector2.ZERO
+var stay: bool = true
 var _tex_name: String
 var _hit: bool = false
 
@@ -47,7 +50,7 @@ func _physics_process(delta: float) -> void:
 		global_position = to
 		return
 	global_position = hit.position - Vector2(0, SIZE.y / 2.0)
-	_land(hit.position.y < -30.0 or randf() < 0.5)   # na vysokú kopu sa už nezmestí
+	_land(hit.position.y < -30.0 or not stay)   # na vysokú kopu sa už nezmestí
 
 
 func _land(shatter: bool) -> void:
@@ -65,7 +68,8 @@ func _land(shatter: bool) -> void:
 	# zmení sa na skutočnú debnu (kryt) – telo sa poskladá ešte pred vložením do stromu
 	var b := StaticBody2D.new()
 	b.set_script(CRATE)
-	b.ammo_chance = 0.6
+	b.ammo_chance = 0.35
+	b.hp = CRATE_HP
 	var cs := CollisionShape2D.new()
 	var r := RectangleShape2D.new()
 	r.size = SIZE
@@ -79,6 +83,7 @@ func _land(shatter: bool) -> void:
 	s.z_index = -1
 	b.add_child(s)
 	b.add_to_group(&"ship_cover", true)
+	b.add_to_group(&"crane_crate", true)   # Lou počíta, koľko ich už na palube stojí
 	b.position = global_position.round()
 	scene.add_child(b)
 	if shatter:

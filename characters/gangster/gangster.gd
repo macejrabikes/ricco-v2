@@ -15,6 +15,10 @@ extends CharacterBody2D
 ##   kamaráti: keď niekoho vedľa zložíš (aj potichu), blízky to počuje a ten, čo sa tam pozerá, to vidí → vie o Riccovi;
 ##             ďalší v okolí (aj výstrel – Gangster.noise) sa s „?“ idú pozrieť (INVESTIGATE), potom sa vrátia na miesto
 ##   nechodia cez seba: na hliadke sa pri kamarátovi otočia, pri behu za Riccom sa nezhlukujú
+##   prekážky: keď idú za Riccom alebo sa idú pozrieť, nízku prekážku (debna, sud – do HOP_MAX) preskočia (_try_hop)
+##             a zoskočia aj z debny (_ledge_ok s väčším dosahom); na hliadke sa pri stene stále otočia
+##   zásah: kto dostane guľku, vie odkiaľ prišla (_aggro) – otočí sa a strieľa späť aj z tmy; keď Ricca nevidí
+##          (schoval sa za debnu), ide sa pozrieť tam, kde ho naposledy videl (_last_seen)
 ## Spomalenie času (Engine.time_scale) spomalí aj jeho a jeho guľky – netreba nič riešiť.
 
 enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, STUN, DEAD, INVESTIGATE }
@@ -140,6 +144,9 @@ const KEEP_APART := 22.0       ## px – takto blízko pri kamarátovi sa na hli
 const WHISTLE_RANGE := 480.0   ## px – píšťalku policajta počujú všetci do tejto vzdialenosti
 const DARK_SIGHT := 80.0       ## px – v tme (needs_light) rozozná Ricca pred sebou do tejto vzdialenosti, aj prikrčeného
 const HEAR_STEPS := 90.0       ## px – za chrbtom počuje Riccove kroky, keď nejde potichu (zakrádanie: close_sense · 0,45)
+const HOP_MAX := 46.0          ## px – najvyššia prekážka, ktorú preskočí (dve debny na palube)
+const CHASE_DROP := 64.0       ## px – z takej výšky zoskočí, keď ide za Riccom (z debny dole)
+const HIT_AGGRO := 5.0         ## s – po zásahu vie, kde Ricco je (aj v tme)
 
 var state: State = State.PATROL
 var health: float   ## damage zbraní je desatinný (WeaponData.damage, pokles so vzdialenosťou)
@@ -163,6 +170,11 @@ var _investigate_x: float = 0.0   ## px – kam sa ide pozrieť (počul výstrel
 var _investigate_phase: int = 0   ## 0 = zarazí sa, 1 = ide tam, 2 = obzerá sa, 3 = vracia sa
 var _question_mark: Label
 var _breath_t: float = 0.0
+var _hop_dir: float = 0.0       ## smer skoku cez prekážku (0 = neskáče)
+var _hop_speed: float = 0.0
+var _hop_air: bool = false      ## už je vo vzduchu (pristátie skok ukončí)
+var _hop_cool: float = 0.0
+var _last_seen: Vector2 = Vector2.INF   ## kde Ricca naposledy videl
 var spawn_pos: Vector2
 var player: Node2D
 
@@ -369,12 +381,15 @@ func _physics_process(delta: float) -> void:
 		player = get_tree().get_first_node_in_group(&"player") as Node2D
 	timer -= delta
 	_aggro -= delta
+	_hop_cool -= delta
 	_flash_t -= delta
 	flash.visible = _flash_t > 0.0
 	if player == null:
 		move_and_slide()
 		return
 	var sees: bool = state != State.DEAD and _can_see_player()
+	if sees:
+		_last_seen = player.global_position
 
 	match state:
 		State.PATROL:
@@ -388,9 +403,11 @@ func _physics_process(delta: float) -> void:
 				timer = randf_range(patrol_time.x, patrol_time.y)
 		State.AIM:
 			_face_player()
-			if preferred_range > 0.0 and _player_dist() > preferred_range + 20.0 and _ledge_ok(facing):
+			if preferred_range > 0.0 and _player_dist() > preferred_range + 20.0 and _ledge_ok(facing, CHASE_DROP):
 				velocity.x = facing * walk_speed * 1.4   # lupara: najprv sa priblíži
 				timer = maxf(timer, aim_time * 0.6)
+				if is_on_wall():
+					_try_hop(facing, walk_speed * 1.4)
 			else:
 				velocity.x = move_toward(velocity.x, 0.0, 400.0 * delta)
 				if timer <= 0.0:
@@ -428,8 +445,10 @@ func _physics_process(delta: float) -> void:
 				velocity.x = 0.0
 				state = State.WINDUP
 				timer = windup_time
-			elif _ledge_ok(signf(dx)) and not _ally_ahead(signf(dx), 18.0, true):
+			elif _ledge_ok(signf(dx), CHASE_DROP) and not _ally_ahead(signf(dx), 18.0, true):
 				velocity.x = signf(dx) * run_speed
+				if is_on_wall():
+					_try_hop(signf(dx), run_speed)   # debna v ceste – preskočí ju
 			else:
 				velocity.x = 0.0
 			if not sees: _lose_sight(delta)
@@ -467,6 +486,13 @@ func _physics_process(delta: float) -> void:
 
 	if state not in [State.AIM]:
 		laser.visible = false
+	# skok cez prekážku: vo vzduchu drží smer (stav by ho inak zabrzdil a spadol by späť pred debnu)
+	if _hop_dir != 0.0:
+		if state == State.DEAD or state == State.STUN or (_hop_air and is_on_floor()):
+			_hop_dir = 0.0
+		else:
+			_hop_air = _hop_air or not is_on_floor()
+			velocity.x = _hop_dir * _hop_speed
 	move_and_slide()
 	_animate(delta)
 	# para od úst v mraze
@@ -549,6 +575,8 @@ func _lose_sight(delta: float) -> void:
 	if lost_sight > 1.5:
 		state = State.IDLE
 		timer = 1.0
+		if _last_seen != Vector2.INF and absf(_last_seen.x - global_position.x) > 24.0:
+			hear(_last_seen)   # schoval sa – ide sa pozrieť, kde ho naposledy videl (preskočí aj debny)
 
 
 func _patrol(delta: float) -> void:
@@ -619,6 +647,7 @@ static func gunshot(pos: Vector2, radius: float) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return
+	Guest.panic(pos, radius)   # smútiaci (world/npc/guest.gd, flee) pred streľbou utečú
 	for n in tree.get_nodes_in_group(&"enemies"):
 		var g := n as Gangster
 		if g == null or g.state == State.DEAD or g.passive:
@@ -703,7 +732,8 @@ func _investigate(delta: float) -> void:
 				timer = 6.0
 		1:   # ide tam (opatrne, trochu rýchlejšie ako na hliadke)
 			var dx: float = _investigate_x - global_position.x
-			if absf(dx) < 10.0 or timer <= 0.0 or is_on_wall() or not _ledge_ok(signf(dx)) or _ally_ahead(signf(dx), KEEP_APART):
+			var blocked: bool = is_on_wall() and not _try_hop(signf(dx), walk_speed * 1.3) and _hop_dir == 0.0
+			if absf(dx) < 10.0 or timer <= 0.0 or blocked or not _ledge_ok(signf(dx), CHASE_DROP) or _ally_ahead(signf(dx), KEEP_APART):
 				velocity.x = 0.0
 				_investigate_phase = 2
 				timer = 2.4
@@ -722,7 +752,8 @@ func _investigate(delta: float) -> void:
 				timer = 8.0
 		3:   # vracia sa (stráž na svoje miesto, hliadka pokračuje)
 			var hx: float = spawn_pos.x - global_position.x
-			if not stationary or absf(hx) < 4.0 or timer <= 0.0 or is_on_wall() or not _ledge_ok(signf(hx)):
+			var blocked: bool = is_on_wall() and not _try_hop(signf(hx), walk_speed) and _hop_dir == 0.0
+			if not stationary or absf(hx) < 4.0 or timer <= 0.0 or blocked or not _ledge_ok(signf(hx), CHASE_DROP):
 				velocity.x = 0.0
 				if stationary:
 					_set_facing(home_facing)
@@ -754,12 +785,48 @@ func _show_question_mark() -> void:
 
 
 ## Je pred ním zem? (lúč dole kúsok pred nohami) – aby nespadol z plošiny
-func _ledge_ok(dir: float) -> bool:
+## drop = ako hlboko môže byť zem (na hliadke 14 px, keď ide za Riccom CHASE_DROP – zoskočí z debny)
+func _ledge_ok(dir: float, drop: float = 14.0) -> bool:
 	if not is_on_floor():
 		return true
 	var from := global_position + Vector2(dir * 14.0, -4.0)
-	var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, 14), 1)
+	var q := PhysicsRayQueryParameters2D.create(from, from + Vector2(0, drop), 1)
 	return not get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+
+
+## Prekážka pred ním (debna, sud): ak je nízka (do HOP_MAX) a nad ňou je voľno, vyskočí na ňu / cez ňu.
+## Výšku zistí lúčmi pred sebou po 4 px nahor. Vráti true, ak skočil. Godot docs: classes/class_physicsdirectspacestate2d
+func _try_hop(dir: float, speed: float) -> bool:
+	if dir == 0.0 or not is_on_floor() or _hop_cool > 0.0 or _hop_dir != 0.0:
+		return false
+	var space := get_world_2d().direct_space_state
+	var base := global_position
+	var low := PhysicsRayQueryParameters2D.create(base + Vector2(0, -6), base + Vector2(dir * 22.0, -6), 1)
+	low.exclude = [get_rid()]
+	if space.intersect_ray(low).is_empty():
+		return false
+	var h: float = 10.0
+	while h <= HOP_MAX:
+		var q := PhysicsRayQueryParameters2D.create(base + Vector2(0, -h), base + Vector2(dir * 26.0, -h), 1)
+		q.exclude = [get_rid()]
+		if space.intersect_ray(q).is_empty():
+			break
+		h += 4.0
+	if h > HOP_MAX:
+		return false   # vysoká stena – neskočí
+	# nad sebou aj nad prekážkou musí byť miesto (strop, plošina)
+	var top: float = -66.0 - h - 6.0
+	var up := PhysicsRayQueryParameters2D.create(base + Vector2(0, -60), base + Vector2(dir * 20.0, top), 1)
+	up.exclude = [get_rid()]
+	if not space.intersect_ray(up).is_empty():
+		return false
+	velocity.y = -sqrt(2.0 * get_gravity().y * (h + 12.0))
+	_hop_dir = dir
+	_hop_speed = maxf(speed, 60.0)
+	_hop_air = false
+	_hop_cool = 0.5
+	_set_facing(dir)
+	return true
 
 
 func _player_target() -> Vector2:
@@ -874,6 +941,7 @@ func _fire() -> void:
 	flash.frame = randi() % 2
 	flash.rotation = randf_range(-0.12, 0.12)
 	Sfx.shot(weapon, global_position, -3.0)
+	Guest.panic(global_position, 400.0)
 	arm_front.position.x = SHOULDER_FRONT.x - 2.0   # spätný ráz
 	create_tween().tween_property(arm_front, "position:x", SHOULDER_FRONT.x, 0.08)
 
@@ -954,8 +1022,12 @@ func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 		_die(dir)
 		return
 	velocity.x = dir.x * 60.0
+	# vie, odkiaľ guľka prišla – aj z tmy (needs_light) Ricca uvidí a strieľa späť
+	_aggro = maxf(_aggro, HIT_AGGRO)
+	if is_instance_valid(player):
+		_last_seen = player.global_position
 	# zásah ho vyruší – otočí sa k Riccovi a začne odznova mieriť (alebo beží k nemu)
-	if state in [State.PATROL, State.IDLE]:
+	if state in [State.PATROL, State.IDLE, State.INVESTIGATE]:
 		_alert()
 	elif state == State.AIM:
 		timer = maxf(timer, aim_time * 0.5)

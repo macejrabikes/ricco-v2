@@ -23,7 +23,16 @@ static func open(parent: Node, tex: Texture2D) -> ReadCard:
 	return c
 
 
-func _build(tex: Texture2D) -> void:
+## Vlastný obsah namiesto jedného obrázka (napr. zápalky – obrázok 2× a nápisy cez neho).
+## card = Control s nastavenou veľkosťou (size), postaví sa do stredu obrazovky.
+static func open_card(parent: Node, card: Control) -> ReadCard:
+	var c := ReadCard.new()
+	c._build(null, card)
+	parent.add_child(c)
+	return c
+
+
+func _build(tex: Texture2D, card: Control = null) -> void:
 	layer = 60
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_dim = ColorRect.new()
@@ -35,10 +44,13 @@ func _build(tex: Texture2D) -> void:
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_root)
-	var img := TextureRect.new()
-	img.texture = tex
-	img.position = (Vector2(640, 360) - tex.get_size()) / 2.0 - Vector2(0, 8)
-	img.position = img.position.round()
+	var img: Control = card
+	if img == null:
+		var tr := TextureRect.new()
+		tr.texture = tex
+		tr.size = tex.get_size()
+		img = tr
+	img.position = ((Vector2(640, 360) - img.size) / 2.0 - Vector2(0, 8)).round()
 	_root.add_child(img)
 	var hint := Label.new()
 	hint.text = "%s / ESC  -  CLOSE" % KeyBindings.short(&"takedown")
@@ -49,7 +61,7 @@ func _build(tex: Texture2D) -> void:
 	hint.add_theme_constant_override(&"outline_size", 4)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.size = Vector2(640, 10)
-	hint.position = Vector2(0, img.position.y + tex.get_height() + 8)
+	hint.position = Vector2(0, img.position.y + img.size.y + 8)
 	_root.add_child(hint)
 
 

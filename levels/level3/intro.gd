@@ -1,13 +1,13 @@
 extends Node2D
 ## Úvod kapitoly III – noc v newyorskom prístave. Ricco vesluje v záchrannom člne z Margaret popri Soche slobody,
 ## za ňou svieti Manhattan (Empire State, Chrysler), v diaľke pláva trajekt. Nápis CHAPTER III – THE BIG APPLE,
-## Riccove myšlienky a hláška ducha → stmavne → nábrežná stena (waterfront.tscn, level3.gd).
+## Riccove myšlienky a hláška ducha → stmavne → nábrežná stena (street.tscn – nábrežie a ulica v jednej mape, street.gd).
 ## Scénu generuje tools/build_level3.gd (_build_intro), obrázky _art_src/make_ch3_art.py. Bez kamery – súradnice = obrazovka.
 ## Godot docs: classes/class_tween, classes/class_animatedsprite2d
 
 const FONT := preload("res://ui/fonts/tiny5.ttf")
 const GLOW := preload("res://levels/level1/art/glow.png")
-const WATERFRONT := "res://levels/level3/waterfront.tscn"
+const STREET := "res://levels/level3/street.tscn"   ## nábrežie a ulica (jedna mapa)
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const BOAT_FROM := -130.0     ## čln vpláva zľava…
 const BOAT_STOP := 250.0      ## …zastaví sa pred sochou (rozhovor)…
@@ -151,7 +151,7 @@ func _leave() -> void:
 	var tw := create_tween()
 	tw.tween_property(black, "color:a", 1.0, 1.2)
 	await tw.finished
-	LoadingScreen.go(get_tree(), WATERFRONT, 0.4)
+	LoadingScreen.go(get_tree(), STREET, 0.4)
 
 
 func _label(t: String, size: int, col: Color, dy: float) -> Label:

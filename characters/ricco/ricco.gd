@@ -466,6 +466,9 @@ func is_lit() -> bool:
 	return not dark_area or light_zones > 0
 
 
+var camera_bias: Vector2 = Vector2(0, CAMERA_Y)   ## px – posun stredu kamery od Ricca; level ho môže zmeniť (bossfight na lodi – margaret.gd)
+
+
 ## Kamera „visí“ pred Riccom v smere myši (so zbraňou) alebo v smere pohľadu (bez zbrane),
 ## aby bolo vidieť viac toho, kam mieri. Posun ide do follow_offset Phantom Camery, tlmenie robí ona.
 func _update_camera_lean(delta: float) -> void:
@@ -474,14 +477,14 @@ func _update_camera_lean(delta: float) -> void:
 		dir = Vector2(facing * 0.6, 0.0)
 	elif state != State.DEAD:
 		if weapon != null:
-			var to_mouse: Vector2 = get_global_mouse_position() - (global_position + Vector2(0, CAMERA_Y))
+			var to_mouse: Vector2 = get_global_mouse_position() - (global_position + camera_bias)
 			if to_mouse.length() > 8.0:
 				dir = to_mouse.normalized()
 		else:
 			dir = Vector2(facing, 0.0)
 	var target := dir * camera_lean
 	_lean = _lean.lerp(target, 1.0 - exp(-camera_lean_speed * delta))
-	pcam.follow_offset = Vector2(0, CAMERA_Y) + _lean
+	pcam.follow_offset = camera_bias + _lean
 
 
 func _physics_process(delta: float) -> void:

@@ -4,12 +4,16 @@ extends Sprite2D
 ## Keď uvidí Ricca na svetle, zľakne sa („!“ nad hlavou) a privolá mafiánov (Gangster.alarm) – Ricco sa musí držať v tme.
 ## Riccova guľka ho môže trafiť (telo na vrstve 7 = INNOCENT_LAYER, Riccove guľky ju majú v hit_mask): padne, ostatní
 ## zvreskú a duch Dona Ricca zvozí (Level2.bark). Mafiánske guľky hosťami preletia.
+## flee = true (smútiaci na cintoríne): keď sa v okolí strieľa (Guest.panic – volá ho Riccov aj mafiánsky výstrel),
+## s „!“ zvreskne a uteká preč od streľby, kým nezmizne z obrazovky.
 
 @export var loop: bool = false           ## true = snímky stále dookola (tanec, harmonika); false = občas sa napije
 @export var fps: float = 5.0
 @export var witness: bool = true         ## zbadá Ricca a spustí poplach
 @export var see_range: float = 150.0     ## px vodorovne
 @export var alarm_range: float = 520.0   ## px – ktorí mafiáni počujú krik
+@export var flee: bool = false           ## pri streľbe v okolí uteká preč (inak len zvreskne)
+@export var flee_speed: float = 96.0     ## px/s
 
 static var _last_alert_ms: int = -100000   ## zvuk „!“ naraz len raz
 static var _scold_n: int = 0               ## koľkokrát už duch Ricca zvozil (hlášky sa striedajú)
@@ -33,6 +37,10 @@ var player: Node2D
 var _mark: Label
 var dead: bool = false
 var _body: StaticBody2D
+var fleeing: bool = false
+var _flee_dir: float = 1.0
+var _run_t: float = 0.0
+var _base_offset: Vector2
 
 
 func _ready() -> void:
@@ -60,6 +68,9 @@ func _make_body() -> void:
 
 func _process(delta: float) -> void:
 	if dead:
+		return
+	if fleeing:
+		_run(delta)
 		return
 	_animate(delta)
 	if player == null or not is_instance_valid(player):
@@ -134,6 +145,50 @@ func _show_mark() -> void:
 	tw.tween_property(_mark, "modulate:a", 0.0, 0.25)
 
 
+# ---------------------------------------------------------------- útek pred streľbou
+
+## Streľba na pos: smútiaci (flee) v okruhu radius utečú preč. Volá Gangster.gunshot (Ricco) a Gangster._fire.
+static func panic(pos: Vector2, radius: float) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	for n in tree.get_nodes_in_group(&"guests"):
+		var g := n as Guest
+		if g and g.flee and not g.dead and not g.fleeing and g.global_position.distance_to(pos) < radius:
+			g._start_flee(pos)
+
+
+## Každý zareaguje inak rýchlo (nie všetci naraz), zvreskne, poskočí a uteká opačne od streľby
+func _start_flee(from: Vector2) -> void:
+	fleeing = true
+	_base_offset = offset
+	var dx: float = global_position.x - from.x
+	_flee_dir = signf(dx) if absf(dx) > 6.0 else (-1.0 if randf() < 0.5 else 1.0)
+	set_process(false)
+	await get_tree().create_timer(randf_range(0.05, 0.45), false).timeout
+	if dead or not is_inside_tree():
+		return
+	_show_mark()
+	var now := Time.get_ticks_msec()
+	if now - _last_alert_ms > 250:
+		_last_alert_ms = now
+		Sfx.play(&"alert", global_position + Vector2(0, -40), -5.0, 0.15)
+	frame = 0
+	flip_h = _flee_dir < 0.0
+	_run_t = randf() * TAU
+	set_process(true)
+
+
+## Beh: poskakovanie a predklon (sprite nemá snímky behu), mimo obrazovky zmizne
+func _run(delta: float) -> void:
+	_run_t += delta * 15.0
+	global_position.x += _flee_dir * flee_speed * delta
+	offset = _base_offset + Vector2(0, -absf(sin(_run_t)) * 2.0)
+	rotation = _flee_dir * 0.09
+	if player and is_instance_valid(player) and absf(global_position.x - player.global_position.x) > 420.0:
+		queue_free()
+
+
 # ---------------------------------------------------------------- zásah (omylom)
 
 ## Riccova guľka: padne naznak v smere strely, krv, ostatní zvreskú (privolajú mafiánov), duch Ricca zvozí
@@ -141,6 +196,8 @@ func take_hit(_damage: float, dir: Vector2) -> void:
 	if dead:
 		return
 	dead = true
+	fleeing = false
+	offset = _base_offset if _base_offset != Vector2.ZERO else offset
 	witness = false
 	if _body:
 		_body.queue_free()
@@ -173,6 +230,7 @@ func take_hit(_damage: float, dir: Vector2) -> void:
 		if g != self and not g.dead and (g as Node2D).global_position.distance_to(global_position) < alarm_range:
 			g._scream()
 	Gangster.noise(global_position, alarm_range)
+	Guest.panic(global_position, alarm_range)
 	_scold()
 
 

@@ -40,18 +40,21 @@ Along the way: a kitchen and a storage room full of guards, and a speakeasy door
 
 The Don is buried, and the trail leads to the waterfront – and to **Big Lou**.
 
-- **The cemetery** – the Don's funeral at night. A gravedigger with a lantern, mourners who scream when they see you,
-  a .38 revolver in the shed, and the ghost commenting on his own funeral from the mausoleum roof.
+- **The cemetery** – the Don's funeral at night. It opens with the evening paper and the street outside: the Family's cars,
+  a hearse with a smoking chauffeur and a locked, guarded gate you get past by climbing a tree. Inside there's a gravedigger
+  with a lantern, mourners who scream when they see you, a .38 revolver in the shed, and the ghost commenting on his own
+  funeral from the mausoleum roof while the coffin is lowered and the roses fly.
   A matchbook from *Fontana Shipping – Pier 13* is the first clue.
 - **The docks** – piers in the fog, a dockworker with a cargo hook, a fishing boat with a **lupara** on board, a dog on a chain
   that smells you even in the dark, and a lighthouse beam sweeping over the water. Swim the last stretch to Pier 13.
 - **The cold storage** – Fontana Shipping's freezer: whisky hidden in fish crates, ice you slide on, meat hooks on rails you can ride
   while shooting, and Lou's ledger that says when the ship leaves.
 - **The S.S. Margaret** – a cargo ship in a storm: rain, lightning, rolling sea, crates that break apart under fire and barrels of rye that explode.
-- **Boss: Big Lou** – a big man in a pinstripe suit with a drum‑fed Thompson, a vest and a lot of dynamite. Three phases:
-  the **bridge wing**, the **cargo crane** (a swinging net that sweeps the deck and drops crates) and, after a lightning strike,
-  the **burning ship** – where he charges at you, reloads his drum and throws dynamite three at a time.
-- **The escape** – a letter in Lou's cabin from someone in New York who signs it "M.", then 40 seconds to reach the lifeboat
+- **Boss: Big Lou** – a big man in a pinstripe suit with a drum‑fed Thompson, a vest and a lot of dynamite. First he sends
+  his **goons** out of the hold. Then, high up on the **bridge wing**, he works the **cargo crane** with one hand – dropping crates
+  that become cover until his bullets chew them apart – and fires with the other. **Throw his dynamite back** and bring the wing
+  down; once he's on the deck, the crane crashes down, the arena shrinks and he charges, reloads and throws dynamite three at a time.
+- **The escape** – a letter in Lou's cabin from someone in New York who signs it "M.", then 46 seconds to reach the lifeboat
   across the burning, listing deck while beams fall from the bridge. The chapter ends at dawn out at sea.
 
 ### Chapter III – The Big Apple *(in progress)*
@@ -59,8 +62,8 @@ The Don is buried, and the trail leads to the waterfront – and to **Big Lou**.
 The letter from "M." leads Ricco and the ghost to New York.
 
 - **The arrival** – a night cutscene: rowing the Margaret's lifeboat past the Statue of Liberty, Manhattan lit up behind her.
-- **The waterfront** – climb an iron ladder up the East River seawall to a promenade with street lamps and a guard with a flashlight.
-- **The Lower East Side** – a rainy street with neon signs and cops on the take (they blow a whistle and call their buddies),
+- **The waterfront and the Lower East Side** – one big map with no loading: climb an iron ladder up the East River seawall to a promenade
+  with street lamps and a guard with a flashlight, then walk straight into a rainy street with neon signs and cops on the take (they blow a whistle and call their buddies),
   bounce off a shop awning onto the fire escape, ride a pulley down a laundry line across the alley, and don't spook the pigeons.
 - **The rooftops** – sneak past a billboard guard under its spotlights (or shoot them out), tiptoe across a creaky plank,
   slip past a pigeon keeper, drop through the skylight of a sweatshop where the mob is squeezing a tailor, climb a water tower
@@ -189,7 +192,7 @@ godot --headless --path . --script res://tools/build_level2.gd     # cemetery
 godot --headless --path . --script res://tools/build_docks.gd      # docks
 godot --headless --path . --script res://tools/build_coldstore.gd  # cold storage
 godot --headless --path . --script res://tools/build_margaret.gd   # S.S. Margaret + the ending at sea
-godot --headless --path . --script res://tools/build_level3.gd     # chapter III: arrival + waterfront
+godot --headless --path . --script res://tools/build_level3.gd     # chapter III: arrival
 godot --headless --path . --script res://tools/build_range.gd      # shooting range
 ```
 
@@ -204,6 +207,7 @@ godot --headless --path . --script res://tools/build_range.gd      # shooting ra
 - **Character art:** generated with PixelLab and Google Gemini, then cleaned up into pixel art by hand/script
 - **Sound effects:** CC0 (public domain) recordings – [Kenney](https://kenney.nl) (Impact Sounds, RPG Audio, Casino Audio), Ben Burnes (Organic Wooshes, Smol Mechanisms), [Warfork](https://github.com/Warfork) and *40 CC0 water SFX*, collected in [CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds); the rest is generated procedurally
 - **Ricco's footsteps, ladder and takedown**: cut and pitched from the [Sonniss #GameAudioGDC Bundle](https://sonniss.com/gameaudiogdc) (royalty-free) – TheWorkRoom *Flip Flops*, Epic Stock Media *HD Game Materials*, 344 Audio *Cinematic Fight*
+- **Docks ambience** (water lapping at the piers, creaking timber): mixed from the [Sonniss #GameAudioGDC Bundle](https://sonniss.com/gameaudiogdc) (royalty-free) – Soundopolis *Water Ambiences 01* (River Huron Lapping, Lake Huron Mackinaw Evening), RDG *Squeaks and Creaks*
 - **Gunshots:** layered from CC0 samples – Warfork weapon sounds, Ben Burnes *2HTC Samples Vol 4* (snaps, kicks, clicks), Kenney RPG Audio and *metal interactions* (CC0-Public-Domain-Sounds), with saturation and a short room reverb
 - **Music:** loops from *2HTC Samples Vol 4* (+ Addendum) by Ben Burnes – CC0 (public domain): *At the Threshold – Smooth Jazz Loop*, *Midnight Murmurs – Rainy Noir*, *Chasing Crop Circles – Spooky*, *Sometimes, You Don't Make it to Level Two – Night Cafe Vibes*, *The Infested Power Grid – Desolation*, *I Should Be Sleeping – Intensity*
 - **Addons:** see each addon's own license in `addons/`

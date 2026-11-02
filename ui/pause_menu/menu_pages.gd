@@ -206,12 +206,13 @@ func hud_page(back: Callable) -> MenuItem:
 	return first
 
 
-const VOLUMES := [["MASTER", "Master"], ["MUSIC", "Music"], ["SOUND EFFECTS", "SFX"], ["AMBIENCE", "Ambience"], ["MENU SOUNDS", "UI"]]
+const VOLUMES := [["MASTER", "Master"], ["MUSIC", "Music"], ["EFFECTS", "SFX"], ["AMBIENCE", "Ambience"], ["MENU", "UI"]]
 ## Skúšobný zvuk pri zmene hlasitosti danej zbernice
 const VOLUME_TEST := {"Master": &"ui_select", "Music": &"ui_select", "SFX": &"pistol_a", "Ambience": &"drip", "UI": &"ui_move"}
 
 
-## Stránka zvuku: hlasitosť zberníc 0–10 (audio/sfx.gd, GameSettings.volumes)
+## Stránka zvuku: hlasitosť zberníc 0–10 ako posuvníky (audio/sfx.gd, GameSettings.volumes).
+## Šípky (aj podržané) alebo myš – klik / ťahanie po dráhe. Pri zmene zaznie skúšobný zvuk danej zbernice.
 func audio_page(back: Callable) -> MenuItem:
 	clear()
 	esc_back = back
@@ -219,18 +220,17 @@ func audio_page(back: Callable) -> MenuItem:
 	var first: MenuItem = null
 	for row in VOLUMES:
 		var key: String = row[1]
-		var it := MenuItem.new(row[0], _vol_text(GameSettings.volume(key)))
+		var it := MenuItem.new(row[0])
+		it.steps = 10
+		it.level = GameSettings.volume(key)
 		it.font_size = item_size
 		it.changed.connect(func(d: int):
-			var v: int = GameSettings.volume(key) + d
-			if v > 10:
-				v = 0   # Enter / klik prechádza dookola
-			GameSettings.volumes[key] = clampi(v, 0, 10)
-			it.set_value(_vol_text(GameSettings.volumes[key]))
+			GameSettings.volumes[key] = clampi(GameSettings.volume(key) + d, 0, 10)
+			it.set_level(GameSettings.volumes[key])
 			Sfx.apply_volumes()
 			GameSettings.save()
-			if key != "UI":
-				Sfx.play(VOLUME_TEST[key], Vector2.INF, -4.0, 0.0, &"UI" if key in ["Master", "Music"] else StringName(key)))
+			if key != "UI" and key != "Music":   # hudba hrá stále, netreba skúšobný zvuk; UI pípne samo (menu_item.gd)
+				Sfx.play(VOLUME_TEST[key], Vector2.INF, -4.0, 0.0, &"UI" if key == "Master" else StringName(key)))
 		column.add_child(it)
 		if first == null:
 			first = it
@@ -239,10 +239,6 @@ func audio_page(back: Callable) -> MenuItem:
 	hint("LEFT / RIGHT  VOLUME     ESC  BACK")
 	focus(first)
 	return first
-
-
-static func _vol_text(v: int) -> String:
-	return "%s%s  %3d%%" % ["|".repeat(v), ".".repeat(10 - v), v * 10]
 
 
 ## Kategória OVLÁDANIE: zakrádanie HOLD (drž C) / TOGGLE (C zapne / vypne) a stránka KEYBOARD s klávesmi

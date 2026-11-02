@@ -17,9 +17,9 @@
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/bldg_g.png" id="15_ea1rl"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/bldg_h.png" id="16_7mdr4"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/street/street.png" id="17_5es5t"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/street/trash_can.png" id="18_2frir"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/city/trash_can.png" id="18_2frir"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/street/crate.png" id="19_86xpc"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/street/roof_door.png" id="20_o95e6"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/city/roof_door.png" id="20_o95e6"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/billboard.png" id="21_r0i2q"]
 [ext_resource type="Script" path="res://world/npc/pigeons.gd" id="22_uu5ja"]
 [ext_resource type="Script" path="res://world/fx/hat_lamp.gd" id="23_fzzy6"]
@@ -46,8 +46,8 @@
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/bale.png" id="44_tujzt"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/tailor.png" id="45_yqalg"]
 [ext_resource type="Texture2D" path="res://levels/level1/art/money.png" id="46_3qmtb"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/street/fire_escape.png" id="47_clw11"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/street/fe_bracket.png" id="48_s17ft"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/city/fire_escape.png" id="47_clw11"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/city/fe_bracket.png" id="48_s17ft"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/tower_tall.png" id="49_y26pm"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/street/pole.png" id="50_u74s7"]
 [ext_resource type="Script" path="res://world/fx/clothesline.gd" id="51_ydp1s"]
@@ -55,7 +55,7 @@
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/platform.png" id="53_6djfd"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/el_support.png" id="54_fclii"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/canopy.png" id="55_qayvd"]
-[ext_resource type="Texture2D" path="res://levels/level2/art/lamp_post.png" id="56_xxif5"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/city/lamp_post.png" id="56_xxif5"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/train/car_ext_a.png" id="57_x0w29"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/train/gap.png" id="58_sb3jx"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/train/car_ext_b.png" id="59_kujvr"]
@@ -205,7 +205,7 @@ size = Vector2(92, 160)
 size = Vector2(92, 160)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cdzpr"]
-size = Vector2(88, 90)
+size = Vector2(112, 140)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_cng9b"]
 size = Vector2(400, 4)
@@ -377,25 +377,25 @@ shape = SubResource("RectangleShape2D_ie2zw")
 
 [node name="TrashCan" type="Sprite2D" parent="."]
 z_index = -3
-position = Vector2(790, -24)
+position = Vector2(790, -30)
 texture = ExtResource("18_2frir")
 centered = false
 
 [node name="TrashCan2" type="Sprite2D" parent="."]
 z_index = -3
-position = Vector2(1520, -24)
+position = Vector2(1520, -30)
 texture = ExtResource("18_2frir")
 centered = false
 
 [node name="TrashCan3" type="Sprite2D" parent="."]
 z_index = -3
-position = Vector2(2260, -24)
+position = Vector2(2260, -30)
 texture = ExtResource("18_2frir")
 centered = false
 
 [node name="TrashCan4" type="Sprite2D" parent="."]
 z_index = -3
-position = Vector2(2740, -24)
+position = Vector2(2740, -30)
 texture = ExtResource("18_2frir")
 centered = false
 
@@ -437,7 +437,7 @@ length = 320.0
 
 [node name="RoofDoor" type="Sprite2D" parent="."]
 z_index = -4
-position = Vector2(20, -504)
+position = Vector2(14, -556)
 texture = ExtResource("20_o95e6")
 centered = false
 
@@ -445,7 +445,7 @@ centered = false
 modulate = Color(1, 0.85, 0.55, 0.5)
 z_index = -3
 material = SubResource("CanvasItemMaterial_hagk6")
-position = Vector2(48, -493)
+position = Vector2(49, -543)
 scale = Vector2(0.8, 0.8)
 texture = ExtResource("2_yosbo")
 script = ExtResource("3_tyzuw")
@@ -1065,22 +1065,22 @@ position = Vector2(1925, -376)
 
 [node name="FireEscape" type="Sprite2D" parent="."]
 z_index = -3
-position = Vector2(2236, -326)
+position = Vector2(2236, -346)
 texture = ExtResource("47_clw11")
 centered = false
 texture_repeat = 2
 region_enabled = true
-region_rect = Rect2(0, 0, 70, 20)
+region_rect = Rect2(0, 0, 70, 40)
 
 [node name="FeBracket" type="Sprite2D" parent="."]
 z_index = -4
-position = Vector2(2240, -307)
+position = Vector2(2240, -306)
 texture = ExtResource("48_s17ft")
 centered = false
 
 [node name="FeBracket2" type="Sprite2D" parent="."]
 z_index = -4
-position = Vector2(2288, -307)
+position = Vector2(2288, -306)
 texture = ExtResource("48_s17ft")
 centered = false
 
@@ -1244,16 +1244,16 @@ shape = SubResource("RectangleShape2D_3x38n")
 
 [node name="LampPost" type="Sprite2D" parent="."]
 z_index = -3
-position = Vector2(3652, -384)
+position = Vector2(3648, -470)
 texture = ExtResource("56_xxif5")
 centered = false
 
 [node name="Glow6" type="Sprite2D" parent="."]
-modulate = Color(1, 0.82, 0.5, 0.7)
+modulate = Color(1, 0.82, 0.5, 0.75)
 z_index = -3
 material = SubResource("CanvasItemMaterial_hagk6")
-position = Vector2(3660, -378)
-scale = Vector2(1.2, 1.2)
+position = Vector2(3660, -460)
+scale = Vector2(1.3, 1.3)
 texture = ExtResource("2_yosbo")
 script = ExtResource("3_tyzuw")
 
@@ -1262,11 +1262,11 @@ modulate = Color(1, 0.75, 0.45, 0.22)
 z_index = -3
 material = SubResource("CanvasItemMaterial_hagk6")
 position = Vector2(3660, -326)
-scale = Vector2(2.6, 2.6)
+scale = Vector2(3, 3)
 texture = ExtResource("2_yosbo")
 
 [node name="LightZone3" type="Area2D" parent="."]
-position = Vector2(3660, -365)
+position = Vector2(3660, -390)
 script = ExtResource("4_evskh")
 
 [node name="Shape" type="CollisionShape2D" parent="LightZone3"]

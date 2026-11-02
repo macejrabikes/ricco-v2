@@ -1,21 +1,28 @@
 extends Level2
-## Kapitola II – Wharf Rats, finále: paluba S.S. Margaret v búrke (návrh A + žeriav). Sem vedie pás z mraziarne do podpalubia.
-## Časti (tools/build_margaret.gd): kajuta na korme (Ricco vyjde z podpalubia) → záchranný čln (plošina) → debny a sudy
-##   (kryt) → nákladný žeriav so sieťou → krídlo mostíka (Big Lou) → nadstavba s mostíkom → prova.
-## Bossfight s Big Lou (characters/lou/big_lou.gd): keď ho Ricco prvý raz uvidí na krídle mostíka, Lou nabije Thompson
-##   a hore sa ukáže pás jeho zdravia (ui/boss_bar.gd, značky = tri fázy):
-##   1. krídlo mostíka → zoskočí a beží do búdky (kúsok pizze) → 2. žeriav (world/ship/crane.gd): náklad a švih sieťou →
-##   blesk do žeriavu, rameno sa zrúti na sud, výbuch búdky odhodí Lou, loď začne horieť → 3. pripálený Lou na palube.
+## Kapitola II – Wharf Rats, finále: paluba S.S. Margaret v búrke. Sem vedie pás z mraziarne do podpalubia.
+## Časti (tools/build_margaret.gd): kajuta na korme (Ricco vyjde z podpalubia) → záchranný čln (plošina) → pár debien a sudov
+##   → vysoký nákladný žeriav so sieťou → nákladný poklop (poskoci) → dlhé krídlo mostíka (Big Lou) → nadstavba → prova.
+## Bossfight s Big Lou (characters/lou/big_lou.gd) – kamera sa oddiali (FIGHT_ZOOM), aby bolo vidno palubu aj krídlo:
+##   0. poskoci: Lou z krídla ukazuje na Ricca, z poklopu a z kajuty na korme vylezú jeho chlapi (dve vlny, _henchmen)
+##   1. mostík: Lou sa nasere – pás zdravia (ui/boss_bar.gd); páka žeriavu (debny = dočasný kryt) + Thompson + dynamit,
+##      ktorý Ricco hodí späť (F); tri dynamity zničia krídlo (_break_wing) – Lou spadne na palubu, loď začne horieť
+##   2. paluba: žeriav bez obsluhy udrie blesk (_crane_down), rameno sa zrúti na palubu a zúži arénu (ArenaWall)
 ##   Lou o réžii dáva vedieť signálom stage (_on_lou_stage) – tu sú hlášky ducha, blesk, požiar a pickupy.
 ## Útek z lode (Level2.escape_stage): Lou padol → duch pošle Ricca do kajuty Lou pod mostíkom (dvere v nadstavbe, F) →
 ##   v kajute (pod mapou, vlastné hranice kamery) list od „M.“ z hotela Majestic v New Yorku (ReadCard) → kotol vybuchne →
 ##   späť na palubu: na čas k záchrannému člnu (oheň, padajúce horiace trámy, výbuchy, loď sa nakláňa) → páka (F) spustí čln
 ##   → záver kapitoly na mori (epilogue.tscn). Keď čas vyprší, loď vybuchne (smrť → znova od dverí kajuty).
-## Checkpointy: Level2.checkpoint 11 = paluba lode, Level2.lou_phase = fáza boja (po smrti začne v búdke / na horiacej palube),
+## Checkpointy: Level2.checkpoint 11 = paluba lode, Level2.lou_phase = fáza boja (0 poskoci, 1 mostík, 3 paluba),
 ##   Level2.escape_stage 1–2 = po boji (Ricco začne pri dverách kajuty – Spawn12).
 ## Scénu generuje tools/build_margaret.gd. Godot docs: classes/class_tween, classes/class_parallax2d, classes/class_cpuparticles2d
 
-const SHIP_MAP := Rect2i(0, -304, 1568, 360)     ## hranice kamery (px) – paluba na y = 0, dole kúsok trupu a vlny
+const SHIP_MAP := Rect2i(0, -420, 2080, 560)     ## hranice kamery (px) – paluba na y = 0, dole vysoký trup a vlny
+const FIGHT_ZOOM := 0.8                          ## kamera v boji (800×450 sveta) – vidno palubu aj krídlo mostíka
+const FIGHT_OFFSET := -112.0                     ## px – stred kamery nad Riccom v boji (normálne −20, characters/ricco/ricco.tscn)
+const LOU_BIAS := 230.0                          ## px – najviac o toľko sa kamera v boji posunie k Lou na krídle
+const FIGHT_START_X := 420.0                     ## px – tu Lou zbadá Ricca a pošle naňho poskokov
+const BRIDGE_X := 1504.0                         ## px – ľavá stena nadstavby (tools/build_margaret.gd: BRIDGE_X * 16)
+const HOUSE_W := 432.0                           ## px – šírka nadstavby (tools/build_margaret.gd: HOUSE_W)
 const LUPARA := preload("res://weapons/lupara/lupara.tres")
 const BOSS_BAR := preload("res://ui/boss_bar.gd")
 const FIRE := preload("res://world/ship/deck_fire.gd")
@@ -27,10 +34,15 @@ const LETTER_BIG := preload("res://levels/level2/art/ship/letter_big.png")
 const DEBRIS := preload("res://levels/level2/art/ship/debris.png")
 const SHADOW := preload("res://levels/level2/art/ship/shadow.png")
 const CABIN_MAP := Rect2i(0, 800, 640, 360)   ## kajuta Lou pod mapou – kamera presne na jednu obrazovku
-const DOOR_X := 1343.0                        ## dvere do kajuty v spodnej nadstavbe (Spawn12)
-const ESCAPE_TIME := 40.0                     ## s na útek k člnu, potom loď vybuchne
-const ESCAPE_FIRES := [[Vector2(1150, 0), 20.0], [Vector2(790, 0), 18.0], [Vector2(505, -26), 16.0], [Vector2(345, 0), 16.0]]
-const BLASTS := [1010.0, 660.0, 300.0]        ## keď Ricco prebehne toto x, kúsok za ním niečo vybuchne
+const DOOR_X := 1615.0                        ## dvere do kajuty v spodnej nadstavbe (Spawn12)
+const ESCAPE_TIME := 46.0                     ## s na útek k člnu, potom loď vybuchne
+const ESCAPE_FIRES := [[Vector2(1420, 0), 20.0], [Vector2(1060, 0), 18.0], [Vector2(545, -26), 16.0], [Vector2(420, 0), 16.0]]
+const BLASTS := [1300.0, 960.0, 640.0, 300.0]  ## keď Ricco prebehne toto x, kúsok za ním niečo vybuchne
+## Poskoci v dvoch vlnách: [scéna, odkiaľ ("hatch" = nákladný poklop, "stern" = dvere kajuty na korme), oneskorenie s]
+const WAVES := [
+	[["gangster_tommy", "hatch", 0.0], ["gangster_coppola", "stern", 1.2], ["gangster_tommy", "hatch", 2.0]],
+	[["gangster_slugger", "hatch", 0.0], ["gangster_coppola", "hatch", 1.4], ["gangster_tommy", "stern", 2.4]],
+]
 
 const ARRIVE: Array[String] = [
 	"Two A.M. on the dot. The Margaret's pullin' out and I'm aboard.",
@@ -48,6 +60,7 @@ var _vest_hits: int = 0
 var _said: Array[StringName] = []   ## hlášky ducha v boji, ktoré už zazneli (v rámci jedného pokusu)
 var _ended: bool = false
 var _crane: Node2D
+var _crane_due: bool = false   ## Lou spadol – žeriav sa zrúti, keď sú obaja za miestom dopadu ramena
 var _burning: bool = false
 var _embers: CPUParticles2D
 var _loops: Array[Node] = []   ## búrka, dážď, oheň – v kajute stíšené
@@ -61,6 +74,9 @@ var _lurch_t: float = 5.0
 var _blasts_left: Array = []
 var _boarding: bool = false
 var _letter: InteractSpot
+var _henchmen_left: Array[Node] = []
+var _wave: int = -1
+var _wing_dmg: int = 0
 
 
 func _ready() -> void:
@@ -106,7 +122,7 @@ func _ready() -> void:
 		return
 	if _lou:
 		_lou.vest_hit.connect(_on_vest_hit)
-		_lou.threw.connect(func(): _say_once(&"dynamite", "DYNAMITE! MOVE YOUR\nFEATHERS, KID!"))
+		_lou.threw.connect(_on_lou_threw)
 		_lou.stage.connect(_on_lou_stage)
 		_lou.died.connect(_on_lou_died)
 		_resume_phase()
@@ -138,14 +154,27 @@ func _arrive() -> void:
 func _process(delta: float) -> void:
 	if player == null:
 		return
-	# boj sa začne, keď Ricco Lou prvý raz uvidí na krídle mostíka
-	if _lou and not _fight and _lou.on_screen() and player.global_position.x > 200.0:
+	# boj sa začne, keď Ricco vyjde spoza kajuty na palubu (Lou ho zbadá z krídla)
+	if _lou and not _fight and player.global_position.x > FIGHT_START_X:
 		_start_fight()
+	if _wave >= 0:
+		_henchmen_tick()
+	# kým je Lou hore na krídle, kamera sa posunie k nemu (Ricco ostane na obrazovke) – je vidno, odkiaľ strieľa
+	var bias_x: float = 0.0
+	if _fight and _lou and _lou.phase <= 1 and not _ended:
+		bias_x = clampf((_lou.global_position.x - player.global_position.x) * 0.5, -LOU_BIAS, LOU_BIAS)
+	player.camera_bias.x = lerpf(player.camera_bias.x, bias_x, 1.0 - exp(-2.5 * delta))
 	# Lou stojí pri sude whisky – duch poradí
-	if _fight and _lou.phase == 3 and _lou.active and not (&"barrel" in _said):
+	if _fight and _lou and _lou.phase == 3 and _lou.active and not (&"barrel" in _said):
 		for b in get_tree().get_nodes_in_group(&"ship_barrel"):
 			if absf((b as Node2D).global_position.x - _lou.global_position.x) < 50.0 and _lou.on_screen():
 				_say_once(&"barrel", "HE'S STANDIN' BY THE WHISKY.\nLIGHT HIM UP, KID!")
+	# žeriav bez obsluhy sa zrúti, keď sú Ricco aj Lou za miestom dopadu ramena (aréna sa zúži, nikto neostane odrezaný)
+	if _crane_due and _crane and _lou and _lou.active:
+		var edge: float = _crane.landing().x + 50.0
+		if player.global_position.x > edge and _lou.global_position.x > edge:
+			_crane_due = false
+			_crane_down()
 	if _embers:
 		_embers.global_position = player.global_position + Vector2(0, 200)
 	# Thompson po Lou – pri úteku ho Ricco po smrti dostane späť
@@ -153,11 +182,11 @@ func _process(delta: float) -> void:
 		has_tommy = true
 	if _escape:
 		_escape_tick(delta)
-	# vlna sa občas prevalí cez zábradlie (zatiaľ len efekt – v boji zhodí Ricca, ak nie je za krytom)
+	# vlna sa občas prevalí cez zábradlie (len efekt)
 	_splash_t -= delta
 	if _splash and _splash_t <= 0.0 and not _in_cabin:
 		_splash_t = randf_range(6.0, 11.0)
-		_wave_over(clampf(player.global_position.x + randf_range(-200.0, 200.0), 40.0, 1200.0))
+		_wave_over(clampf(player.global_position.x + randf_range(-200.0, 200.0), 40.0, BRIDGE_X - 40.0))
 	_say_busy -= delta
 	if _say_busy <= 0.0 and not _say_queue.is_empty():
 		_say_busy = 3.4
@@ -183,48 +212,144 @@ func say(t: String) -> void:
 	_say_queue.append(t)
 
 
+## Kamera v boji oddialená (z = 1 normálne, FIGHT_ZOOM v boji) a posunutá vyššie, aby bolo vidno krídlo mostíka aj rameno
+## žeriavu – paluba je potom v dolnej štvrtine obrazovky, pod ňou ešte čiara vody. Godot docs: classes/class_camera2d (zoom)
+func _zoom_to(z: float, t: float = 1.2) -> void:
+	if pcam == null:
+		return
+	var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(pcam, "zoom", Vector2(z, z), t)
+	tw.tween_property(player, "camera_bias:y", FIGHT_OFFSET if z < 1.0 else -20.0, t)
+
+
 # ---------------------------------------------------------------- Big Lou
 
-## Lou nabije Thompson (prvý raz aj s bleskom a hláškou ducha), hore sa ukáže pás jeho zdravia
+## Lou zbadá Ricca: hudba, kamera sa oddiali. Prvý raz (lou_phase 0) pošle poskokov, po smrti v boji ide rovno na vec.
 func _start_fight() -> void:
 	_fight = true
 	Sfx.music(&"intensity", 0.8)
-	_bar = BOSS_BAR.new()
-	add_child(_bar)
-	_bar.notches.assign([1.0 / 3.0, 2.0 / 3.0])
-	_bar.track("BIG LOU FONTANA", _lou)
-	_bar._on_health(_lou.health, _lou.max_health)   # pri checkpointe v 2./3. fáze nezačína plný
-	_bar._chip = _bar._value
-	if lou_revealed:
+	_zoom_to(FIGHT_ZOOM)
+	if lou_phase >= 1:
+		_show_bar()
 		_lou.start(false)
 		return
-	lou_revealed = true
-	(get_node(^"Storm") as Node).call(&"strike", 0.9)
-	_lou.start(true)
-	await _wait(1.2)
-	say("THERE HE IS. MY OLD 'FRIEND'.\nTIME TO SETTLE UP, LOU.")
+	_lou.command()
+	if not lou_revealed:
+		lou_revealed = true
+		(get_node(^"Storm") as Node).call(&"strike", 0.9)
+		await _wait(1.0)
+		say("THERE HE IS. MY OLD 'FRIEND'.\nAND HE BROUGHT COMPANY.")
+	Sfx.play(&"whistle", _lou.global_position + Vector2(0, -60), -2.0)   # Lou hvizdne na chlapov
+	await _wait(0.8)
+	_next_wave()
+
+
+## Pás zdravia Lou hore na obrazovke (značka na tretine = pád z mostíka)
+func _show_bar() -> void:
+	if _bar:
+		return
+	_bar = BOSS_BAR.new()
+	add_child(_bar)
+	_bar.notches.assign([1.0 / 3.0])
+	_bar.track("BIG LOU FONTANA", _lou)
+	_bar._on_health(_lou.health, _lou.max_health)   # pri checkpointe na palube nezačína plný
+	_bar._chip = _bar._value
+
+
+# ---------------------------------------------------------------- 0. fáza: poskoci
+
+func _next_wave() -> void:
+	_wave += 1
+	if _wave >= WAVES.size():
+		_wave = -1
+		_henchmen_done()
+		return
+	_henchmen_left.clear()
+	for spec in WAVES[_wave]:
+		_henchman(spec[0], spec[1], spec[2])
+	if _wave == 1:
+		say("MORE OF 'EM COMIN' OUTTA\nTHE HOLD. STAY SHARP!")
+
+
+## Poskok vylezie z nákladného poklopu (zdola) alebo vyjde z dverí kajuty na korme – a ide rovno po Riccovi
+func _henchman(scene: String, from: String, delay: float) -> void:
+	var g := load("res://characters/gangster/%s.tscn" % scene).instantiate() as Gangster
+	g.respawn_time = 0.0
+	_henchmen_left.append(g)
+	if delay > 0.0:
+		await _wait(delay)
+	if not is_inside_tree() or _ended:
+		g.free()
+		return
+	var at: Vector2
+	if from == "hatch":
+		var hs := get_node_or_null(^"HatchSpot") as Node2D
+		at = hs.global_position if hs else Vector2(1270, 0)
+	else:
+		var st := get_node_or_null(^"Spawn11") as Node2D
+		at = st.global_position if st else Vector2(73, 0)
+	g.start_facing = -1.0 if player.global_position.x < at.x else 1.0
+	g.process_mode = Node.PROCESS_MODE_DISABLED
+	add_child(g)
+	var tw := create_tween()
+	if from == "hatch":
+		# vyšplhá sa z podpalubia: za trupom (pod palubou) hore na palubu
+		g.z_index = -1
+		g.global_position = at + Vector2(randf_range(-10.0, 10.0), 56.0)
+		Sfx.play(&"door_open", at, -4.0, 0.1)
+		Burst.spawn(self, at + Vector2(0, -4), Vector2(0, -1), Color(0.6, 0.6, 0.65, 0.5), 8, 40.0, Vector2(0, 30), 0.6)
+		tw.tween_property(g, "global_position:y", at.y - 18.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(g, "global_position:y", at.y, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	else:
+		g.global_position = at
+		g.modulate.a = 0.0
+		Sfx.play(&"door_open", at, -6.0, 0.1)
+		tw.tween_property(g, "modulate:a", 1.0, 0.4)
+		tw.parallel().tween_property(g, "global_position:x", at.x + 24.0 * g.start_facing, 0.6)
+	await tw.finished
+	if not is_instance_valid(g):
+		return
+	g.z_index = 0
+	g.process_mode = Node.PROCESS_MODE_INHERIT
+	g.alarm()
+	g.hear(player.global_position)
+
+
+## Žije ešte niekto z vlny? Keď nie, príde ďalšia – po poslednej sa Lou nasere.
+func _henchmen_tick() -> void:
+	for g in _henchmen_left:
+		if is_instance_valid(g) and (g as Gangster).state != Gangster.State.DEAD:
+			return
+	_henchmen_left.clear()
+	var w := _wave
+	_wave = -1   # počas pauzy nekontroluj
+	await _wait(1.6)
+	_wave = w
+	_next_wave()
+
+
+## Poskoci padli – Lou na krídle zúri (rev), ukáže sa pás jeho zdravia a začne mostík
+func _henchmen_done() -> void:
+	lou_phase = 1
+	_lou.enrage()
 
 
 ## Udalosti boja od Lou (big_lou.gd → signál stage)
 func _on_lou_stage(n: StringName) -> void:
 	match n:
-		&"to_crane":
-			_say_queue.clear()
-			say("HE'S RUNNIN' FOR THE CRANE!\nWATCH YOUR HEAD, KID.")
-		&"landed":
-			_drop(PIZZA, _lou.global_position + Vector2(10, -30), Vector2(-60, -160))
-		&"in_booth":
-			lou_phase = 2
-			_booth_lamp(true)
+		&"enraged":
+			_show_bar()
+			(get_node(^"Storm") as Node).call(&"strike", 0.8)
+			say("NOW HE'S STEAMED.\nKEEP MOVIN', KID!")
 		&"crane_drop":
-			_say_once(&"drop", "CARGO! ROLL OUTTA THE WAY!")
-		&"crane_sweep":
-			_say_once(&"sweep", "THAT NET'LL FLATTEN YA.\nSLIDE UNDER IT!")
-		&"lightning":
-			lou_phase = 3
-			_lightning()
+			_say_once(&"drop", "HE'S WORKIN' THE CRANE!\nWATCH YOUR HEAD!")
+		&"wing_hit":
+			_wing_hit()
+		&"wing_break":
+			_break_wing(true)
 		&"burnt_up":
-			say("THE CRANE'S DONE FOR...\nAND SO IS THIS BOAT!")
+			say("HE'S DOWN HERE WITH US NOW.\nAND HE'S MAD AS HELL.")
+			_crane_due = true
 		&"charge":
 			_say_once(&"charge", "HE'S CHARGIN'! SLIDE\nBETWEEN HIS LEGS, KID!")
 		&"dazed":
@@ -233,28 +358,98 @@ func _on_lou_stage(n: StringName) -> void:
 			_say_queue.clear()
 
 
-## Po smrti v boji: Lou začne vo fáze, ktorú už Ricco raz dosiahol (búdka / horiaca paluba)
+func _on_lou_threw() -> void:
+	if _lou.phase == 1:
+		_say_once(&"dynamite", "DYNAMITE! GRAB IT AND\nSEND IT BACK TO HIM!")
+	else:
+		_say_once(&"dynamite3", "MORE DYNAMITE! THROW IT\nBACK OR GET CLEAR!")
+
+
+## Po smrti v boji: Lou začne vo fáze, ktorú už Ricco raz dosiahol (mostík bez poskokov / horiaca paluba)
 func _resume_phase() -> void:
 	if lou_phase == 2:
-		var spot := get_node_or_null(^"BoothSpot") as Node2D
-		_lou.setup_phase(2, spot.global_position if spot else Vector2(_booth_x(), 0))
-		_booth_lamp(true)
-	elif lou_phase == 3:
-		_lou.setup_phase(3, Vector2(_booth_x() - 70.0, 0))   # pred stĺpom žeriavu
+		lou_phase = 1   # staré uloženie (búdka pri žeriave už nie je)
+	if lou_phase == 3:
+		_lou.setup_phase(3, Vector2(BRIDGE_X - 260.0, 0))
+		_break_wing(false)
+		_crane_wrecked()
+		# Ricco začne za zrúteným ramenom (v zúženej aréne s Lou), nie pri kajute na korme
 		if _crane:
-			_crane.wrecked()
-		var b1 := get_node_or_null(^"Barrel1")
-		if b1:
-			b1.queue_free()
-		_wreck_booth(false)
-		_crash_fires(_crane.landing() if _crane else Vector2(717, 0), false)
-		_start_burning(false)
+			player.global_position = Vector2(_crane.landing().x + 90.0, 0)
 
 
-## Prechod 2 → 3: blesk do kabíny, rameno sa zrúti, výbuch búdky odhodí Lou, loď začne horieť
-func _lightning() -> void:
-	await _wait(1.1)   # Lou v panike, žeriav sa sám otáča k zádi
+# ---------------------------------------------------------------- krídlo mostíka
+
+## Dynamit hodený späť vybuchol pri Lou – krídlo sa otrasie, tmavne, padajú z neho nity a plech
+func _wing_hit() -> void:
+	_wing_dmg += 1
+	var wing := get_node_or_null(^"Props/Wing") as Node2D
+	if wing:
+		wing.modulate = Color.WHITE.lerp(Color(0.45, 0.4, 0.38), _wing_dmg / 3.0)
+		var tw := wing.create_tween()
+		tw.tween_property(wing, "rotation", -0.03 * _wing_dmg, 0.08)
+		tw.tween_property(wing, "rotation", -0.012 * _wing_dmg, 0.25).set_trans(Tween.TRANS_BACK)
+		var at: Vector2 = wing.global_position + Vector2(40, 18)
+		Burst.spawn(self, at, Vector2(0, 1), Color(0.5, 0.5, 0.52), 10, 80.0, Vector2(0, 400), 0.6)
+	Sfx.play(&"metal_crash", Vector2(BRIDGE_X - 50.0, -180.0), -4.0, 0.1)
+	if _wing_dmg == 1:
+		say("IT'S WORKIN'! THAT WING\nWON'T TAKE MUCH MORE.")
+	elif _wing_dmg == 2:
+		say("ONE MORE AND HE'S\nCOMIN' DOWN!")
+
+
+## Krídlo sa odlomí (fx = výbuch, pád, hlášky; inak už leží na palube – checkpoint). Lou letí s ním (big_lou.gd).
+func _break_wing(fx: bool) -> void:
+	lou_phase = 3
+	var floor_body := get_node_or_null(^"WingFloor") as Node
+	if floor_body:
+		floor_body.queue_free()
+	for n in [^"Props/CraneConsole", ^"Lever"]:
+		var c := get_node_or_null(n) as CanvasItem
+		if c:
+			c.visible = false
+	var wing := get_node_or_null(^"Props/Wing") as Node2D
+	# kus krídla leží zlomený na palube pod nadstavbou (len obrázok – Ricco popri ňom prejde)
+	var land := Vector2(BRIDGE_X - 118.0, -22.0)   # zábradlie a podlaha nad palubou, vzpera za trupom
+	if wing:
+		wing.modulate = Color(0.45, 0.4, 0.38)
+		if fx:
+			var tw := wing.create_tween()
+			tw.tween_property(wing, "rotation", -0.5, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.tween_property(wing, "global_position", land, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.parallel().tween_property(wing, "rotation", 0.06, 0.3)
+			tw.tween_callback(func():
+				Sfx.play(&"metal_crash", land, 4.0, 0.05)
+				Burst.spawn(self, land + Vector2(56, 10), Vector2(0, -1), Color(0.7, 0.7, 0.74, 0.6), 16, 120.0, Vector2(0, 200), 0.6))
+		else:
+			wing.global_position = land
+			wing.rotation = 0.06
+	if fx:
+		Explosion.spawn(self, Vector2(BRIDGE_X - 30.0, -186.0), 1.4, 0, 0.0, 30.0)
+		_say_queue.clear()
+		bark("TIMBER!")
+		_drop(PIZZA, Vector2(BRIDGE_X - 70.0, -60.0), Vector2(-80, -160))
+	# mostík horí
+	var f := FIRE.new()
+	f.width = 40.0
+	f.big = true
+	f.harmful = false
+	f.sound = false
+	f.z_index = -5
+	add_child(f)
+	f.position = Vector2(BRIDGE_X + 10.0, -176.0)
+	_start_burning(fx)
+
+
+# ---------------------------------------------------------------- žeriav bez obsluhy
+
+## Blesk udrie do kabíny žeriavu, rameno sa zrúti na palubu (na sud whisky) a odreže kus paluby – aréna sa zúži
+func _crane_down() -> void:
+	if _crane == null or _crane.is_broken():
+		return
 	var cab: Vector2 = _cab()
+	say("THE CRANE! IT'S COMIN' DOWN!")
+	await _wait(0.8)
 	_bolt(cab)
 	(get_node(^"Storm") as Node).call(&"strike", 1.0)
 	Sfx.play(&"lightning_strike", cab, 4.0, 0.0)
@@ -266,34 +461,31 @@ func _lightning() -> void:
 	cab_fire.z_index = -2
 	add_child(cab_fire)
 	cab_fire.position = cab + Vector2(0, -22)   # na streche kabíny
-	bark("LOOK OUT!")
 	await _wait(0.45)
-	if _crane:
-		_crane.collapse()
-	await _wait(0.4)
-	# trosky z kabíny padnú do búdky – výbuch vyhodí Lou von
-	Explosion.spawn(self, Vector2(_booth_x(), -34), 1.3, 0, 0.0, 30.0)
-	_wreck_booth(true)
-	_lou.blown(1.0)
-	await _wait(0.6)
-	_start_burning(true)
+	_crane.collapse()
+
+
+## Checkpoint na palube: žeriav už leží, aréna je zúžená
+func _crane_wrecked() -> void:
+	if _crane == null:
+		return
+	_crane.wrecked()
+	var b1 := get_node_or_null(^"Barrel1")
+	if b1:
+		b1.queue_free()
+	_crash_fires(_crane.landing(), false)
+	_arena_wall(_crane.landing().x)
 
 
 ## Kabína žeriavu (sem udrie blesk) – kúsok pod čapom ramena (world/ship/crane.gd)
 func _cab() -> Vector2:
-	return (_crane.get(&"pivot") as Vector2) + Vector2(-6, 26) if _crane else Vector2(874, -184)
-
-
-## Stred búdky s pákou (marker BoothSpot z tools/build_margaret.gd)
-func _booth_x() -> float:
-	var spot := get_node_or_null(^"BoothSpot") as Node2D
-	return spot.global_position.x if spot else 956.0
+	return (_crane.get(&"pivot") as Vector2) + Vector2(-6, 26) if _crane else Vector2(994, -300)
 
 
 ## Zubatý blesk z neba do bodu (dve čiary – žiara a biele jadro), zmizne s bliknutím
 func _bolt(to: Vector2) -> void:
 	var pts := PackedVector2Array()
-	var from := Vector2(to.x + randf_range(-60.0, 60.0), -330.0)
+	var from := Vector2(to.x + randf_range(-60.0, 60.0), SHIP_MAP.position.y - 20.0)
 	var n: int = 11
 	for i in n + 1:
 		var k: float = float(i) / n
@@ -319,42 +511,27 @@ func _bolt(to: Vector2) -> void:
 	Burst.spawn(self, to, Vector2(0, -1), Color(0.8, 0.9, 1.0), 16, 180.0, Vector2(0, 400), 0.4)
 
 
-func _booth_lamp(on: bool) -> void:
-	var lamp := get_node_or_null(^"BoothLamp") as CanvasItem
-	if lamp:
-		lamp.visible = on
-
-
-## Búdka po výbuchu: plech je očadený a nakrivo, páka preč, vnútri horí
-func _wreck_booth(fx: bool) -> void:
-	_booth_lamp(false)
-	var front := get_node_or_null(^"BoothFront") as Node2D
-	if front:
-		if fx:
-			var tw := front.create_tween()
-			tw.tween_property(front, "rotation", 0.12, 0.2).set_trans(Tween.TRANS_BACK)
-			tw.parallel().tween_property(front, "modulate", Color(0.4, 0.36, 0.34), 0.2)
-		else:
-			front.rotation = 0.12
-			front.modulate = Color(0.4, 0.36, 0.34)
-	var back := get_node_or_null(^"BoothBack") as CanvasItem
-	if back:
-		back.modulate = Color(0.45, 0.4, 0.38)
-	var lever := get_node_or_null(^"Lever") as CanvasItem
-	if lever:
-		lever.visible = false
-	var f := FIRE.new()
-	f.width = 40.0
-	f.harmful = false
-	f.sound = false
-	f.z_index = -6
-	add_child(f)
-	f.position = Vector2(_booth_x(), 0)
-
-
 func _on_boom_landed(at: Vector2) -> void:
 	Explosion.spawn(self, at, 1.6, 1, 0.0, 44.0)
 	_crash_fires(at, true)
+	_arena_wall(at.x)
+
+
+## Zrútené rameno odreže zadnú časť paluby: neviditeľná stena (aj pre guľky) – po boji zmizne (útek k člnu)
+func _arena_wall(x: float) -> void:
+	if get_node_or_null(^"ArenaWall"):
+		return
+	var b := StaticBody2D.new()
+	b.name = "ArenaWall"
+	var cs := CollisionShape2D.new()
+	var r := RectangleShape2D.new()
+	r.size = Vector2(16, 600)
+	cs.shape = r
+	b.add_child(cs)
+	add_child(b)
+	b.global_position = Vector2(x + 14.0, -300.0)
+	if _lou:
+		_lou.walk_span.x = maxf(_lou.walk_span.x, x + 40.0)
 
 
 ## Oheň okolo zrúteného ramena – v strede horí stále (treba ho preskočiť), po bokoch po chvíli zhasne
@@ -388,13 +565,13 @@ func _drop(scene: PackedScene, at: Vector2, vel: Vector2) -> void:
 	d.position = at
 
 
-## Loď horí: oheň na mostíku, kajute a člne, iskry stúpajú cez celú obrazovku, oranžový nádych, praskanie
+## Loď horí: oheň na mostíku, kajute a nadstavbe, iskry stúpajú cez celú obrazovku, oranžový nádych, praskanie
 func _start_burning(fx: bool) -> void:
 	if _burning:
 		return
 	_burning = true
 	# (záchranný čln nehorí – je to cesta von)
-	for spec in [[Vector2(1310, -168), 48.0, true, -5], [Vector2(36, -96), 34.0, false, -5], [Vector2(1410, -96), 40.0, true, -5]]:
+	for spec in [[Vector2(BRIDGE_X + 90.0, -248), 48.0, true, -5], [Vector2(36, -96), 34.0, false, -5], [Vector2(BRIDGE_X + 190.0, -176), 40.0, true, -5], [Vector2(BRIDGE_X + 290.0, -248), 44.0, true, -5], [Vector2(BRIDGE_X + 386.0, -176), 36.0, true, -5]]:
 		var f := FIRE.new()
 		f.width = spec[1]
 		f.big = spec[2]
@@ -464,13 +641,17 @@ func _on_lou_died() -> void:
 	_ended = true
 	await _wait(1.6)
 	Sfx.music(&"", 3.0)
+	_zoom_to(1.0, 2.0)
+	var wall := get_node_or_null(^"ArenaWall")
+	if wall:
+		wall.queue_free()   # cesta k člnu je voľná (oheň pri ramene sa dá preskočiť)
 	_say_queue.clear()
 	bark("SO LONG, LOU. YOU SHOULD'A\nSTAYED IN THE FISH BUSINESS.")
 	await _wait(3.6)
 	escape_stage = 1
 	_open_house()
 	(get_node(^"Storm") as Node).call(&"strike", 0.8)
-	Explosion.spawn(self, Vector2(1400, -100), 0.9, 0, 0.0, 30.0)   # mostík praská
+	Explosion.spawn(self, Vector2(BRIDGE_X + 120.0, -180), 0.9, 0, 0.0, 30.0)   # mostík praská
 	await _wait(1.0)
 	bark("LOU'S CABIN'S UNDER THE BRIDGE.\nLET'S SEE WHAT HE WAS HIDIN'.")
 
@@ -482,14 +663,11 @@ func _resume_escape() -> void:
 	if _lou:
 		_lou.queue_free()
 		_lou = null
-	if _crane:
-		_crane.wrecked()
-	var b1 := get_node_or_null(^"Barrel1")
-	if b1:
-		b1.queue_free()
-	_wreck_booth(false)
-	_crash_fires(_crane.landing() if _crane else Vector2(717, 0), false)
-	_start_burning(false)
+	_break_wing(false)
+	_crane_wrecked()
+	var wall := get_node_or_null(^"ArenaWall")
+	if wall:
+		wall.free()
 	_open_house()
 	if escape_stage >= 2:
 		_letter.queue_free()
@@ -502,9 +680,9 @@ func _open_house() -> void:
 	var house := get_node_or_null(^"House/Shape") as CollisionShape2D
 	if house:
 		var r := RectangleShape2D.new()
-		r.size = Vector2(160, 96)
+		r.size = Vector2(HOUSE_W - 128.0, 176)   # od pravého okraja dverí (BRIDGE_X + 128) po koniec nadstavby
 		house.shape = r
-		house.global_position = Vector2(1440, -48)
+		house.global_position = Vector2(BRIDGE_X + 64.0 + HOUSE_W * 0.5, -88)
 	var glow := _light_sprite(Vector2(DOOR_X, -40), Color(1.0, 0.7, 0.35, 0.45), 0.5)
 	glow.set_script(load("res://world/fx/flicker.gd"))
 	var door := InteractSpot.new()
@@ -675,7 +853,7 @@ func _start_escape(first: bool) -> void:
 	_blasts_left = BLASTS.duplicate()
 	Sfx.music(&"intensity", 0.5)
 	if first:
-		Explosion.spawn(self, Vector2(1300, -110), 1.4, 0, 0.0, 30.0)   # kotol trhá mostík
+		Explosion.spawn(self, Vector2(BRIDGE_X + 80.0, -190), 1.4, 0, 0.0, 30.0)   # kotol trhá mostík
 		var big := FIRE.new()
 		big.width = 60.0
 		big.big = true
@@ -683,7 +861,7 @@ func _start_escape(first: bool) -> void:
 		big.sound = false
 		big.z_index = -5
 		add_child(big)
-		big.position = Vector2(1480, -96)
+		big.position = Vector2(BRIDGE_X + 250.0, -176)
 	for spec in ESCAPE_FIRES:
 		var f := FIRE.new()
 		f.width = spec[1]
@@ -757,7 +935,7 @@ func _escape_tick(delta: float) -> void:
 		_debris_t = randf_range(1.4, 2.4)
 		var ahead: float = -1.0 if player.velocity.x <= 0.0 else 1.0
 		var off: float = ahead * randf_range(30.0, 130.0) if absf(player.velocity.x) > 20.0 else randf_range(-16.0, 16.0)   # kto stojí, na toho padá
-		_drop_debris(clampf(player.global_position.x + off, 140.0, 1330.0))
+		_drop_debris(clampf(player.global_position.x + off, 140.0, BRIDGE_X + 100.0))
 	_lurch_t -= delta
 	if _lurch_t <= 0.0:
 		_lurch_t = randf_range(5.0, 8.0)
@@ -768,7 +946,7 @@ func _escape_tick(delta: float) -> void:
 
 ## Horiaci trám: na zemi sa objaví tieň, o chvíľu z výšky spadne – kto pod ním stojí, dostane zásah; dopadne a chvíľu horí
 func _drop_debris(x: float) -> void:
-	var hit := get_world_2d().direct_space_state.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x, -120), Vector2(x, 40), 1))
+	var hit := get_world_2d().direct_space_state.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x, -150), Vector2(x, 40), 1))
 	var floor_y: float = hit.position.y if not hit.is_empty() else 0.0
 	var sh := Sprite2D.new()
 	sh.texture = SHADOW

@@ -65,7 +65,9 @@ static func setup() -> void:
 	apply_volumes()
 
 
-## Hlasitosti z nastavení (0–10 → dB, 0 = stlmené)
+## Hlasitosti z nastavení (0–10 → dB, 0 = stlmené). Krivka (v/10)^1,5: ucho vníma hlasitosť logaritmicky,
+## takže pri lineárnej amplitúde bolo 6–10 skoro rovnako hlasné a dole to skákalo. Teraz je každý krok počuteľný
+## (10 → 0 dB, 8 → −2,9 dB, 5 → −9 dB, 2 → −21 dB, 1 → −30 dB). Godot docs: classes/class_@globalscope#class-globalscope-method-linear-to-db
 static func apply_volumes() -> void:
 	GameSettings.ensure_loaded()
 	for b: StringName in [&"Master", &"Music", &"SFX", &"Ambience", &"UI"]:
@@ -74,7 +76,7 @@ static func apply_volumes() -> void:
 			continue
 		var v: float = GameSettings.volume(b) / 10.0
 		AudioServer.set_bus_mute(i, v <= 0.0)
-		AudioServer.set_bus_volume_db(i, linear_to_db(maxf(v, 0.001)))
+		AudioServer.set_bus_volume_db(i, linear_to_db(maxf(pow(v, 1.5), 0.001)))
 
 
 static func stream(sound: StringName) -> AudioStream:

@@ -1,10 +1,12 @@
 extends Node2D
-## Nákladný žeriav S.S. Margaret – 2. fáza boja s Big Lou (characters/lou/big_lou.gd): Lou ho ovláda pákou z búdky pri stĺpe.
-## Rameno sa otáča okolo stĺpa (pohľad zboku → kladka ide doľava/doprava a rameno sa pritom skracuje, ako by mierilo k nám),
-## lano so sieťou plnou debien sa na ňom hojdá (kyvadlo poháňané zrýchlením kladky).
-##   drop_cargo() – zo siete vypadne debna (world/ship/falling_cargo.gd), tieň na palube ju vopred prezradí
+## Nákladný žeriav S.S. Margaret – boj s Big Lou (characters/lou/big_lou.gd): Lou ho ovláda pákou z krídla mostíka
+## (jednou rukou páka, druhou Thompson). Rameno sa otáča okolo stĺpa (pohľad zboku → kladka ide doľava/doprava a rameno
+## sa pritom skracuje, ako by mierilo k nám), lano so sieťou plnou debien sa na ňom hojdá (kyvadlo poháňané zrýchlením kladky).
+##   drop_cargo() – zo siete vypadne debna (world/ship/falling_cargo.gd), tieň na palube ju vopred prezradí;
+##                  na palube z nej je dočasný kryt, ktorý Louove guľky po pár zásahoch rozbijú
 ##   lethal = true – nízko spustená sieť zmetie Ricca (2 kúsky pizze) aj debny; popod ňu sa dá prešmyknúť po bruchu
-##   collapse() – blesk ho zlomí: rameno sa zrúti na palubu, sieť spadne a roztrhne sa (3. fáza)
+##   collapse() – keď Lou spadne z mostíka, žeriav bez obsluhy udrie blesk: rameno sa zrúti na palubu (zúži arénu),
+##                sieť spadne, roztrhne sa a debny z nej ostanú na palube ako skutočné debny (s kolíziou)
 ## Uzly Boom, Rope, Net, Shadow vytvára tools/build_margaret.gd. Godot docs: classes/class_line2d, classes/class_tween
 
 signal net_landed(pos: Vector2)
@@ -24,6 +26,7 @@ const G := 900.0   ## „gravitácia“ kyvadla – ťažká sieť s nákladom s
 
 var tip_x: float
 var target_x: float
+var base_rope: float       ## dĺžka lana v pokoji (z tools/build_margaret.gd) – sem sa sieť vracia
 var rope_target: float
 var lethal: bool = false
 var sweep_dir: float = 1.0
@@ -45,6 +48,7 @@ var _motor_vol: float = -60.0
 
 func _ready() -> void:
 	add_to_group(&"crane")
+	base_rope = rope
 	tip_x = pivot.x - length * cos(luff)
 	target_x = tip_x
 	rope_target = rope
@@ -150,9 +154,10 @@ func _place_shadow() -> void:
 	shadow.position.x = b.x - shadow.texture.get_width() * shadow.scale.x / 2.0
 
 
-## Sieťou trhne a vypadne z nej debna
-func drop_cargo() -> void:
+## Sieťou trhne a vypadne z nej debna. stay = po dopade ostane ako kryt (inak sa rozletí – na palube je už debien dosť)
+func drop_cargo(stay: bool = true) -> void:
 	var c: Node2D = CARGO.new()
+	c.set(&"stay", stay)
 	get_tree().current_scene.add_child(c)
 	c.global_position = net_bottom() + Vector2(0, 2)
 	c.set(&"velocity", Vector2(_prev_vx * 0.5, 30.0))
@@ -221,7 +226,12 @@ func collapse() -> void:
 	tw.tween_property(boom, "rotation", end_rot, 0.12)
 
 
-## Už zrútený (checkpoint v 3. fáze) – bez zvukov a signálov
+## Je už rameno zrútené?
+func is_broken() -> bool:
+	return _broken
+
+
+## Už zrútený (checkpoint v 3. fáze) – bez zvukov a signálov; debny zo siete už stoja na palube
 func wrecked() -> void:
 	_broken = true
 	lethal = false
@@ -229,9 +239,13 @@ func wrecked() -> void:
 	boom.scale = Vector2.ONE
 	boom.rotation = _landing_dir().angle() - PI
 	net.rotation = 0.0
+	var x: float = landing().x + 60.0
+	var hit := get_world_2d().direct_space_state.intersect_ray(PhysicsRayQueryParameters2D.create(Vector2(x, -300), Vector2(x, 40), 1))
+	var ground: Vector2 = hit.position if not hit.is_empty() else Vector2(x, 0)
+	_torn_net(ground)
 	net.scale = Vector2(1.15, 0.55)
 	net.modulate = Color(0.55, 0.5, 0.48)
-	net.position = Vector2(reach().x, -(NET_SIZE.y - 6.0) + NET_SIZE.y * 0.45)   # ako po páde v collapse()
+	_spill_crates(ground)
 
 
 func _fall_net(delta: float) -> void:
@@ -249,9 +263,25 @@ func _fall_net(delta: float) -> void:
 	net.position = hit.position - Vector2(0, NET_SIZE.y - 6.0)
 	Sfx.play(&"crate_break", hit.position, 2.0, 0.0)
 	Burst.spawn(get_tree().current_scene, hit.position, Vector2(0, -1), Color(0.55, 0.5, 0.42, 0.6), 14, 70.0, Vector2(0, 80), 0.7)
-	# sieť sa roztrhla – zvyšky ostanú ležať na palube
+	# sieť sa roztrhla – zvyšky ostanú ležať na palube, debny z nej sú odteraz skutočné (kolízia, kryt)
 	var tw := create_tween()
 	tw.tween_property(net, "scale", Vector2(1.15, 0.55), 0.12)
 	tw.parallel().tween_property(net, "position:y", net.position.y + NET_SIZE.y * 0.45, 0.12)
 	tw.tween_property(net, "modulate", Color(0.55, 0.5, 0.48), 0.6)
+	_spill_crates(hit.position)
 	net_landed.emit(hit.position)
+
+
+## Roztrhnutá sieť leží na zemi (pos = zem pod stredom siete)
+func _torn_net(pos: Vector2) -> void:
+	net.position = to_local(pos) - Vector2(0, NET_SIZE.y - 6.0) + Vector2(0, NET_SIZE.y * 0.45)
+
+
+## Debny zo siete sa vysypú vedľa nej na palubu ako pevné debny (world/ship/falling_cargo.gd ich spraví skutočnými)
+func _spill_crates(ground: Vector2) -> void:
+	for dx in [-34.0, 34.0]:
+		var c: Node2D = CARGO.new()
+		c.set(&"stay", true)
+		get_tree().current_scene.add_child(c)
+		c.global_position = Vector2(ground.x + dx, ground.y - 30.0)
+		c.set(&"velocity", Vector2(dx * 1.5, -60.0))

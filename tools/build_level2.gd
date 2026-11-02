@@ -2,7 +2,8 @@ extends SceneTree
 ## Nástroj: vygeneruje levels/level2/level2.tscn (Kapitola II – cintorín, Donov pohreb) a levels/level2/tiles_cemetery.tres.
 ## Spustenie: godot --headless --path . --script res://tools/build_level2.gd
 ## Mapa je zadaná v dlaždiciach (16 px). Zem je na y = 0, hore sú záporné riadky. Ide sa zľava doprava:
-##   brána → hrobník s lampášom a otvorený hrob (úkryt) → kôlňa s revolverom → mauzóleá (plošiny) →
+##   ulica pred cintorínom (x < 0: autá Rodiny, pohrebák so šoférom, zamknutá brána so strážou, strom – konárom ponad bránu) →
+##   hrobník s lampášom a otvorený hrob (úkryt) → kôlňa s revolverom → mauzóleá (plošiny) →
 ##   strecha veľkého mauzólea (Ricco s duchom sleduje pohreb) → pohreb pred kostolom (smútiaci, kňaz, mafiáni) →
 ##   konáre starého duba ponad pohreb → rodinná hrobka → krypta so svetlom vo dverách = cesta ďalej.
 ## Udalosti (duch, zápalky Pier 13, revolver, koniec) sú v levels/level2/level2.gd.
@@ -37,6 +38,10 @@ const TOMBS := [
 const LAMP_L := 97     ## lampy pri pohrebe (dlaždica) – svetlo ±2,5 dlaždice
 const LAMP_R := 107
 const CRYPT_X := 128   ## krypta (6 dlaždíc) – dvere v strede = východ
+const STREET_X := -60  ## ľavý koniec ulice pred cintorínom (dlaždice) – level2.gd: MAP
+const GATE := Rect2(-96, -104, 96, 104)   ## zamknutá brána (px) – pevná, cez ňu sa dá len preliezť po konári
+## Konáre stromu pri bráne (x od, x do, y v px) – musia sedieť s konármi nakreslenými v art/street/gate_tree.png
+const BRANCHES := [[-232.0, -168.0, -44.0], [-184.0, -120.0, -88.0], [-152.0, -20.0, -124.0]]
 
 var rng := RandomNumberGenerator.new()
 var lvl: Node2D
@@ -62,6 +67,7 @@ func _init() -> void:
 	solid = _layer("Solid", ts, 0)
 
 	_build_ground()
+	_build_street()
 	_build_entrance()
 	_build_gravedigger()
 	_build_mausoleums()
@@ -72,7 +78,7 @@ func _init() -> void:
 	_build_food()
 	var ricco: Node2D = load("res://characters/ricco/ricco.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	_node(ricco, "Ricco", lvl)
-	ricco.position = Vector2(5 * T, 0)
+	ricco.position = Vector2((STREET_X + 4) * T, 0)   # začiatok na ulici (po prelezení brány SpawnIn – level2.gd)
 	var hud: Node = load("res://ui/hud.tscn").instantiate(PackedScene.GEN_EDIT_STATE_INSTANCE)
 	_node(hud, "HUD", lvl)
 
@@ -256,6 +262,7 @@ func _mourner(tex: String, x: float, face: float) -> void:
 	g.flip_h = face < 0.0
 	g.position = Vector2(x * T, 0)
 	g.z_index = -3
+	g.set(&"flee", true)   # pri streľbe utečú (guest.gd)
 	_node(g, "Mourner", lvl)
 
 
@@ -326,7 +333,7 @@ func _sky() -> void:
 	fence.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	fence.region_enabled = true
 	fence.region_rect = Rect2(0, 0, (END_X + 4) * T, 56)
-	fence.position = Vector2(-2 * T, -54)
+	fence.position = Vector2(0, -54)
 	fence.z_index = -12
 	_node(fence, "FenceRow", lvl)
 
@@ -334,8 +341,8 @@ func _sky() -> void:
 # ---------------------------------------------------------------- zem, múry, otvorený hrob
 
 func _build_ground() -> void:
-	_fill(solid, -4, 0, END_X + 4, 0, GRASS)
-	_fill(solid, -4, 1, END_X + 4, 6, DIRT_VAR)
+	_fill(solid, STREET_X - 4, 0, END_X + 4, 0, GRASS)
+	_fill(solid, STREET_X - 4, 1, END_X + 4, 6, DIRT_VAR)
 	for b in [Vector2i(14, 3), Vector2i(47, 2), Vector2i(77, 4), Vector2i(103, 2), Vector2i(126, 3)]:
 		solid.set_cell(b, 0, BONE)
 	# vyšliapaná cestička od brány k pohrebu
@@ -346,18 +353,67 @@ func _build_ground() -> void:
 			solid.erase_cell(Vector2i(x, y))
 			back.set_cell(Vector2i(x, y), 0, DIRT_BG)
 		solid.set_cell(Vector2i(x, PIT.y), 0, PIT_FLOOR)
-	# múr cintorína na začiatku a na konci + neviditeľná stena až hore (cez múr sa nepreskočí)
-	for x0 in [-2, END_X]:
-		_fill(solid, x0, -4, x0 + 1, -1, WALL)
-		_fill(solid, x0, -5, x0 + 1, -5, WALL_CAP)
-		_block("Edge", Rect2(x0 * T, -40 * T, 2 * T, 35 * T))
+	# múr cintorína na konci + neviditeľná stena až hore (cez múr sa nepreskočí); na začiatku je brána (_build_street)
+	_fill(solid, END_X, -4, END_X + 1, -1, WALL)
+	_fill(solid, END_X, -5, END_X + 1, -5, WALL_CAP)
+	_block("Edge", Rect2(END_X * T, -40 * T, 2 * T, 35 * T))
+	_block("Edge", Rect2((STREET_X - 2) * T, -40 * T, 2 * T, 40 * T))   # koniec ulice vľavo
 
 
-# ---------------------------------------------------------------- 1. brána
+# ---------------------------------------------------------------- 0. ulica pred cintorínom
+
+## Dlažba, lampy, autá Rodiny, pohrebák so šoférom (fajčí pod lampou – level2.gd), zamknutá brána so strážou za mrežami.
+## Dnu sa ide po strome: tri konáre (jednosmerné plošiny), najvyšší vedie ponad bránu.
+func _build_street() -> void:
+	var street := Sprite2D.new()
+	street.texture = load(ART + "street/cobble.png")
+	street.centered = false
+	street.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	street.region_enabled = true
+	street.region_rect = Rect2(0, 0, (-STREET_X + 2) * T + GATE.position.x, 56)
+	street.position = Vector2((STREET_X - 2) * T, 0)
+	street.z_index = 1   # cez trávu prvého radu dlaždíc
+	_node(street, "Street", lvl)
+	# pouličné lampy (svetlo = tu Ricca vidno)
+	for lx in [-840.0, -392.0]:
+		_sprite("lamp_post.png", Vector2(lx - 8, -64), null, "StreetLamp")
+		_glow(Vector2(lx, -55), Color(1.0, 0.82, 0.5, 0.6), 2.2)
+		_glow(Vector2(lx, -6), Color(1.0, 0.75, 0.45, 0.22), 2.0)
+		_light(Rect2(lx - 40, -72, 80, 72))
+	# autá Rodiny a pohrebák (za Riccom, kolesá na obrubníku)
+	for c in [["sedan.png", -780.0, false], ["sedan_brown.png", -676.0, true], ["hearse.png", -560.0, false]]:
+		var car := _sprite("street/" + c[0], Vector2(c[1], 0), null, c[0].get_basename().to_pascal_case())
+		car.position.y = -car.texture.get_height() + 2
+		car.flip_h = c[2]
+		car.z_index = -1
+	_glow(Vector2(-428, -18), Color(1.0, 0.9, 0.6, 0.5), 0.5)   # svetlo pohrebáka
+	# šofér pohrebáka – opretý o auto, pozerá k bráne, občas sa obzrie; fajčí (level2.gd)
+	_gunman("Driver", Vector2(-410, 0), 1.0, {"kind": "coppola", "stationary": true, "look_back": Vector2(4.0, 7.0)})
+	_trigger("HearseBark", Vector2(-600, -2 * T), Vector2(16, 4 * T))
+	# strom pri bráne: konáre sú plošiny
+	var tree := _sprite("street/gate_tree.png", Vector2(-260, -260), null, "GateTree")
+	tree.z_index = -2
+	for b in BRANCHES:
+		_oneway(Vector2(b[0], b[2]), b[1] - b[0], "Branch")
+	# zamknutá brána – pevná; nad ňou neviditeľná stena, len pod konárom je medzera
+	var gate := _sprite("street/gate_locked.png", Vector2(GATE.position.x, -112), lvl, "Gate")
+	gate.z_index = 1   # mreže pred strážou
+	_block("GateBars", GATE)
+	_block("Edge", Rect2(GATE.position.x, -40 * T, GATE.size.x, 40 * T - 200))
+	# stráž s palicou hneď za bránou (pozerá na ulicu, občas sa obzrie), lampa nad ním
+	_enemy("gangster_slugger", "GateGuard", Vector2(20, 0), -1.0, {"stationary": true, "look_back": Vector2(3.0, 5.0)})
+	_sprite("lamp_post.png", Vector2(56 - 8, -64), null, "GateLamp")
+	_glow(Vector2(56, -55), Color(1.0, 0.82, 0.5, 0.55), 2.0)
+	_glow(Vector2(56, -6), Color(1.0, 0.75, 0.45, 0.2), 1.8)
+	_light(Rect2(0, -72, 96, 72))
+	_trigger("InsideGate", Vector2(3 * T, -2 * T), Vector2(16, 4 * T))
+	_marker("SpawnIn", Vector2(6 * T, 0))
+
+
+# ---------------------------------------------------------------- 1. za bránou
 
 func _build_entrance() -> void:
-	_sprite("gate.png", Vector2(10 * T, -112), null, "Gate")   # v rekvizitách za Riccom – prejde ňou
-	_trigger("GateBark", Vector2(17 * T, -2 * T), Vector2(16, 4 * T))
+	_trigger("GateBark", Vector2(12 * T, -2 * T), Vector2(16, 4 * T))
 	_sprite("dead_tree_0.png", Vector2(3 * T - 81, -237), null, "DeadTree").z_index = -3   # holé stromy (kmeň na dlaždici 3 a 136)
 	_sprite("dead_tree_1.png", Vector2(136 * T - 67, -195), null, "DeadTree").z_index = -3
 	for t in [[1, 19.0], [0, 21.5], [3, 24.0], [5, 26.5], [6, 36.5], [2, 38.5], [4, 40.0]]:
@@ -408,11 +464,13 @@ func _build_funeral() -> void:
 	_oneway(Vector2(90.5 * T, -112), 8 * T, "BranchL")
 	_oneway(Vector2(101 * T, -128), 12 * T, "BranchR")
 	# truhla nad hrobom s vencom, sviečky, kopa hliny (z = 0: cez dlaždice zeme – vidno jamu)
-	var coffin := Sprite2D.new()
-	coffin.texture = load(ART + "coffin.png")
-	coffin.centered = false
-	coffin.position = Vector2(101 * T, -21)
-	_node(coffin, "Coffin", lvl)
+	# jama s kopou hliny a zvlášť truhla – počas pohrebu sa spustí do hrobu (level2.gd: _lower_coffin)
+	for spec in [["CoffinPit", "street/coffin_pit.png"], ["Coffin", "street/coffin_box.png"]]:
+		var coffin := Sprite2D.new()
+		coffin.texture = load(ART + spec[1])
+		coffin.centered = false
+		coffin.position = Vector2(101 * T, -21)
+		_node(coffin, spec[0], lvl)
 	for cx in [99.6, 105.2]:
 		_sprite("candles.png", Vector2(cx * T, -12), null, "Candles")
 		_glow(Vector2(cx * T + 9, -10), Color(1.0, 0.75, 0.4, 0.4), 0.7, null, true)
@@ -456,11 +514,11 @@ func _fog() -> void:
 	for spec in [["FogBack", -40.0, -11, 0.05, 20.0], ["FogFront", -6.0, 6, 0.07, 8.0]]:
 		var p := CPUParticles2D.new()
 		p.texture = load(L1 + "glow.png")
-		p.amount = 70
+		p.amount = 100
 		p.lifetime = 10.0
 		p.preprocess = 10.0
 		p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-		p.emission_rect_extents = Vector2((END_X + 4) * T / 2.0, spec[4])
+		p.emission_rect_extents = Vector2((END_X - STREET_X + 6) * T / 2.0, spec[4])
 		p.direction = Vector2(1, 0)
 		p.spread = 10.0
 		p.gravity = Vector2.ZERO
@@ -469,7 +527,7 @@ func _fog() -> void:
 		p.scale_amount_min = 1.2
 		p.scale_amount_max = 2.6
 		p.color = Color(0.62, 0.8, 0.8, spec[3])
-		p.position = Vector2((END_X - 4) * T / 2.0, spec[1])
+		p.position = Vector2((END_X + STREET_X) * T / 2.0, spec[1])
 		p.z_index = spec[2]
 		_node(p, spec[0], lvl)
 

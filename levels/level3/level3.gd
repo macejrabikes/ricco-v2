@@ -1,22 +1,19 @@
 class_name Level3
 extends Node2D
-## Kapitola III – The Big Apple. Základ kapitoly (statické checkpointy, výbava, hlášky ducha) + časť 1:
-## nábrežná stena pri East River (po úvode pri Soche slobody – intro.gd).
-## Ricco pristane v člne z Margaret pri kamennej stene, vylezie po železnom rebríku (world/fx/ladder.gd) na promenádu
-## (lampa, lavička, strážnik s baterkou) a dverami obchodu v nájomnom dome prejde do ulice (časť 2 – street.gd),
-## odtiaľ po strechách k stanici Delancey St (časť 3 – roofs.gd), nadzemkou do Harlemu (časť 4 – train.gd)
+## Kapitola III – The Big Apple. Základ kapitoly (statické checkpointy, výbava, hlášky ducha), každá časť z neho dedí.
+## Po úvode pri Soche slobody (intro.gd) je časť 1+2 jedna mapa (street.gd): Ricco pristane v člne z Margaret pri nábrežnej
+## stene, vylezie po železnom rebríku (world/fx/ladder.gd) na promenádu (lampy, lavička, strážnik s baterkou) a ide rovno
+## do ulice a po strechách, odtiaľ po ďalších strechách k stanici Delancey St (časť 3 – roofs.gd), nadzemkou do Harlemu (časť 4 – train.gd)
 ## a do jazzového klubu The Blue Canary (časť 5 – club.gd: ulica a sála, časť 6 – club_back.gd: zákulisie, Sal),
 ## potom zadným vchodom do hotela Majestic (časť 7 – hotel.gd: kuchyňa, práčovňa, nákladný výťah) a na gala „M.“
 ## v Starlight Room a na strechu s nápisom MAJESTIC (časť 8 – hotel_gala.gd) a za svitania na vrchol rozostavaného
 ## mrakodrapu Iron Mikea (časť 9 – tower.gd: boss Iron Mike, vzducholoď „M.“).
-## Celé nábrežie je „tma“ (player.dark_area): vidno ťa len na svetle lámp a v kuželi baterky.
-## Scény nábrežia a ulice generuje tools/build_level3.gd (úpravy mapy rob tam, inak sa pri ďalšom generovaní prepíšu),
-## scény striech a nadzemky píšu _art_src/make_roofs_scene.py a make_train_scene.py priamo (bez spúšťania Godotu).
+## Scény píše Claude priamo ako .tscn (_art_src/make_city_scene.py, make_roofs_scene.py, make_train_scene.py… mimo repa),
+## len úvod generuje tools/build_level3.gd.
 ## Godot docs: classes/class_tween, classes/class_canvaslayer, classes/class_area2d
 
-const MAP := Rect2i(0, -420, 1600, 516)             ## hranice kamery (px) – hladina je na y = 0, dno na y = 96
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
-const STREET := "res://levels/level3/street.tscn"   ## časť 2: ulica → požiarne schodisko → strechy
+const STREET := "res://levels/level3/street.tscn"   ## časť 1+2: rieka → nábrežie → ulica → požiarne schodisko → strechy
 const ROOFS := "res://levels/level3/roofs.tscn"     ## časť 3: strechy (billboard, holubník, dielňa, nádrž) → stanica Delancey St
 const TRAIN := "res://levels/level3/train.tscn"     ## časť 4: nadzemka do Harlemu (strechy vozňov, vozeň s cestujúcimi)
 const CLUB := "res://levels/level3/club.tscn"       ## časť 5: Lenox Ave a sála klubu The Blue Canary
@@ -34,7 +31,7 @@ const FONT := preload("res://ui/fonts/tiny5.ttf")
 const NIGHT := Color(0.72, 0.8, 0.86)               ## mafiáni sú v nočnom svetle tmavší (Ricco sa stmavuje sám)
 const TOMMY_START_AMMO := 20                        ## náboje do Thompsonu sú v kapitole III vzácne – len to, čo ostalo v bubne
 
-## 0 = v člne pri stene, 1 = hore na promenáde, 2 = ulica (street.gd), 3 = strecha pizzerie, 4 = strecha holičstva,
+## 0 = v člne pri stene, 1 = hore na promenáde, 2 = začiatok ulice, 3 = strecha pizzerie, 4 = strecha holičstva (všetko street.gd),
 ## 5–8 = strechy (roofs.gd: za dverami schodiska, za doskou, strecha dielne, požiarne schodisko),
 ## 9–13 = nadzemka (train.gd – strecha vozňa 1, potom pred vozňami 3, 4, 5 a 6),
 ## 14–16 = klub (club.gd – stanica 125 St, vnútri, lávka nad sálou),
@@ -98,25 +95,6 @@ static func reset() -> void:
 	tommy_ammo = [TOMMY_START_AMMO, 0]
 	carried.clear()
 	Food.reset()   # nesené jedlo (props/food/food.gd)
-
-
-func _ready() -> void:
-	if checkpoint >= 2:   # zomrel v ulici, na strechách, na nadzemke alebo v klube → rovno tam
-		get_tree().change_scene_to_file.call_deferred(part_for(checkpoint))
-		return
-	var black := _setup(MAP)
-	if black == null:
-		return
-	_connect(^"LadderBark", func(): _once(&"ladder", "UP THE LADDER, KID.\n%s TO CLIMB." % KeyBindings.short(&"jump")))
-	_connect(^"GuardBark", func(): _once(&"guard", "A FLATFOOT WITH A FLASHLIGHT.\nWAIT TILL HE TURNS AROUND."))
-	_connect(^"Checkpoint1", func(): checkpoint = maxi(checkpoint, 1))
-	_connect(^"ExitStreet", _on_exit)
-	Sfx.loop(&"docks", self, Vector2.INF, -6.0)
-	Sfx.music(&"rainy_noir")
-	_fade_in(black)
-	if checkpoint == 0 and not arrived:
-		arrived = true
-		_arrive()
 
 
 ## Scéna časti kapitoly podľa checkpointu (po smrti sa pokračuje tam)
@@ -215,11 +193,6 @@ func _tick_say(delta: float) -> void:
 	if _say_busy <= 0.0 and not _say_queue.is_empty():
 		_say_busy = 3.4
 		bark(_say_queue.pop_front())
-
-
-## Koniec časti: dverami obchodu do ulice (street.tscn)
-func _on_exit() -> void:
-	_leave_door(STREET, 2)
 
 
 ## Odchod dverami: zvuk dverí, Ricco zmizne, stmievačka a ďalšia časť kapitoly (sound = false – bez dverí, napr. z nástupišťa)
