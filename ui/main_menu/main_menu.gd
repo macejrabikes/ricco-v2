@@ -6,7 +6,7 @@ extends Control
 ## Stránky nastavení a ovládania sú spoločné s pause menu (ui/pause_menu/menu_pages.gd).
 ##   STORY – NEW STORY (od kapitoly I), CONTINUE (posledná rozohratá kapitola – Progress.chapter, od jej začiatku),
 ##           CHAPTERS – výber kapitoly: veľké CHAPTER I, pod ním malým názov
-##           (I Pizzeria Don Vito, II cintorín a prístav, III New York)
+##           (I Pizzeria Don Vito, II cintorín a prístav, III New York, IV Long Island – sídlo vdovy)
 ##   ARSENAL – všetky zbrane a ich štatistiky (zamknuté sú zakryté)
 ##   SHOOTING RANGE – strelnica: všetky zbrane, terče, režimy pákou (levels/range/shooting_range.gd)
 
@@ -14,11 +14,13 @@ const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const LEVEL_1 := "res://levels/level1/level1.tscn"
 const LEVEL_2 := "res://levels/level2/level2.tscn"
 const LEVEL_3 := "res://levels/level3/intro.tscn"
+const LEVEL_4 := "res://levels/level4/pier.tscn"
 ## Kapitoly: číslo, názov a prvá scéna (CHAPTERS a CONTINUE)
 const CHAPTERS: Array[Array] = [
 	["CHAPTER I", "THE DON'S GHOST", LEVEL_1],
 	["CHAPTER II", "WHARF RATS", LEVEL_2],
 	["CHAPTER III", "THE BIG APPLE", LEVEL_3],
+	["CHAPTER IV", "THE WIDOW", LEVEL_4],
 ]
 const SHOOTING_RANGE := "res://levels/range/range.tscn"
 const WINDOW_LIT := preload("res://levels/level1/art/window_lit.png")
@@ -149,6 +151,7 @@ func _start(path: String) -> void:
 	Level1.catacombs_seen = false
 	Level2.reset()
 	Level3.reset()
+	Level4.reset()
 	get_viewport().gui_release_focus()
 	LoadingScreen.go(get_tree(), path, 0.4)
 

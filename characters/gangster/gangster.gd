@@ -115,6 +115,7 @@ const RIGS := {
 	"butcher": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # mäsiar v hotelovej kuchyni (biela zástera, sekáčik – kapitola III)
 	"bellhop": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # liftboy / poslíček hotela Majestic (bordová uniforma)
 	"riveter": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # nitovač na stavbe veže Iron Mikea (biela košeľa, traky, baretka)
+	"smuggler": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # pašerák rumu z Long Islandu (pletená čiapka, sveter – kapitola IV)
 	"mike": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Iron Mike – stavbyvedúci (vesta, kravata, tvrdý klobúk) – characters/iron_mike/
 }
 ## Pózy dvojdielnych rúk: [nadlaktie predné, predlaktie predné, nadlaktie zadné, predlaktie zadné, náklon px]

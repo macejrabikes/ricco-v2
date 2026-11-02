@@ -10,7 +10,7 @@
 <p align="center">
   <img alt="Godot 4.7" src="https://img.shields.io/badge/Godot-4.7-478CBF?logo=godotengine&logoColor=white">
   <img alt="GDScript" src="https://img.shields.io/badge/GDScript-static%20typed-355570">
-  <img alt="Status" src="https://img.shields.io/badge/status-chapters%20I%E2%80%93II%20playable-c79947">
+  <img alt="Status" src="https://img.shields.io/badge/status-chapters%20I%E2%80%93III%20playable%2C%20IV%20in%20progress-c79947">
   <img alt="Platform" src="https://img.shields.io/badge/platform-PC-555">
 </p>
 
@@ -90,6 +90,17 @@ The letter from "M." leads Ricco and the ghost to New York.
   mast of a zeppelin with "M." waiting in the gondola.
 - Coming next: a car chase.
 
+### Chapter IV – The Widow *(in progress)*
+
+- **The pier** – a rickety old fishing pier at night under Margaret's mansion on the cliff. Rotten planks give way,
+  a lantern swings in the wind, gulls burst into the air and give you away, a guard sweeps the boards with a flashlight.
+  Behind the nets in the BAIT & TACKLE shack hides a secret door.
+- **The smugglers' cave** – a real hidden dock inside the cliff: bottle conveyors, crates riding a hook rail you can
+  hang from, rum barrels that blow up, a searchlight sweeping the ledges, a guard dog, a crane net over the pier and the
+  freighter SEA WIDOW. In the office, a ledger of payments – and a name above Margaret's.
+- **The boathouse** – slips, a dry dock, lofts and scaffolding. Shoot your way through or sneak over the beams: drop
+  the LADY M. off its hoist, chain a fuel tank into the gas pump – then ride the old freight elevator up toward the mansion.
+
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
 - **Tight platforming** – coyote time, jump buffering, variable jump, ledge grab, wall jump, penguin belly slide (slide into a goon to trip him)
@@ -142,6 +153,7 @@ All keys can be changed in **Settings → Controls → Keyboard**. Defaults:
 - [x] Weapons: derringer, revolver, lupara, Tommy gun, fire modes, Arsenal, shooting range
 - [ ] More period weapons (Colt 1911, Winchester 1897, Mauser C96…), human shield, loadout screen with weapon stats between levels
 - [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops ✔, the El train ✔, a Harlem jazz club ✔, the Hotel Majestic ✔, boss Iron Mike ✔, a car chase
+- [ ] **Chapter IV – The Widow** – the pier ✔, the smugglers' cave ✔, the boathouse ✔, the wine cellar, the gardens, the mansion, boss Margaret
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
 - [ ] Style meter, more secrets (swimming ✔, ice ✔, meat hooks ✔)
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)

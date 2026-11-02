@@ -27,7 +27,8 @@ audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty, varianty meno_2/_3), amb/*
 characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/, lou/ (Big Lou – boss kapitoly II, dynamit)
 effects/      burst.gd (Burst – čiastočky), explosion.gd (trieda Explosion – výbuch: ohnivá guľa, tlaková vlna, záblesk, sadza, zranenie, reťaz sudov), art/
 levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň),
-              level3/ (kapitola III – intro = čln pri Soche slobody, waterfront = nábrežná stena, street = ulica a strechy, roofs = ďalšie strechy k stanici, train = nadzemka, club = jazzový klub, club_back = zákulisie, hotel = hotel Majestic – servisné krídlo, hotel_gala = gala a strecha), range/ (strelnica)
+              level3/ (kapitola III – intro = čln pri Soche slobody, waterfront = nábrežná stena, street = ulica a strechy, roofs = ďalšie strechy k stanici, train = nadzemka, club = jazzový klub, club_back = zákulisie, hotel = hotel Majestic – servisné krídlo, hotel_gala = gala a strecha),
+              level4/ (kapitola IV – pier = mólo a rybárska búda, cave = pašerácka jaskyňa, boathouse = lodenica s výťahom), range/ (strelnica)
 world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door, ladder – rebrík na stene, awning – markíza-trampolína, clothesline – šnúra s kladkou…), npc/ (guest, rat, dog – pes na reťazi, pigeons – holuby), fx/lighthouse_beam (otáčavý lúč majáka),
               coldstore/ (hook_rail – koľajnica s hákmi, carcass – visiace mäso = kryt, conveyor – pás),
               ship/ (storm – blesky a hrom, roll – hojdanie mora a mrakov, ship_crate – debna/kryt, ship_barrel – sud whisky,
@@ -318,6 +319,35 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   skok/šmyk = pustí sa, pred koncom koľajnice sa pustí sám). Na koncoch koľajnica zatáča dozadu (`DEPTH`): vozík spomalí, zmenší sa, stmavne a zmizne. Mäso (`carcass.gd`, vrstva 32)
   zastaví pohľad aj guľky, postavy prejdú. **Vesta:** `Gangster.vest` – do trupu len `vest_factor` damage (iskry, cink), hlava a nohy naplno
   (`take_hit_at`). `Gangster.cold_breath` = para od úst; Riccovi ide para v mraziarňach (coldstore.gd).
+- **Kapitola IV – The Widow** (rozrobená, nápady v projekte `ricco-navrhy/kapitola4_napady.md`; celkovo aspoň 8 kapitol,
+  plot twist: nad Margaret stojí **consigliere Mancini** – v knihe pašerákov „C.M. TAKES HIS CUT FIRST. ALWAYS.“).
+  Naháňačka autom z konca kapitoly III je odložená. V menu CHAPTERS: `CHAPTER IV / THE WIDOW` → `levels/level4/pier.tscn`
+  (`Level4.reset()` v `_start`). Scény píšu skripty `_art_src/make_pier_scene.py`, `make_cave_scene.py`,
+  `make_boathouse_scene.py` (spoločné `ch4_scene.py`), obrázky `make_ch4_pier_art.py`, `make_ch4_cave_art.py`,
+  `make_ch4_boathouse_art.py` (`ch4_lib.py`, do `levels/level4/art/`), pašerák `make_ch4_people.py` – v projekte
+  `ricco-v2-kapitola4-lodenica/` mimo repa. Každá časť = jeden veľký maľovaný obrázok pozadia (súradnice sveta = pixely
+  obrázka, Sprite2D na (0,0), z −20), kolízie sú StaticBody obdĺžniky a one-way plošiny (skupina `platform`).
+  Dvere a otvory sú na výšku mafiánov (≥ 96 px) – Ricco je nižší než ktorýkoľvek nepriateľ. Noc (`NIGHT`), `dark_area`.
+  **Level4** (`levels/level4/level4.gd`, `class_name Level4`): statické `checkpoint` (0 mólo, 1–2 jaskyňa, 3–4 lodenica),
+  `barks`, `arrived`, `cave_arrived`, `boathouse_arrived`, `ledger_read`, `tommy_ammo`, `carried`; `reset()`, `part_for(cp)`
+  (pomocné funkcie ako Level3: `_leave_door`, `say`, `bark`, `_to_be_continued`…). Výbava Pistol + Winchester + Tommy.
+  **Časť 1 – mólo** (`pier.tscn`, 1440×660): rozhegané mólo nad vodou (`WaterZone`, diery s rebríkmi), hnilá doska
+  (`roof_plank.gd`), hojdajúci sa lampáš (`levels/level4/sway.gd` – kývanie + nárazy vetra) so svetlom, čajky
+  (`pigeons.gd` s vlastnou `texture`), strážnik s baterkou, fajčiar (žeravá cigareta `Ember`), v búde BAIT & TACKLE
+  mafián s luparou. Za sieťami tajné dvere (`SecretSpot` „MOVE NETS“) → jaskyňa (checkpoint 1).
+  **Časť 2 – jaskyňa** (`cave.gd extends Level4`, `cave.tscn`, 2700×820): pašerácky prístav – vozíky, pás s fľašami
+  (`conveyor.gd`), koľajnica s hákmi a debnami (`hook_rail.gd` s `carcass_texture`, debna = drevo), prielev s doskou,
+  sudy rumu (`ship_barrel.gd`), kancelária s knihou platieb (`OfficeSpot` → ReadCard), reflektor s obsluhou
+  (`club_spotlight.gd`), pes, žeriav so sieťou (`drop_weight.gd`), loď SEA WIDOW; checkpoint 2 v strede, tunel BOATS
+  hore vpravo → lodenica (checkpoint 3).
+  **Časť 3 – lodenica** (`boathouse.gd extends Level4`, `boathouse.tscn`, 2300×800): dva sklzy s vodou, suchý dok s VITO III,
+  povaly, trámy, lešenia; plynové sudy, palivová nádrž (`FuelTank`, výbuch reťazí do benzínovej pumpy), čln LADY M.
+  na kladkostroji nad mechanikmi (`drop_weight.gd`), kartári, spáč (`passive`); checkpoint 4. Vľavo šachta s výťahom
+  (`Lift` AnimatableBody2D, `LiftSpot` „GO UP“) hore k vínnej pivnici vily → TO BE CONTINUED.
+  **Pašerák:** gangster `kind = "smuggler"` (`characters/gangster/smuggler/`, prefarbený z riveter – modrý sveter,
+  červená čiapka; RIGS v gangster.gd). **Úpravy spoločných skriptov:** `pigeons.gd` `@export texture`, `hook_rail.gd`
+  `@export carcass_texture` (+ `wood` na carcass – drevený zvuk a triesky).
+  **Ďalej:** vínna pivnica, záhrady, vila, boss Margaret + odhalenie Manciniho; potom naháňačka autom z kapitoly III.
 - **Plávanie:** v pivnici sú zatopené katakomby (kostnica ~113 dlaždíc: bazény, rošt nad vodou s hliadkou s baterkou – popod ňu sa dá preplávať,
   dlhý sifón, krypta so strážou chrbtom, dosky cez vodu). Hlboká voda je v MAZE znak `%`, build z nej spraví `WaterZone`
   (`world/water/water_zone.gd`). Ricco má stav SWIM: na hladine pláva, S = ponor, medzerník = hore / vyskočiť, k nízkemu okraju sa sám vyšvihne.

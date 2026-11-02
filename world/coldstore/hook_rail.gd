@@ -11,6 +11,7 @@ extends Node2D
 @export var spacing: float = 48.0       ## px medzi vozíkmi
 @export var pattern: String = "CCHCH"   ## C = mäso, H = voľný hák, - = bez háku (opakuje sa)
 @export var carcass_drop: float = 60.0  ## px – dĺžka reťaze od háku po vrch mäsa
+@export var carcass_texture: Texture2D  ## iný náklad na háku (debna rumu v jaskyni pašerákov – kapitola IV); prázdne = mäso
 @export var release_margin: float = 40.0   ## px pred koncom koľajnica Ricca pustí (aspoň po zatáčku DEPTH)
 @export var phase: float = 0.0          ## px – posun vozíkov na začiatku
 
@@ -78,13 +79,15 @@ func _ready() -> void:
 			body.position = Vector2(0, carcass_drop)
 			swing.add_child(body)
 			var spr := Sprite2D.new()
-			spr.texture = load(ART + "carcass.png")
+			spr.texture = carcass_texture if carcass_texture else load(ART + "carcass.png")
 			spr.centered = false
-			spr.offset = Vector2(-12, 0)
+			spr.offset = Vector2(-spr.texture.get_width() / 2.0, 0)   # mäso 24 px → −12
 			body.add_child(spr)
+			if carcass_texture:
+				body.set(&"wood", true)   # debna – pri zásahu triesky a ťuknutie dreva (carcass.gd)
 			var cs := CollisionShape2D.new()
 			var r := RectangleShape2D.new()
-			r.size = Vector2(16, spr.texture.get_height() - 6)
+			r.size = Vector2(spr.texture.get_width() - 8, spr.texture.get_height() - 6)
 			cs.shape = r
 			cs.position = Vector2(0, spr.texture.get_height() / 2.0)
 			body.add_child(cs)

@@ -1,5 +1,5 @@
 extends Node2D
-## Holuby na streche (kapitola III). Kým Ricco ide potichu (zakrádanie, pomalá chôdza), zobú ďalej.
+## Holuby na streche (kapitola III), čajky na móle (kapitola IV – texture). Kým Ricco ide potichu (zakrádanie, pomalá chôdza), zobú ďalej.
 ## Keď okolo nich prebehne alebo vedľa nich dopadne, s trepotom vyletia – gangstri v okolí to počujú
 ## a idú sa pozrieť, kde Ricco je (Gangster.noise). Duch: „Watch the pigeons, kid. They squawk like stool pigeons.“
 ## Uzol je na rímse/streche pod nohami prvého holuba, ďalšie sedia doprava (spread).
@@ -10,6 +10,7 @@ signal scattered
 @export var count: int = 4
 @export var spread: float = 36.0         ## px – šírka kŕdľa
 @export var noise_radius: float = 360.0  ## px – kto do takej vzdialenosti počuje trepot krídel
+@export var texture: Texture2D           ## iný kŕdeľ (4 snímky vedľa seba ako pigeons.png) – napr. čajky na móle (kapitola IV)
 
 const TEX := preload("res://levels/level3/art/street/pigeons.png")
 const NEAR := 46.0          ## px od okraja kŕdľa – tu si Ricca všimnú
@@ -22,12 +23,13 @@ var _peck_t: float = 0.5
 
 
 func _ready() -> void:
+	var tex: Texture2D = texture if texture else TEX
 	for i in count:
 		var s := Sprite2D.new()
-		s.texture = TEX
+		s.texture = tex
 		s.hframes = 4
 		s.centered = false
-		s.offset = Vector2(-5, -8)
+		s.offset = Vector2(-tex.get_width() / 8.0, -tex.get_height())   # holub 10×8 → (−5, −8)
 		s.position = Vector2(spread * i / maxf(1.0, count - 1.0) + randf_range(-2, 2), 0)
 		s.flip_h = randf() < 0.5
 		add_child(s)
