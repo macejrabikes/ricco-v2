@@ -1,14 +1,17 @@
 extends ClubLevel
 ## Kapitola III – časť 6: zákulisie klubu The Blue Canary, pivnica, herňa a kancelária Velvet Sala.
-## Scéna club_back.tscn (píše ju _art_src/make_club_back_scene.py).
-##   B1 zákulisie – vrecia s pieskom na lanách (drop_weight.gd – klobúk do lana a mafián pod ním je zložený), lávka.
+## Scéna club_back.tscn (píše ju _art_src/make_club_back_scene.py). Celé v jednej budove nad sebou, cesta ako had:
+## prízemie doprava (B1 → B2) → rebríkom dole → pivnica doľava → šachta hore → lávka doprava → herňa → kancelária.
+## Skratka zo štartu rebríkom rovno na lávku (cez herňu – nahlas), tichá cesta šachtou na strechu a svetlíkom k Salovi.
+##   B1 zákulisie – vrecia s pieskom na lanách (drop_weight.gd – klobúk do lana a mafián pod ním je zložený), lávka
+##      so strážcom s baterkou, dvere z lávky do herne.
 ##   B2 šatne – R2 šatňa speváčky Lark Lavelle (bubon do Thompsonu, telegram), klopacie dvere do R3, kde pijú traja
-##      mafiáni (knock_door.gd – po jednom ich vylákaš von), nad šatňami izby personálu s poklopom do R2.
+##      mafiáni (knock_door.gd – po jednom ich vylákaš von), R4 izba kapely s rebríkom do pivnice.
 ##   Pivnica – sudy whisky (whisky_barrel.gd – prestrelený sud = šmykľavá mláka, mafiáni sa pošmyknú), pašeráci,
 ##      rúry so svorkami pod stropom (ručkovanie ponad hlavy).
-##   Šachta – z pivnice cez poschodie (herňa) až na strechu.
-##   C1 herňa – štyria Salovi poručíci pri pokrovom stole (lampa nad stolom; stôl sa dá prevrátiť na kryt).
-##   C2 kancelária – Sal (Thompson, vesta) a bodyguard. Keď je poplach (alebo bol v sále – club_loud), Sal sa zamkne,
+##   Šachta – vľavo, z pivnice cez lávku až na strechu.
+##   C1 herňa nad šatňami – štyria Salovi poručíci pri pokrovom stole (lampa nad stolom; stôl sa dá prevrátiť na kryt).
+##   C2 kancelária (vpravo hore) – Sal (Thompson, vesta) a bodyguard. Keď je poplach (alebo bol v sále – club_loud), Sal sa zamkne,
 ##      prevráti stôl a čaká za ním: dvere treba vystreliť, alebo ísť strechou cez svetlík.
 ## Keď Sal padne, trezor: pozvánka od „M.“ na gala v hoteli Majestic a fotka ženy v závoji. Potom oknom von –
 ## do časti 7 (hotel.gd, zadný vchod hotela Majestic).
@@ -16,9 +19,9 @@ extends ClubLevel
 ## 21 = strecha.
 ## Godot docs: classes/class_tween, classes/class_collisionshape2d
 
-const BACK_MAP := Rect2i(-1460, -400, 3020, 620)
+const BACK_MAP := Rect2i(-80, -400, 1720, 620)
 const UP := -160.0
-const OFFICE := Vector2(-1340.0, -860.0)   ## kancelária od–do x
+const OFFICE := Vector2(1100.0, 1520.0)   ## kancelária od–do x
 const DRUM_AMMO := 50                      ## nábojov v bubne zo šatne speváčky
 const GANG := "res://characters/gangster/gangster_coppola.tscn"
 const TOMMY_G := "res://characters/gangster/gangster_tommy.tscn"
@@ -75,7 +78,7 @@ func _ready() -> void:
 	_connect(^"TrapdoorBark", func(): _once(&"trapdoor", "TRAPDOOR. DROPS RIGHT INTO\nTHE SINGER'S DRESSING ROOM."))
 	_connect(^"CellarBark", func(): _once(&"whisky", "BOOTLEG WHISKY. SHOOT A BARREL OPEN -\nTHAT FLOOR GETS SLICK AS A SEAL."))
 	_connect(^"PipeBark", func(): _once(&"pipes", "PIPES UNDER THE CEILING.\nUP ON THE CRATES AND GRAB A CLAMP."))
-	_connect(^"ShaftBark", func(): _once(&"shaft", "THIS SHAFT GOES ALL THE WAY UP.\nCARD ROOM ON TWO, ROOF ON TOP."))
+	_connect(^"ShaftBark", func(): _once(&"shaft", "THIS SHAFT GOES ALL THE WAY UP.\nCATWALK ON TWO, ROOF ON TOP."))
 	_connect(^"PokerBark", func(): _once(&"poker", "SAL'S LIEUTENANTS. KILL THAT LAMP\nAND THEY'RE PLAYIN' BLIND MAN'S BLUFF."))
 	_connect(^"RoofBark", func(): _once(&"skylight_sal", "SKYLIGHT OVER SAL'S OFFICE.\nSLIDE ONTO IT (%s) AND DROP IN." % KeyBindings.short(&"slide")))
 	_connect(^"LockedBark", func():
@@ -203,7 +206,7 @@ func _open_safe() -> void:
 	var wb := get_node_or_null(^"WindowBlock/Shape") as CollisionShape2D
 	if wb:
 		wb.set_deferred(&"disabled", true)
-	Sfx.play(&"door_open", Vector2(-1350.0, UP - 40.0), -6.0)
+	Sfx.play(&"door_open", Vector2(1530.0, UP - 40.0), -6.0)
 	say("OUT THE WINDOW, KID.\nWE GOT A PARTY TO CRASH.")
 
 
@@ -222,16 +225,16 @@ func _lock_office(quiet: bool) -> void:
 	if desk:
 		desk.flip(quiet)
 	if quiet:
-		_sal.global_position.x = -1080.0
-		_sal.call(&"_set_facing", 1.0)
-		_sal.home_facing = 1.0
+		_sal.global_position.x = 1340.0   # za prevráteným stolom (dvere sú vľavo)
+		_sal.call(&"_set_facing", -1.0)
+		_sal.home_facing = -1.0
 	else:
-		_sal.goto_x = -1080.0
+		_sal.goto_x = 1340.0
 		_speak(_sal, "LOCK THAT DOOR! NOBODY GETS IN!")
 	var bg := get_node_or_null(^"Bodyguard") as Gangster
 	if bg and bg.state != Gangster.State.DEAD:
-		bg.home_facing = 1.0
-		bg.call(&"_set_facing", 1.0)
+		bg.home_facing = -1.0
+		bg.call(&"_set_facing", -1.0)
 		bg.look_back = Vector2.ZERO
 
 

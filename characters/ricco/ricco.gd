@@ -2525,8 +2525,9 @@ func _leave_ladder(v: Vector2) -> void:
 	sprite.play(_hat_anim(&"jump" if v.y < 0.0 else &"fall"))
 
 
-## Na rebríku: W / medzerník hore, S dole, smer od steny = pustí sa (so skokom odskočí). Hore sa vyšvihne na hranu
-## rovnakou animáciou ako pri chytení hrany (climb), dole pustí rebrík (zem, voda). Na rebríku nestrieľa.
+## Na rebríku: W / medzerník hore, S dole, smer do strany = pustí sa (so skokom odskočí). Smerom k stene sa pustí len
+## vtedy, keď tam stena naozaj nie je (voľný rebrík v šachte, otvor, dvere) – inak by ho pustil pri každom stlačení.
+## Hore sa vyšvihne na hranu rovnakou animáciou ako pri chytení hrany (climb), dole pustí rebrík (zem, voda). Na rebríku nestrieľa.
 func _process_ladder(delta: float) -> void:
 	if not is_instance_valid(_ladder):
 		_leave_ladder(Vector2.ZERO)
@@ -2535,11 +2536,13 @@ func _process_ladder(delta: float) -> void:
 	var top: Vector2 = _ladder.global_position
 	var length: float = _ladder.get(&"length")
 	var dir: float = Input.get_axis(&"move_left", &"move_right")
-	if dir != 0.0 and signf(dir) == -facing:
+	if dir != 0.0 and (signf(dir) == -facing or not test_move(global_transform, Vector2(facing * 6.0, 0.0))):
+		var d: float = signf(dir)
 		var jump: bool = Input.is_action_pressed(&"jump")
-		_leave_ladder(Vector2(-facing * (130.0 if jump else 40.0), -220.0 if jump else 0.0))
+		_leave_ladder(Vector2(d * (130.0 if jump else 40.0), -220.0 if jump else 0.0))
 		if jump:
-			_turn(-facing)
+			if d != facing:
+				_turn(d)
 			Sfx.play(&"jump", Vector2.INF, -6.0)
 		return
 	var vy: float = 0.0

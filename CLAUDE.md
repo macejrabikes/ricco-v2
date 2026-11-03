@@ -272,12 +272,17 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   mafiánov: guľka/klobúk do lana → zabije do 42 px, zhasne, ostane ako kryt, spustí poplach. Rekvizitný ťah: háky
   `train_strap.gd` (nový export `texture` = `rig_hook.png`) na y −275, 44 px od seba, lávka (truss) v strede, catwalk nad
   pódiom → `ExitBackstage` (`club_loud` = či bol v sále poplach).
-  **Časť 6 – `club_back.gd`/`club_back.tscn`** (checkpointy 17 zákulisie, 18 šatne, 19 pivnica, 20 šachta pri herni,
-  21 strecha): vrecia s pieskom (`drop_weight.gd`), šatňa speváčky (bubon do Thompsonu 50 nábojov – `weapon_pickup` z kódu,
+  **Časť 6 – `club_back.gd`/`club_back.tscn`** (checkpointy 17 zákulisie, 18 šatne, 19 pivnica, 20 šachta pri lávke,
+  21 strecha). Prestavané ako had v jednej budove (x −60…1520, mapa `BACK_MAP`): prízemie doprava (B1 zákulisie → B2
+  šatne) → rebrík do pivnice (x 1490) → pivnica doľava → šachta vľavo (−60…−10) hore → lávka B1 (−160, strážca s baterkou)
+  doprava → herňa (640–1100) → kancelária (1100–1520, dvere vľavo, okno vpravo na požiarne schodisko). Skratka: rebrík pri
+  štarte rovno na lávku; tichá cesta šachtou na strechu a svetlíkom (x 1300) k Salovi. Detaily pozadia (len sprity)
+  `_art_src/make_ch3_club_back_props.py` (v projekte `ricco-v2-kapitola3-nahanacka/`). Vrecia s pieskom (`drop_weight.gd`),
+  šatňa speváčky (bubon do Thompsonu 50 nábojov – `weapon_pickup` z kódu,
   telegram READ), klopacie dvere (`knock_door.gd` – F zaklope, vyjde ďalší živý z `inside`, obzerá sa, vráti sa),
-  poklop z izieb personálu (spáč = Guest), pivnica so sudmi (`whisky_barrel.gd` – vrstva 32, prestrelený → úsek podlahy
+  pivnica so sudmi (`whisky_barrel.gd` – vrstva 32, prestrelený → úsek podlahy
   do skupiny `ice`, mafián cez mláku `trip()`), svorky na rúrach (y 40) z debien, šachta s rebríkom až na strechu.
-  Herňa: lampa nad pokrovým stolom (zhasne → poručíci `hear`), stôl `flip_table.gd` (F, kryt, hluk). Kancelária: Sal
+  Herňa: lampa nad pokrovým stolom (zhasne → poručíci `hear`), stôl `flip_table.gd` (F, kryt aj pevná stena – vrstva 1; nakloní sa okolo nohy, doska padne od Ricca / pri Salovi k Riccovi, pruží, prach; `flip_dir`, `tip_shift`, `wall_px`). Kancelária: Sal
   (gangster_tommy, kind `sal`, 14 životov, vesta), bodyguard; pri poplachu (alebo `club_loud`) sa zamkne – `lock_door.gd`
   (3 výstrely do dverí), stôl sa prevráti, Sal za ním. Inak svetlík v streche (`skylight.gd`). Po Salovi trezor:
   pozvánka + fotka (ReadCard), duch „THAT VEIL... I KNOW THAT VEIL.“, otvorí sa okno → `ExitWindow` → hotel (`_leave_door(HOTEL, 22, false)`).
@@ -551,7 +556,8 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 ## Užitočné
 - Ovládanie: A/D pohyb, Space/W skok, S/Ctrl šmyk, C/Alt plíženie (pri debne kryt), V zjesť jedlo, X schovať zbraň, F zneškodnenie/klopanie, pravé tlačidlo/E klobúk, ľavé tlačidlo streľba,
   R prebíjanie, 1–3 / koliesko zbrane, Q posledná zbraň, B režim streľby, Shift spomalenie, Esc pauza.
-- **Mierka prostredia je ľudská:** mafián s klobúkom má ~75 px, Ricco ~40 px. Dvere aspoň 94 px (+ nadsvetlík), okná 38×70,
+- **Mierka prostredia je ľudská:** mafián s klobúkom má ~75 px, Ricco ~40 px. **Výšky všetkého na pozadí (stoly, kryty, dvere, nábytok)
+  porovnávať s nepriateľmi, nie s Riccom** – Ricco je menší než ktorýkoľvek mafián. Dvere aspoň 94 px (+ nadsvetlík), okná 38×70,
   poschodie 128 px, zábradlie ~40 px, lampa ~150 px (`_art_src/city_bldg.py`, mierka A). Staršie časti (nadzemka – dvere vo vozňoch 50 px, klub, hotel)
   ešte majú pôvodnú, menšiu mierku dverí (~84 px).
 - README je v angličtine s bannermi z `docs/media/h_*.png` (bez gifov). Pri nových zdrojoch (zvuky, hudba, fonty) doplniť sekciu Credits.
