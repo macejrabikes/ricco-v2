@@ -12,7 +12,7 @@ extends Node2D
 ## Scénu generuje tools/build_level2.gd – úpravy mapy rob tam, inak sa pri ďalšom generovaní prepíšu.
 ## Godot docs: classes/class_tween, classes/class_canvaslayer, classes/class_area2d
 
-const MAP := Rect2i(-960, -304, 3200, 360)         ## hranice kamery (px) – od ulice (build_level2.gd: STREET_X) po múr, zvisle jedna obrazovka
+const MAP := Rect2i(-1216, -304, 3456, 360)         ## hranice kamery (px) – od ulice (build_level2.gd: STREET_X) po múr, zvisle jedna obrazovka
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
 const DOCKS := "res://levels/level2/docks.tscn"
 const COLDSTORE := "res://levels/level2/coldstore.tscn"

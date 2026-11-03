@@ -9,7 +9,7 @@ extends Level4
 ##   podkrovie B – nádrž s palivom (ship_barrel.gd): výbuch → potrubím aj dole pri pumpe (PumpSpot), strážca s výhľadom
 ##   suchý dok – VITO III na podperách, lešenie s mechanikmi, Thompson na podlahe
 ##   dielňa – sudy benzínu (výbušné), Thompson; podkrovie A – prične, spiaci pašerák (passive – zneškodniť zozadu)
-##   šachta – kabína nákladného výťahu: F GO UP → kabína ide hore do vínnej pivnice sídla → zatiaľ TO BE CONTINUED.
+##   šachta – kabína nákladného výťahu: F GO UP → kabína ide hore → pivnica vily (časť 4 – cellar.gd, checkpoint 5).
 ## Checkpointy (Level4.checkpoint): 3 = dvere na podkroví, 4 = suchý dok (podkrovie B / podlaha pri farbách).
 ## Godot docs: classes/class_animatablebody2d, classes/class_tween
 
@@ -40,10 +40,10 @@ func _ready() -> void:
 	_connect(^"Checkpoint4", func(): checkpoint = maxi(checkpoint, 4))
 	var tank := get_node_or_null(^"FuelTank")
 	if tank:
-		tank.exploded.connect(_on_tank_exploded)
+		tank.connect(&"exploded", _on_tank_exploded)
 	var boat := get_node_or_null(^"LadyM")
 	if boat:
-		boat.landed.connect(_on_boat_landed)
+		boat.connect(&"landed", _on_boat_landed)
 	var spot := get_node_or_null(^"Lift/LiftSpot") as InteractSpot
 	if spot:
 		spot.used.connect(_ride_up)
@@ -76,14 +76,14 @@ func _on_tank_exploded() -> void:
 	_once(&"bh_boom", "AND THAT'S THE MATH.")
 
 
-## Kabína výťahu: Ricco nastúpi, mreža sa zatvorí, kabína ide hore šachtou → koniec časti
+## Kabína výťahu: Ricco nastúpi, mreža sa zatvorí, kabína ide hore šachtou → pivnica vily (časť 4)
 func _ride_up() -> void:
 	if _riding or _leaving:
 		return
 	_riding = true
 	var lift := get_node_or_null(^"Lift") as Node2D
 	if lift == null:
-		_to_be_continued()
+		_go_next(CELLAR, 5)
 		return
 	player.set_cutscene(true)
 	player.sprite.play(player._hat_anim(&"idle"))
@@ -97,7 +97,12 @@ func _ride_up() -> void:
 	var tw := create_tween()
 	tw.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(lift, "position:y", lift.position.y - LIFT_RISE, 4.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	await _wait(2.6)
+	await _wait(1.8)
+	var black := _fade_rect()
+	var fade := create_tween()
+	fade.tween_property(black, "color:a", 1.0, 0.8)
+	await fade.finished
 	if motor:
 		motor.queue_free()
-	_to_be_continued()
+	_leaving = true
+	_go_next(CELLAR, 5)

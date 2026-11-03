@@ -24,11 +24,11 @@ Toto je odovzdávací súhrn pre nový chat / Claude Code. Prečítaj celý pred
 ## Štruktúra
 ```
 audio/        sfx.gd (trieda Sfx), sfx/*.wav (efekty, varianty meno_2/_3), amb/*.ogg (slučky prostredia), music/*.ogg (hudba)
-characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/, lou/ (Big Lou – boss kapitoly II, dynamit)
+characters/   ricco/ (hráč, focus/ = spomalenie), gangster/ (mafiáni z častí tela), don/, lou/ (Big Lou – boss kapitoly II, dynamit), iron_mike/, murphy/ (bossovia kapitoly III)
 effects/      burst.gd (Burst – čiastočky), explosion.gd (trieda Explosion – výbuch: ohnivá guľa, tlaková vlna, záblesk, sadza, zranenie, reťaz sudov), art/
 levels/       level1/ (ulica → reštaurácia → kuchyňa → sklad → herňa) + cellar (tunely), level2/ (kapitola II – cintorín + docks = prístav + coldstore = mraziareň),
-              level3/ (kapitola III – intro = čln pri Soche slobody, street = nábrežie + ulica a strechy v jednej mape, roofs = ďalšie strechy k stanici, train = nadzemka, club = jazzový klub, club_back = zákulisie, hotel = hotel Majestic – servisné krídlo, hotel_gala = gala a strecha),
-              level4/ (kapitola IV – pier = mólo a rybárska búda, cave = pašerácka jaskyňa, boathouse = lodenica s výťahom), range/ (strelnica)
+              level3/ (kapitola III – intro = čln pri Soche slobody, street = nábrežie + ulica a strechy v jednej mape, roofs = ďalšie strechy k stanici, train = nadzemka, club = jazzový klub, club_back = zákulisie, hotel = hotel Majestic – servisné krídlo, hotel_gala = gala a strecha, tower = veža Iron Mikea, chase = naháňačka taxíkom a Queensboro Bridge),
+              level4/ (kapitola IV – pier = mólo a rybárska búda, cave = pašerácka jaskyňa, boathouse = lodenica s výťahom, cellar = pivnica vily), range/ (strelnica)
 world/        stealth/ (light_zone – svetlo/tma), fx/ (dážď, neón, hat_lamp, speakeasy_door, ladder – rebrík na stene, awning – markíza-trampolína, clothesline – šnúra s kladkou…), npc/ (guest, rat, dog – pes na reťazi, pigeons – holuby), fx/lighthouse_beam (otáčavý lúč majáka),
               coldstore/ (hook_rail – koľajnica s hákmi, carcass – visiace mäso = kryt, conveyor – pás),
               ship/ (storm – blesky a hrom, roll – hojdanie mora a mrakov, ship_crate – debna/kryt, ship_barrel – sud whisky,
@@ -69,7 +69,7 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 - **Kapitola II – Wharf Rats** (rozrobená): **level 2 = cintorín v noci, Donov pohreb**
   (`levels/level2/level2.gd`, statické `Level2.checkpoint` atď., `Level2.reset()`). Koniec kapitoly I vedie rovno sem, v menu je aj CHAPTER II.
   Ricco má derringer + spomalenie; celý cintorín je tma (`dark_area`). Úvod: titulok → **noviny** (ReadCard, `art/street/newspaper.png`) →
-  **ulica pred cintorínom** (x < 0, `STREET_X` −60): autá Rodiny, pohrebák, šofér fajčí pod lampou (`Driver`, žeravá cigareta + dym –
+  **ulica pred cintorínom** (x < 0, `STREET_X` −76): autá Rodiny (`sedan*.png` 190×78, `hearse.png` 236×78 – mierka postáv, z `c13/make_cars.py` mimo repa; `c13/make_street.py` už nespúšťať, prepísal by ich malými), pohrebák, šofér fajčí pod lampou (`Driver`, žeravá cigareta + dym –
   `_driver_smoke`), zamknutá brána (`GateBars`, nad ňou `Edge`) so strážou s palicou hneď za ňou (`GateGuard`); dnu sa ide po strome –
   tri konáre (`BRANCHES`, jednosmerné plošiny), najvyšší vedie ponad bránu. Po prelezení `Level2.street_done` → po smrti `SpawnIn`.
   Hrobník s lampášom (úkryt v otvorenom hrobe), kôlňa s **revolverom .38**
@@ -96,7 +96,7 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   mora `roll.gd`, vlny cez zábradlie – len efekt). **Vysoký trup** (9 riadkov dlaždíc, dva rady okienok, červený pás na y ~96–112,
   vlny `WavesFront` na y 92 – čiara vody ~104 px pod palubou). Kajuta na korme (príchod, `Spawn11`) → záchranný čln (plošina −48) →
   debny = kryt (`CoverN`, skupina `ship_cover`, `world/ship/ship_crate.gd` – guľky ich postupne rozbijú, horné debny spadnú, niekedy
-  vypadnú náboje) len pri x 360 a 1150, vyvýšený nákladný poklop (`CargoHatch` 470–610, jednosmerná plošina −26, hrany na vrstve 32),
+  vypadnú náboje) len pri x 360 a 1150, **oceľové kryty** (`build_margaret.gd _steel`: skrine LIFE BELTS `SteelLocker1/2` x 650 a 866, 40×32 – za nimi sa Ricco skrčí s C, guľky ich nerozbijú; vetrák `Vent1` x 1214, 18×40; obrázky `steel_locker.png`, `vent_cowl.png` z `c13/make_steel.py`; medzi skriňou a pätou žeriavu nechať aspoň ~40 px, inak sa poskokom zasekne lúč na hranu), vyvýšený nákladný poklop (`CargoHatch` 470–610, jednosmerná plošina −26, hrany na vrstve 32),
   sudy RYE (`Barrel1–3`, `world/ship/ship_barrel.gd`, vrstva 4; `Barrel1` = miesto dopadu zrúteného ramena) → **vysoký žeriav**
   (`crane_tall.png` 112×340 a `boom_long.png` 420×20 skladá `c11/make_ship_tall.py` mimo repa z pôvodných `crane.png`/`boom.png`;
   stred x 1000, čap (1000, −326), rameno 404 px, takmer vodorovne; `CraneArm` = `world/ship/crane.gd` s `Boom`, `Rope`, `Net`,
@@ -115,8 +115,9 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   (značka na tretine). **36 HP**: na mostíku nejde pod 12, pád z krídla ho zhodí na 12, na palube 12 → 0.
   `phase`: 0 poskoci, 1 mostík, 3 paluba (= checkpoint `Level2.lou_phase`; staré 2 sa berie ako 1).
   **0. fáza – poskoci** (`margaret.gd _henchmen`, `WAVES`): keď Ricco prejde x 420 (`FIGHT_START_X`), Lou hvizdne a z krídla ukazuje
-  na Ricca (`command()`, stav COMMAND, nezraniteľný – guľky sa odrážajú). Dve vlny po troch (tommy, coppola, slugger) – vyliezajú
-  z poklopu (spod paluby, z −1 za trupom) a z dverí kajuty na korme, hneď `alarm()` + `hear()`; `respawn_time` 0.
+  na Ricca (`command()`, stav COMMAND, nezraniteľný – guľky sa odrážajú). Dve vlny po troch (revolver = coppola s revolverom .38 – `REVOLVER_MAN`, coppola, slugger; **Thompson má na lodi len Lou**) – vyliezajú
+  z poklopu (spod paluby, z −1 za trupom) a z dverí kajuty na korme, hneď `alarm()` + `hear()`; `respawn_time` 0. Všetci majú
+  `Gangster.relentless` = stále agro: keď Ricca nevidia (ďaleko, za krytom), každých 0,8 s `hear()` na jeho miesto a bežia tam.
   **1. fáza – mostík** (`enrage()` → rev na krídle → `start(true)` = nabitie Thompsonu, ukáže sa pás): **jednou rukou páka žeriavu**
   (`_crane_ai`, zadná ruka na páke – `_pull_lever`): sieť ide za Riccom → tieň 0,8 s → debna (`falling_cargo.gd`: 2 kúsky pizze;
   inak ostane ako **dočasný kryt** s 5 HP – Louove guľky ju po pár zásahoch rozbijú; skupina `crane_crate`, najviac 4, ďalšie sa
@@ -150,10 +151,10 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   **Záver kapitoly** (`levels/level2/epilogue.gd`, `epilogue.tscn` generuje tiež `build_margaret.gd`, bez kamery): svitanie na mori,
   Ricco v člne, v diaľke horí Margaret (`margaret_far.png`, 3 snímky) → výbuch, potopí sa → duch v člne, hlášky o „M.“ a New Yorku →
   END OF CHAPTER II / WHARF RATS → rovno kapitola III (`levels/level3/intro.tscn`, `Level2.reset()` + `Level3.reset()`). Obrázky kreslí `c9/make_escape_art.py` mimo repa.
-- **Kapitola III – The Big Apple** (rozrobená, nápady a rozhodnutia v projekte `ricco-navrhy/kapitola3_napady.md`):
+- **Kapitola III – The Big Apple** (hotová, nápady a rozhodnutia v projekte `ricco-navrhy/kapitola3_napady.md`):
   „M.“ = **Margaret Vito, Donova vdova** (odhalí sa na konci kapitoly). Poradie: úvod → nábrežie → ulica, požiarne schodisko a
   strechy so šnúrami (návrh A+C) → nadzemka → jazzový klub v Harleme → hotel Majestic → boss **Iron Mike** na rozostavanom
-  mrakodrape (má **Winchester 1897**, Ricco ho získa až po ňom) → naháňačka autom. Nové: **Colt 1911** (hlavná nová zbraň),
+  mrakodrape (má **Winchester 1897**, Ricco ho získa až po ňom) → naháňačka taxíkom a boss **Chief Murphy** na Queensboro Bridge. Nové: **Colt 1911** (hlavná nová zbraň),
   Thompson s vzácnymi nábojmi, rozdelené mierenie pre bočné zbrane, odstreľovač (pušku Ricco nezíska), brokovník s luparou,
   policajti, výťah, šnúry s prádlom, prostredie zabíja, ricochet od panvice. Ľudský štít je odložený.
   **Úvod** (`levels/level3/intro.gd`, `intro.tscn` z `build_level3.gd`, bez kamery): noc, Ricco v člne z Margaret vesluje popri
@@ -216,8 +217,9 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   `nadzemka_A_strecha.png` + `nadzemka_B_vozen.png`, náhľad `ricco-navrhy/kapitola3/nadzemka_mapa_nahlad.png`): Third Avenue El do Harlemu.
   Vlak v scéne stojí, ubieha svet: `Parallax2D.autoscroll` (skupina `train_scroll` – mesto, domy pri trati, konštrukcia nadzemky),
   `_speed` 1 → 0 pri brzdení. Podlaha vozňov y 0, strechy y −150, **šesť vozňov** po 400 px s medzerami 32 px (0, 432, 864,
-  1296, 1728, 2160; mapa 2764 px), v medzerách plech na podlahe a rebrík na čele ďalšieho vozňa. Vozne 1, 2, 4 sú plné telesá,
-  vozne 3, 5, 6 sú **prierezy**: strop, čelné steny s dverami (50 px) a predná stena `CarNWall`, ktorá zmizne, keď je Ricco dnu
+  1296, 1728, 2160; mapa 2764 px), v medzerách plech na podlahe a rebrík na čele ďalšieho vozňa;
+  všetkých šesť vozňov sú **prierezy** (1, 2, 4 = osvetlené osobné s cestujúcimi, v 2 a 4 mafián – `Car2Goon`, `Car4Goon`;
+  kým je predná stena zatvorená, `Gangster.set_wall_cover` schová baterku a „?“/„!“ mafiánov vnútri): strop, čelné steny s dverami (50 px) a predná stena `CarNWall`, ktorá zmizne, keď je Ricco dnu
   (`WALLS` v train.gd; strecha `CarNRoofStrip` ostane).
   **Nosníky mostov** (`_spawn_beam`, každé 3–4,6 s, keď je Ricco na streche; neskôr občas dva za sebou): letia doľava `TRAIN_SPEED`,
   spodok 30 px nad strechou – šmyk (24 px) a skrčenie za vetrákom (22 px, vetráky sú kryt na vrstve 32) prejdú, postava (38 px) nie:
@@ -327,11 +329,49 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   spúšťa hák dierou v palube. 3. fáza: beží na stožiar (nezraniteľný počas lezenia), keď Ricco lezie po rebríku, nestrieľa
   (`_hold_fire`), pažbou zhodí z plošiny. Smrť (`stage(&"dying")` → tower.gd `_mike_dies`): Winchester vypadne
   (pickup), Mike sa chytí povrazového rebríka, vzducholoď stúpa, v okne závoj, rebrík odrezaný, Mike padá, vzducholoď
-  odletí → myšlienky, duch „MARGARET“ → TO BE CONTINUED (ďalej naháňačka autom).
+  odletí → myšlienky, duch „MARGARET“ → `_leave_door(CHASE, 33, false)` (časť 10).
   **Winchester 1897** (`weapons/winchester/`, slot PRIMARY, 5 nábojov): `WeaponData` skupina Pump (`pump_texture`,
   `pump_body_texture`, `pump_px`, `pump_travel`, `shell_reload`) – Ricco po výstrele potiahne pumpu (druhá ruka ide s ňou,
   nábojnica vyletí), nabíja po jednom náboji (`_start_shell_reload`, výstrel nabíjanie preruší); v arzenáli slot 5.
-  **Ďalej:** naháňačka autom. **Akimbo (dve pištole naraz) odložené** – samostatný krok, zasahuje celú streľbu v ricco.gd.
+  **Springfield 1903** (`weapons/springfield/`, PRIMARY, 5 nábojov .30-06, damage 3, dostrel 700): rovnaká skupina Pump
+  + `bolt_action` – `pump_texture` = závorník s rúčkou (`springfield_bolt.png`), telo bez neho (`springfield_body.png`).
+  Po výstrele druhá ruka chytí rúčku (`bolt_knob_px`), zdvihne (`bolt_lift`), dozadu (nábojnica `casing_3006.png`),
+  dopredu, dole a späť na predok (`_bolt_open_steps` / `_bolt_close_steps` v ricco.gd). Nabíjanie po náboji
+  (`round_3006.png`) zhora do otvoreného závorníka, na konci ho zavrie. Obrázky `_art_src/make_springfield_parts.py`
+  (z pôvodného `springfield_src.png`; variant B – mosadzná guľka rúčky). `springfield.png` (celá) majú nepriatelia
+  (odstreľovač z kapitoly III, `drops_weapon` false), zem a Arsenal (slot 9). Zvuk výstrelu zatiaľ `revolver_shot`.
+  **Ďalej:** kapitola IV.
+  **Časť 10 – `chase.gd`/`chase.tscn`** – naháňačka za vzducholoďou a koniec kapitoly III (checkpointy 33 taxík,
+  34 = most po nehode, 35 = strecha nákladiaka, 36 = pred zábranami/boj; v Level3 `chase_arrived`, `chase_wave` = dosiahnutá
+  vlna v taxíku, `murphy_phase`, `murphy_revealed`). Scénu píše `_art_src/make_chase_scene.py` (rozmery vozidiel číta
+  z `chase_meta.json`), obrázky `make_ch3_chase_art.py` (`levels/level3/art/chase/` – autá bez kolies, kolesá samostatné
+  sprity so 4 snímkami, skupina `spin_wheels`), Murphy `make_ch3_chase_people.py` (kind `chief` = prefarbený `cop`), zvuky
+  `make_ch3_chase_sfx.py` (car_engine, moto_engine, tire_skid, traffic – SoundBits zo Sonniss GDC; siren a klaxon(_2/_3)
+  generované) – v projekte `ricco-v2-kapitola3-nahanacka/` mimo repa. Ráno: `dark_area` vypnuté, gangstri `DAWN`.
+  **1. Taxík** (vzor `train.gd`): taxík stojí (x 222–406, strecha −88, kufor −54, kapota −46), ubieha svet – Parallax2D
+  autoscroll v skupine `street_scroll` (mesto, domy, nadzemka Second Ave El, cesta), kamera stojí (`CAM_TAXI` = obrazovka).
+  Vlny (`_run_waves`, `_send`): `PoliceCar1` → nosníky pod nadzemkou (spodok −118, zhodia zo strechy – kapota/kufor/šmyk)
+  a `Moto1`+`Moto2` → `MobCar1` (ľudia Margaret) → `PoliceCar2`+`Moto3` → most. Autá `levels/level3/chase_car.gd`
+  (AnimatableBody2D, dobehnú zozadu, drgnú – `bumped`, strelci = Gangster deti na podlahe vrstvy 256, šofér `DriverHit`
+  = `chase_hitbox.gd` – zásah auto vybúra), motorky `chase_moto.gd` (vedľajší pruh, predbehnú, strieľajú dozadu s červenou
+  čiarou, 2 zásahy). Pád na cestu = 1 zásah a späť na strechu; čo padne na cestu (náboje), ubieha s ňou.
+  **Nehoda:** uzol `Bridge` (celý most v konečných súradniciach, vypnutý) sa prisunie rýchlosťou cesty, taxikár nezabrzdí →
+  `_crash()` (záblesk, taxík snímka 1, Ricco vyletí na nákladiak) → `_bridge_state()` (ulica zmizne, `BridgeFar` parallax,
+  most zapnutý, kamera `BRIDGE_MAP`, klaksóny v zápche). **2. Most:** nákladiak s debnami, sedan, električka (rebrík vzadu,
+  Tommy na streche), policajné auto, nákladiak so skriňou, korba so sudmi s benzínom (`ship_barrel.gd` – chase.gd po výbuchu
+  zraní gangstrov v okruhu `BOMB_RADIUS`), sedany, policajné zábrany (kryt). Aréna 2990–3700: lávka −150 (3010–3270,
+  rebríky na oboch koncoch – úkryt pred nájazdmi), barikády z vriec `levels/level3/sandbags.gd` (kryt, voz ich rozmetá),
+  sud na ceste. **Boss Police Chief Murphy** `characters/murphy/murphy.gd` (`class_name ChiefMurphy extends Gangster`,
+  kind `chief`, Thompson s bubnom, 30 HP v troch fázach po 10, signály ako Iron Mike). Voz `levels/level3/patrol_wagon.gd`
+  (`class_name PatrolWagon`, AnimatableBody2D – telo, kolesá, reflektor a okno kabíny `WindowHit` si stavia sám,
+  `drive_to`, `set_facing`, `ram` – zrazí Ricca na ceste, `open_doors`/`close_doors`, `wreck`). 1. fáza: na streche voza
+  sa krčí za zábradlím (nezraniteľný), vystrčí sa, dávka; megafónom `stage(&"summon")` → chase.gd pustí policajta zo zadných
+  dverí. 2. fáza: zoskočí, mieri, dávka 8, po 2 dávkach mení bubon (okno), kopanec. 3. fáza: zadnými dverami do voza, voz
+  odíde za pravý okraj, otočí sa, reflektor + klaksón + túrovanie (výstraha), nájazd doľava po `ram_stop` 2990; Murphy
+  vystúpi omámený (`dazed_time`), za jazdy cez okno polovičný damage. Smrť → `_murphy_dies()`: posledná replika, vzducholoď
+  (Sky/Airship) preletí na východ, myšlienky, duch („YOU'RE A PENGUIN, KID“) → Ricco skočí z mosta (`_dive`) → END OF
+  CHAPTER III / THE BIG APPLE → `Level3.reset()` + `Level4.reset()` → `levels/level4/pier.tscn`.
+  **Akimbo (dve pištole naraz) odložené** – samostatný krok, zasahuje celú streľbu v ricco.gd.
   **Ľad:** dlaždica s vlastnými dátami `ice` (TileSet) alebo kolízia v skupine `ice` → `ricco.on_ice` (malé trenie, dlhý šmyk, `ground_friction()`).
   **Háky:** `world/coldstore/hook_rail.gd` – vozíky idú po koľajnici (vzor `pattern`: C = mäso, H = voľný hák, - = nič); Ricco vo vzduchu
   chytí voľný hák (stav HOOK = 6, animácia `hook` = jedna plutva hore, `sprites/hook.png` z `jump.png`; vezie sa, strieľa,
@@ -362,11 +402,32 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   **Časť 3 – lodenica** (`boathouse.gd extends Level4`, `boathouse.tscn`, 2300×800): dva sklzy s vodou, suchý dok s VITO III,
   povaly, trámy, lešenia; plynové sudy, palivová nádrž (`FuelTank`, výbuch reťazí do benzínovej pumpy), čln LADY M.
   na kladkostroji nad mechanikmi (`drop_weight.gd`), kartári, spáč (`passive`); checkpoint 4. Vľavo šachta s výťahom
-  (`Lift` AnimatableBody2D, `LiftSpot` „GO UP“) hore k vínnej pivnici vily → TO BE CONTINUED.
+  (`Lift` AnimatableBody2D, `LiftSpot` „GO UP“) – kabína ide hore → pivnica vily (checkpoint 5).
+  **Časť 4 – pivnica vily** (`cellar.gd extends Level4`, `cellar.tscn` píše `_art_src/make_cellar_scene.py`, obrázky
+  `make_ch4_cellar_art.py`, návrh `ricco-navrhy/kapitola4/cast4_pivnica_prierez.png`, 2400×1000): štyri poschodia po 220 px –
+  F0 910 zatopená stará pivnica (hladina 926, dno 982 – strážcovia sa brodia s baterkami), F1 690 vínna pivnica,
+  F2 470 vinárstvo VITO & FIGLI, F3 250 prízemie vily (knižnica, vestibul, trofejová izba). **Schody** = pevné trojuholníky
+  45° (`CollisionPolygon2D`) striedavo vpravo / vľavo / vpravo (S0 2060→2280, S1 520→300, S2 2060→2280), nad nimi v podlahe
+  vyššieho poschodia železná mreža (one-way) – Ricco sa po schodoch nevracia (nemá zoskok z plošinky).
+  F0: plávajúce sudy (`levels/level4/bob.gd` – one-way AnimatableBody2D), lampa na kábli nad vodou
+  (`levels/level4/water_lamp.gd`: guľka/klobúk → spadne do vody, prúd zloží každého vo `WaterZone`, plávajúceho Ricca zraní,
+  signál `shorted(kills)`), čerpadlo (`levels/level4/pump.gd`: kým beží, výstrely do 320 px od neho počuť len do 110 px –
+  `Gangster._masked`, skupina `noise_masks` s metódou `mask(pos, radius)`; F „SWITCH OFF“ (`PumpSpot`) alebo guľka →
+  ticho zalarmuje okolie a voda za 14 s odtečie až na dno – hýbe `WaterZone.rects[0]`, `WaterSurface`/`WaterDeep`,
+  sudmi (`bob.gd`, skupina `floaters`, `set_base`) aj `WaterLamp.water_y`). F1: regály a sudy = kryt, obrí sud RISERVA DEL DON (`CaskSpot` „KNOCK“) =
+  tajné dvere → stmievačka a Ricco sa objaví v šachte s rebríkom v stene (x 0–160, `ShaftIn`; späť `ShaftSpot`) →
+  rebrík až do komôrky za otočnou policou (`ShelfDoor` – `ShelfSpot` „PUSH“ / z knižnice „PULL BOOK“) – tichá cesta obíde
+  vinárstvo aj trofejovú izbu. F2: kaďa s kohútikom (`whisky_barrel.gd` s `stream_color` – rozliate víno šmýka),
+  rebríky na kadiach, koše s hroznom na kladke (`hook_rail.gd`, `carcass_texture` = basket.png), stena sudov (one-way navrch),
+  lis TORCHIO. F3: krb, lustre `Chandelier1/2` (`drop_weight.gd`), doberman, hájnik (kind `keeper` s Winchestrom 1897),
+  vitrína so Springfieldom (`TrophyCase` 2 snímky, `CaseSpot` „OPEN“ → `weapon_pickup` s 15 nábojmi). Dvere GRAND HALL (`GrandHallSpot`) → zatiaľ TO BE CONTINUED.
+  Checkpointy 5 výťah, 6 vínna pivnica, 7 vinárstvo.
   **Pašerák:** gangster `kind = "smuggler"` (`characters/gangster/smuggler/`, prefarbený z riveter – modrý sveter,
-  červená čiapka; RIGS v gangster.gd). **Úpravy spoločných skriptov:** `pigeons.gd` `@export texture`, `hook_rail.gd`
+  červená čiapka; RIGS v gangster.gd). **Hájnik:** `kind = "keeper"` (`characters/gangster/keeper/` – tvídové sako,
+  pumpky, placatá čiapka; tiež `make_ch4_people.py`). **Úpravy spoločných skriptov:** `pigeons.gd` `@export texture`, `hook_rail.gd`
   `@export carcass_texture` (+ `wood` na carcass – drevený zvuk a triesky).
-  **Ďalej:** vínna pivnica, záhrady, vila, boss Margaret + odhalenie Manciniho; potom naháňačka autom z kapitoly III.
+  **Ďalej:** hlavná hala a poschodie vily (záhrady podľa potreby), boss Margaret + odhalenie Manciniho;
+  vlastný zvuk výstrelu Springfieldu.
 - **Plávanie:** v pivnici sú zatopené katakomby (kostnica ~113 dlaždíc: bazény, rošt nad vodou s hliadkou s baterkou – popod ňu sa dá preplávať,
   dlhý sifón, krypta so strážou chrbtom, dosky cez vodu). Hlboká voda je v MAZE znak `%`, build z nej spraví `WaterZone`
   (`world/water/water_zone.gd`). Ricco má stav SWIM: na hladine pláva, S = ponor, medzerník = hore / vyskočiť, k nízkemu okraju sa sám vyšvihne.
@@ -387,6 +448,9 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
 - **Streľba – pocit:** spätný ráz kamery (`_cam_kick` proti smeru streľby), záblesk na okamih osvetlí okolie (`PointLight2D` v ústí –
   funguje aj s tmou CanvasModulate), väčšia hviezda (`FLASH_SCALE`), dym ostane visieť (`effects/gun_smoke.gd`, `effects/art/smoke_puff.png`).
   Výstrel počuť do 520 px (`SHOT_NOISE`, `Gangster.gunshot`): kto má výhľad na ústie, vidí záblesk aj v tme (`_aggro`), ostatní sa idú pozrieť.
+- **Zásah:** mafián krátko sčervenie (`Gangster._tint_flash(HIT_RED)` – vráti sa k pôvodnému `modulate`, napr. nočnému), Big Lou tiež.
+  Ricco po zásahu sčervenie a počas `invulnerable_time` plynulo bledne (`HURT_TINT` v `_update_invulnerability`, bez blikania viditeľnosti).
+  Krabičku nábojov po smrti nechá len mafián so strelnou zbraňou (`weapon` nie je null).
 - **Nevinní:** hostia / smútiaci (`world/npc/guest.gd`) majú telo na vrstve 64 (`INNOCENT_LAYER`, `guest_body.gd`) – zasiahne ich len
   Riccova guľka (`bullet.gd hit_mask` 1|4|32|64): padne, krv, ostatní zvreskú (poplach), duch Ricca zvozí („OI! WE DON'T DO THAT…“, `bark`).
 - **Podkopnutý mafián** leží `trip_time` 1,3 s, potom vstane (`Gangster._stand_up`: posadí sa s rukami za sebou → kľakne → postaví sa).

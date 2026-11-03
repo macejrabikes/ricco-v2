@@ -1052,7 +1052,7 @@ func _bulldoze() -> void:
 			_crash()
 			return
 		elif is_on_floor():
-			velocity.y = -210.0   # prekročí
+			velocity.y = -275.0   # prekročí (aj oceľovú skriňu 32 px)
 
 
 # ---------------------------------------------------------------- zásahy
@@ -1091,8 +1091,8 @@ func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 		Sfx.play(&"impact_body", global_position + Vector2(0, -60), -2.0)
 		Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -50), dir + Vector2(0, -0.3),
 				Color(0.62, 0.05, 0.05), 7, 90.0, Vector2(0, 520), 0.5)
-	rig.modulate = Color(3, 3, 3)
-	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.12)
+	rig.modulate = Color(2.2, 0.42, 0.38)   # zásah = krátko sčervenie (ako mafiáni)
+	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.22)
 	_aggro = 4.0
 	if health <= 0.0 and phase == 3:
 		_die()

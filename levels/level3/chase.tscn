@@ -1,0 +1,1581 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://levels/level3/chase.gd" id="1_9emqk"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/glow.png" id="2_s7wu4"]
+[ext_resource type="Script" path="res://levels/level3/chase_hitbox.gd" id="3_unlkx"]
+[ext_resource type="Resource" path="res://weapons/revolver/revolver.tres" id="4_zgtxs"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/sky.png" id="5_4ftd0"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/airship_far.png" id="6_f24vw"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/city_far.png" id="7_0i0r5"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/street_bldg.png" id="8_e5a3j"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/el_overhead.png" id="9_ezwkj"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/road.png" id="10_jal56"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/taxi.png" id="11_g383u"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/cabbie.png" id="12_xrcdw"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/wheel.png" id="13_m4esx"]
+[ext_resource type="Script" path="res://levels/level3/chase_car.gd" id="14_3cdbf"]
+[ext_resource type="Script" path="res://levels/level3/chase_moto.gd" id="15_7ya9p"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/police_car.png" id="16_3200x"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/driver_cop.png" id="17_tdyl3"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_coppola.tscn" id="18_7sjai"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/mob_car.png" id="19_fwig7"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/driver_mob.png" id="20_92lbr"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/wheel_white.png" id="21_avarj"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_tommy.tscn" id="22_bo8uy"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/moto.png" id="23_p02oo"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/wheel_moto.png" id="24_h9847"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/bridge_far.png" id="25_dxuh0"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/truss.png" id="26_5a9yb"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/wire.png" id="27_ofati"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/deck.png" id="28_excsc"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/pier.png" id="29_hi7iz"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/flatbed.png" id="30_zkwjd"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/wheel_truck.png" id="31_pd21v"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/crate.png" id="32_j2tvb"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/sedan_blue.png" id="33_mewff"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/trolley.png" id="34_w9wei"]
+[ext_resource type="Script" path="res://world/fx/ladder.gd" id="35_t0f3r"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/box_truck.png" id="36_bzem1"]
+[ext_resource type="Script" path="res://world/ship/ship_barrel.gd" id="37_60tbp"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/drum.png" id="38_zvaxi"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/sedan_black.png" id="39_evrip"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/sedan_red.png" id="40_t0ygx"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/barricade.png" id="41_pc4pe"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/catwalk.png" id="42_e0pri"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/chase/post.png" id="43_aksjk"]
+[ext_resource type="Script" path="res://levels/level3/sandbags.gd" id="44_hid18"]
+[ext_resource type="Script" path="res://levels/level3/patrol_wagon.gd" id="45_otjnm"]
+[ext_resource type="Script" path="res://characters/murphy/murphy.gd" id="46_e4g55"]
+[ext_resource type="Resource" path="res://weapons/tommy/tommy.tres" id="47_mjnvs"]
+[ext_resource type="Texture2D" path="res://weapons/tommy/tommy_full.png" id="48_wtpv6"]
+[ext_resource type="PackedScene" path="res://props/food/food_pickup.tscn" id="49_el88l"]
+[ext_resource type="PackedScene" path="res://props/ammo/ammo_pickup.tscn" id="50_1xisr"]
+[ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="51_j6odm"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="52_62jpd"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_1mkti"]
+blend_mode = 1
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wdnzh"]
+size = Vector2(26, 54)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nhuv3"]
+size = Vector2(96, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cnm6c"]
+size = Vector2(48, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_jqr71"]
+size = Vector2(26, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_271jn"]
+size = Vector2(68, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h0res"]
+size = Vector2(44, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_gvcyo"]
+size = Vector2(28, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lmn6h"]
+size = Vector2(26, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wabr8"]
+size = Vector2(68, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6oavc"]
+size = Vector2(44, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fjfv6"]
+size = Vector2(28, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o3gd7"]
+size = Vector2(26, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tku3r"]
+size = Vector2(68, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dhpzd"]
+size = Vector2(44, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yltvr"]
+size = Vector2(28, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2phen"]
+size = Vector2(20, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_78m7w"]
+size = Vector2(20, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nmplb"]
+size = Vector2(20, 50)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dsk34"]
+size = Vector2(190, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o4i7b"]
+size = Vector2(50, 72)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ftsrc"]
+size = Vector2(32, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xkwa8"]
+size = Vector2(28, 27)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_423fj"]
+size = Vector2(28, 27)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8mi8y"]
+size = Vector2(28, 27)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0aabb"]
+size = Vector2(26, 54)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_19qse"]
+size = Vector2(96, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qkzt7"]
+size = Vector2(48, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_71v88"]
+size = Vector2(288, 134)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pbif8"]
+size = Vector2(30, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_85ujl"]
+size = Vector2(168, 44)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pttqs"]
+size = Vector2(28, 27)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bnxqg"]
+size = Vector2(28, 27)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_e0wge"]
+size = Vector2(172, 100)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2t46l"]
+size = Vector2(42, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_q97os"]
+size = Vector2(34, 36)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3n5fb"]
+size = Vector2(190, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h0xrh"]
+size = Vector2(50, 72)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ot6kn"]
+size = Vector2(32, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_khp4u"]
+size = Vector2(18, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ioqvp"]
+size = Vector2(18, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8ifzq"]
+size = Vector2(18, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nl7at"]
+size = Vector2(26, 54)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a210z"]
+size = Vector2(96, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6z1jc"]
+size = Vector2(48, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nbx2n"]
+size = Vector2(26, 54)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_7zgsl"]
+size = Vector2(96, 88)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_l9qhs"]
+size = Vector2(48, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_73q30"]
+size = Vector2(48, 22)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rdbga"]
+size = Vector2(48, 22)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_txreo"]
+size = Vector2(260, 6)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1nitb"]
+size = Vector2(18, 26)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_9zqsd"]
+size = Vector2(32, 400)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cq1o3"]
+size = Vector2(4400, 64)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eo49g"]
+size = Vector2(32, 464)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n6zo7"]
+size = Vector2(32, 400)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_se00f"]
+size = Vector2(20, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wv2ty"]
+size = Vector2(40, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_m930n"]
+size = Vector2(20, 200)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cvj40"]
+size = Vector2(24, 300)
+
+[node name="Chase" type="Node2D"]
+script = ExtResource("1_9emqk")
+
+[node name="Sky" type="CanvasLayer" parent="."]
+layer = -20
+
+[node name="Gradient" type="TextureRect" parent="Sky"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+texture = ExtResource("5_4ftd0")
+
+[node name="Airship" type="Sprite2D" parent="Sky"]
+position = Vector2(470, 50)
+texture = ExtResource("6_f24vw")
+
+[node name="CityFar" type="Parallax2D" parent="." groups=["street_scroll"]]
+z_index = -30
+repeat_size = Vector2(640, 0)
+repeat_times = 3
+autoscroll = Vector2(-20, 0)
+
+[node name="Sprite" type="Sprite2D" parent="CityFar"]
+position = Vector2(-640, -330)
+texture = ExtResource("7_0i0r5")
+centered = false
+
+[node name="StreetBldg" type="Parallax2D" parent="." groups=["street_scroll"]]
+z_index = -24
+repeat_size = Vector2(960, 0)
+repeat_times = 3
+autoscroll = Vector2(-340, 0)
+
+[node name="Sprite" type="Sprite2D" parent="StreetBldg"]
+position = Vector2(-960, -466)
+texture = ExtResource("8_e5a3j")
+centered = false
+
+[node name="El" type="Parallax2D" parent="." groups=["street_scroll"]]
+z_index = -20
+repeat_size = Vector2(320, 0)
+repeat_times = 5
+autoscroll = Vector2(-420, 0)
+
+[node name="Sprite" type="Sprite2D" parent="El"]
+position = Vector2(-320, -340)
+texture = ExtResource("9_ezwkj")
+centered = false
+
+[node name="Road" type="Parallax2D" parent="." groups=["street_scroll"]]
+z_index = -19
+repeat_size = Vector2(128, 0)
+repeat_times = 9
+autoscroll = Vector2(-420, 0)
+
+[node name="Sprite" type="Sprite2D" parent="Road"]
+position = Vector2(-128, -8)
+texture = ExtResource("10_jal56")
+centered = false
+
+[node name="Taxi" type="Node2D" parent="."]
+position = Vector2(222, 0)
+z_index = -1
+
+[node name="Sprite" type="Sprite2D" parent="Taxi"]
+z_index = 0
+position = Vector2(0, -100)
+texture = ExtResource("11_g383u")
+centered = false
+hframes = 2
+
+[node name="Cabbie" type="Sprite2D" parent="Taxi"]
+z_index = 1
+position = Vector2(82, -79)
+texture = ExtResource("12_xrcdw")
+centered = false
+hframes = 3
+modulate = Color(0.82, 0.88, 0.96, 1)
+
+[node name="Wheel1" type="Sprite2D" parent="Taxi" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Taxi" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Taxi"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Taxi/Body"]
+position = Vector2(17, -27)
+shape = SubResource("RectangleShape2D_wdnzh")
+
+[node name="Shape2" type="CollisionShape2D" parent="Taxi/Body"]
+position = Vector2(76, -44)
+shape = SubResource("RectangleShape2D_nhuv3")
+
+[node name="Shape3" type="CollisionShape2D" parent="Taxi/Body"]
+position = Vector2(148, -23)
+shape = SubResource("RectangleShape2D_cnm6c")
+
+[node name="PoliceCar1" type="AnimatableBody2D" parent="."]
+position = Vector2(-420, 0)
+z_index = -2
+script = ExtResource("14_3cdbf")
+siren = true
+hold_time = 28.0
+start_x = -420.0
+
+[node name="Sprite" type="Sprite2D" parent="PoliceCar1"]
+z_index = 0
+position = Vector2(0, -92)
+texture = ExtResource("16_3200x")
+centered = false
+hframes = 2
+
+[node name="Driver" type="Sprite2D" parent="PoliceCar1"]
+z_index = -1
+position = Vector2(88, -72)
+texture = ExtResource("17_tdyl3")
+centered = false
+hframes = 2
+
+[node name="DriverHit" type="StaticBody2D" parent="PoliceCar1"]
+position = Vector2(101, -58)
+script = ExtResource("3_unlkx")
+
+[node name="Shape" type="CollisionShape2D" parent="PoliceCar1/DriverHit"]
+shape = SubResource("RectangleShape2D_jqr71")
+
+[node name="Floor" type="StaticBody2D" parent="PoliceCar1"]
+position = Vector2(70, -15)
+collision_layer = 256
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="PoliceCar1/Floor"]
+shape = SubResource("RectangleShape2D_271jn")
+
+[node name="Hood" type="CollisionShape2D" parent="PoliceCar1"]
+position = Vector2(146, -38)
+shape = SubResource("RectangleShape2D_h0res")
+one_way_collision = true
+
+[node name="Deck" type="CollisionShape2D" parent="PoliceCar1"]
+position = Vector2(20, -54)
+shape = SubResource("RectangleShape2D_gvcyo")
+one_way_collision = true
+
+[node name="Smoke" type="CPUParticles2D" parent="PoliceCar1"]
+position = Vector2(150, -42)
+emitting = false
+amount = 24
+lifetime = 1.4
+direction = Vector2(-0.3, -1)
+spread = 25.0
+gravity = Vector2(-60, -40)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(0.35, 0.33, 0.34, 0.7)
+
+[node name="Wheel1" type="Sprite2D" parent="PoliceCar1" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="PoliceCar1" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Gunman1" parent="PoliceCar1" instance=ExtResource("18_7sjai")]
+position = Vector2(56, -18)
+z_index = -1
+start_facing = 1.0
+stationary = true
+walk_speed = 0.0
+sight_range = 420.0
+respawn_time = 0.0
+drops_weapon = false
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+max_health = 2
+aim_time = 0.8
+cooldown = Vector2(1.1, 1.6)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="MobCar1" type="AnimatableBody2D" parent="."]
+position = Vector2(-420, 0)
+z_index = -2
+script = ExtResource("14_3cdbf")
+siren = false
+hold_time = 28.0
+start_x = -420.0
+
+[node name="Sprite" type="Sprite2D" parent="MobCar1"]
+z_index = 0
+position = Vector2(0, -92)
+texture = ExtResource("19_fwig7")
+centered = false
+hframes = 2
+
+[node name="Driver" type="Sprite2D" parent="MobCar1"]
+z_index = -1
+position = Vector2(88, -72)
+texture = ExtResource("20_92lbr")
+centered = false
+hframes = 2
+
+[node name="DriverHit" type="StaticBody2D" parent="MobCar1"]
+position = Vector2(101, -58)
+script = ExtResource("3_unlkx")
+
+[node name="Shape" type="CollisionShape2D" parent="MobCar1/DriverHit"]
+shape = SubResource("RectangleShape2D_lmn6h")
+
+[node name="Floor" type="StaticBody2D" parent="MobCar1"]
+position = Vector2(70, -15)
+collision_layer = 256
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="MobCar1/Floor"]
+shape = SubResource("RectangleShape2D_wabr8")
+
+[node name="Hood" type="CollisionShape2D" parent="MobCar1"]
+position = Vector2(146, -38)
+shape = SubResource("RectangleShape2D_6oavc")
+one_way_collision = true
+
+[node name="Deck" type="CollisionShape2D" parent="MobCar1"]
+position = Vector2(20, -54)
+shape = SubResource("RectangleShape2D_fjfv6")
+one_way_collision = true
+
+[node name="Smoke" type="CPUParticles2D" parent="MobCar1"]
+position = Vector2(150, -42)
+emitting = false
+amount = 24
+lifetime = 1.4
+direction = Vector2(-0.3, -1)
+spread = 25.0
+gravity = Vector2(-60, -40)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(0.35, 0.33, 0.34, 0.7)
+
+[node name="Wheel1" type="Sprite2D" parent="MobCar1" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("21_avarj")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="MobCar1" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("21_avarj")
+hframes = 4
+
+[node name="Gunman1" parent="MobCar1" instance=ExtResource("22_bo8uy")]
+position = Vector2(56, -18)
+z_index = -1
+start_facing = 1.0
+stationary = true
+walk_speed = 0.0
+sight_range = 420.0
+respawn_time = 0.0
+drops_weapon = false
+max_health = 2
+burst_count = 4
+cooldown = Vector2(1.5, 2.1)
+
+[node name="Gunman2" parent="MobCar1" instance=ExtResource("18_7sjai")]
+position = Vector2(86, -18)
+z_index = -1
+start_facing = 1.0
+stationary = true
+walk_speed = 0.0
+sight_range = 420.0
+respawn_time = 0.0
+drops_weapon = false
+weapon = ExtResource("4_zgtxs")
+max_health = 2
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="PoliceCar2" type="AnimatableBody2D" parent="."]
+position = Vector2(-420, 0)
+z_index = -2
+script = ExtResource("14_3cdbf")
+siren = true
+hold_time = 28.0
+start_x = -420.0
+
+[node name="Sprite" type="Sprite2D" parent="PoliceCar2"]
+z_index = 0
+position = Vector2(0, -92)
+texture = ExtResource("16_3200x")
+centered = false
+hframes = 2
+
+[node name="Driver" type="Sprite2D" parent="PoliceCar2"]
+z_index = -1
+position = Vector2(88, -72)
+texture = ExtResource("17_tdyl3")
+centered = false
+hframes = 2
+
+[node name="DriverHit" type="StaticBody2D" parent="PoliceCar2"]
+position = Vector2(101, -58)
+script = ExtResource("3_unlkx")
+
+[node name="Shape" type="CollisionShape2D" parent="PoliceCar2/DriverHit"]
+shape = SubResource("RectangleShape2D_o3gd7")
+
+[node name="Floor" type="StaticBody2D" parent="PoliceCar2"]
+position = Vector2(70, -15)
+collision_layer = 256
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="PoliceCar2/Floor"]
+shape = SubResource("RectangleShape2D_tku3r")
+
+[node name="Hood" type="CollisionShape2D" parent="PoliceCar2"]
+position = Vector2(146, -38)
+shape = SubResource("RectangleShape2D_dhpzd")
+one_way_collision = true
+
+[node name="Deck" type="CollisionShape2D" parent="PoliceCar2"]
+position = Vector2(20, -54)
+shape = SubResource("RectangleShape2D_yltvr")
+one_way_collision = true
+
+[node name="Smoke" type="CPUParticles2D" parent="PoliceCar2"]
+position = Vector2(150, -42)
+emitting = false
+amount = 24
+lifetime = 1.4
+direction = Vector2(-0.3, -1)
+spread = 25.0
+gravity = Vector2(-60, -40)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(0.35, 0.33, 0.34, 0.7)
+
+[node name="Wheel1" type="Sprite2D" parent="PoliceCar2" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="PoliceCar2" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Gunman1" parent="PoliceCar2" instance=ExtResource("18_7sjai")]
+position = Vector2(56, -18)
+z_index = -1
+start_facing = 1.0
+stationary = true
+walk_speed = 0.0
+sight_range = 420.0
+respawn_time = 0.0
+drops_weapon = false
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+max_health = 2
+aim_time = 0.8
+cooldown = Vector2(1.1, 1.6)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="Gunman2" parent="PoliceCar2" instance=ExtResource("18_7sjai")]
+position = Vector2(86, -18)
+z_index = -1
+start_facing = 1.0
+stationary = true
+walk_speed = 0.0
+sight_range = 420.0
+respawn_time = 0.0
+drops_weapon = false
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+max_health = 2
+aim_time = 0.8
+cooldown = Vector2(1.1, 1.6)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="Moto1" type="Node2D" parent="."]
+position = Vector2(-140, -12)
+z_index = -4
+modulate = Color(0.8, 0.82, 0.9, 1)
+script = ExtResource("15_7ya9p")
+hold_x = 470.0
+start_x = -140.0
+
+[node name="Sprite" type="Sprite2D" parent="Moto1"]
+z_index = 0
+position = Vector2(0, -64)
+texture = ExtResource("23_p02oo")
+centered = false
+hframes = 3
+
+[node name="Muzzle" type="Marker2D" parent="Moto1"]
+position = Vector2(6, -57)
+
+[node name="Hit" type="StaticBody2D" parent="Moto1"]
+position = Vector2(30, -39)
+script = ExtResource("3_unlkx")
+
+[node name="Shape" type="CollisionShape2D" parent="Moto1/Hit"]
+shape = SubResource("RectangleShape2D_2phen")
+
+[node name="Wheel1" type="Sprite2D" parent="Moto1" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(16, -10)
+texture = ExtResource("24_h9847")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Moto1" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(62, -10)
+texture = ExtResource("24_h9847")
+hframes = 4
+
+[node name="Moto2" type="Node2D" parent="."]
+position = Vector2(-220, -12)
+z_index = -4
+modulate = Color(0.8, 0.82, 0.9, 1)
+script = ExtResource("15_7ya9p")
+hold_x = 560.0
+start_x = -220.0
+
+[node name="Sprite" type="Sprite2D" parent="Moto2"]
+z_index = 0
+position = Vector2(0, -64)
+texture = ExtResource("23_p02oo")
+centered = false
+hframes = 3
+
+[node name="Muzzle" type="Marker2D" parent="Moto2"]
+position = Vector2(6, -57)
+
+[node name="Hit" type="StaticBody2D" parent="Moto2"]
+position = Vector2(30, -39)
+script = ExtResource("3_unlkx")
+
+[node name="Shape" type="CollisionShape2D" parent="Moto2/Hit"]
+shape = SubResource("RectangleShape2D_78m7w")
+
+[node name="Wheel1" type="Sprite2D" parent="Moto2" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(16, -10)
+texture = ExtResource("24_h9847")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Moto2" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(62, -10)
+texture = ExtResource("24_h9847")
+hframes = 4
+
+[node name="Moto3" type="Node2D" parent="."]
+position = Vector2(-140, -12)
+z_index = -4
+modulate = Color(0.8, 0.82, 0.9, 1)
+script = ExtResource("15_7ya9p")
+hold_x = 500.0
+start_x = -140.0
+
+[node name="Sprite" type="Sprite2D" parent="Moto3"]
+z_index = 0
+position = Vector2(0, -64)
+texture = ExtResource("23_p02oo")
+centered = false
+hframes = 3
+
+[node name="Muzzle" type="Marker2D" parent="Moto3"]
+position = Vector2(6, -57)
+
+[node name="Hit" type="StaticBody2D" parent="Moto3"]
+position = Vector2(30, -39)
+script = ExtResource("3_unlkx")
+
+[node name="Shape" type="CollisionShape2D" parent="Moto3/Hit"]
+shape = SubResource("RectangleShape2D_nmplb")
+
+[node name="Wheel1" type="Sprite2D" parent="Moto3" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(16, -10)
+texture = ExtResource("24_h9847")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Moto3" groups=["spin_wheels"]]
+z_index = 1
+position = Vector2(62, -10)
+texture = ExtResource("24_h9847")
+hframes = 4
+
+[node name="Bridge" type="Node2D" parent="."]
+
+[node name="SkyPanel" type="Sprite2D" parent="Bridge"]
+z_index = -18
+position = Vector2(100, -320)
+scale = Vector2(256.25, 1)
+texture = ExtResource("5_4ftd0")
+centered = false
+
+[node name="FarStatic" type="Sprite2D" parent="Bridge"]
+z_index = -17
+position = Vector2(-200, -230)
+texture = ExtResource("25_dxuh0")
+centered = false
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 4400, 300)
+
+[node name="Truss" type="Sprite2D" parent="Bridge"]
+z_index = -15
+position = Vector2(180, -300)
+texture = ExtResource("26_5a9yb")
+centered = false
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 4020, 300)
+
+[node name="Wire" type="Sprite2D" parent="Bridge"]
+z_index = -14
+position = Vector2(180, -210)
+texture = ExtResource("27_ofati")
+centered = false
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 4020, 6)
+
+[node name="Deck" type="Sprite2D" parent="Bridge"]
+z_index = -13
+position = Vector2(-40, 0)
+texture = ExtResource("28_excsc")
+centered = false
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 4240, 90)
+
+[node name="Pier" type="Sprite2D" parent="Bridge"]
+z_index = -12
+position = Vector2(-40, -330)
+texture = ExtResource("29_hi7iz")
+centered = false
+
+[node name="PierLamp" type="Sprite2D" parent="Bridge"]
+modulate = Color(1, 0.9, 0.6, 0.35)
+z_index = -11
+material = SubResource("CanvasItemMaterial_1mkti")
+position = Vector2(80, -332)
+scale = Vector2(1.2, 1.2)
+texture = ExtResource("2_s7wu4")
+
+[node name="Flatbed1" type="Node2D" parent="Bridge"]
+position = Vector2(412, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Flatbed1"]
+z_index = 0
+position = Vector2(0, -110)
+texture = ExtResource("30_zkwjd")
+centered = false
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/Flatbed1"]
+z_index = 1
+position = Vector2(44, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/Flatbed1"]
+z_index = 1
+position = Vector2(74, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Wheel3" type="Sprite2D" parent="Bridge/Flatbed1"]
+z_index = 1
+position = Vector2(232, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/Flatbed1"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/Flatbed1/Body"]
+position = Vector2(99, -25)
+shape = SubResource("RectangleShape2D_dsk34")
+
+[node name="Shape2" type="CollisionShape2D" parent="Bridge/Flatbed1/Body"]
+position = Vector2(221, -48)
+shape = SubResource("RectangleShape2D_o4i7b")
+
+[node name="Shape3" type="CollisionShape2D" parent="Bridge/Flatbed1/Body"]
+position = Vector2(262, -36)
+shape = SubResource("RectangleShape2D_ftsrc")
+
+[node name="Crate1" type="Sprite2D" parent="Bridge"]
+z_index = -5
+position = Vector2(426, -66)
+texture = ExtResource("32_j2tvb")
+centered = false
+
+[node name="CrateBody1" type="StaticBody2D" parent="Bridge"]
+position = Vector2(440, -51.5)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/CrateBody1"]
+shape = SubResource("RectangleShape2D_xkwa8")
+
+[node name="Crate2" type="Sprite2D" parent="Bridge"]
+z_index = -5
+position = Vector2(456, -66)
+texture = ExtResource("32_j2tvb")
+centered = false
+
+[node name="CrateBody2" type="StaticBody2D" parent="Bridge"]
+position = Vector2(470, -51.5)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/CrateBody2"]
+shape = SubResource("RectangleShape2D_423fj")
+
+[node name="Crate3" type="Sprite2D" parent="Bridge"]
+z_index = -5
+position = Vector2(441, -94)
+texture = ExtResource("32_j2tvb")
+centered = false
+
+[node name="CrateBody3" type="StaticBody2D" parent="Bridge"]
+position = Vector2(455, -79.5)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/CrateBody3"]
+shape = SubResource("RectangleShape2D_8mi8y")
+
+[node name="Sedan1" type="Node2D" parent="Bridge"]
+position = Vector2(790, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Sedan1"]
+z_index = 0
+position = Vector2(0, -100)
+texture = ExtResource("33_mewff")
+centered = false
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/Sedan1"]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/Sedan1"]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/Sedan1"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/Sedan1/Body"]
+position = Vector2(17, -27)
+shape = SubResource("RectangleShape2D_0aabb")
+
+[node name="Shape2" type="CollisionShape2D" parent="Bridge/Sedan1/Body"]
+position = Vector2(76, -44)
+shape = SubResource("RectangleShape2D_19qse")
+
+[node name="Shape3" type="CollisionShape2D" parent="Bridge/Sedan1/Body"]
+position = Vector2(148, -23)
+shape = SubResource("RectangleShape2D_qkzt7")
+
+[node name="Trolley" type="Node2D" parent="Bridge"]
+position = Vector2(1030, 0)
+z_index = -7
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Trolley"]
+z_index = 0
+position = Vector2(0, -210)
+texture = ExtResource("34_w9wei")
+centered = false
+
+[node name="Body" type="StaticBody2D" parent="Bridge/Trolley"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/Trolley/Body"]
+position = Vector2(150, -67)
+shape = SubResource("RectangleShape2D_71v88")
+
+[node name="TrolleyStep" type="StaticBody2D" parent="Bridge" groups=["platform"]]
+position = Vector2(1045, -26)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/TrolleyStep"]
+shape = SubResource("RectangleShape2D_pbif8")
+one_way_collision = true
+
+[node name="TrolleyLadder" type="Node2D" parent="Bridge"]
+position = Vector2(1036, -134)
+script = ExtResource("35_t0f3r")
+side = 1.0
+length = 130.0
+
+[node name="PoliceParked" type="Node2D" parent="Bridge"]
+position = Vector2(1520, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/PoliceParked"]
+z_index = 0
+position = Vector2(0, -92)
+texture = ExtResource("16_3200x")
+centered = false
+hframes = 2
+frame = 0
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/PoliceParked"]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/PoliceParked"]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/PoliceParked"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/PoliceParked/Body"]
+position = Vector2(88, -22)
+shape = SubResource("RectangleShape2D_85ujl")
+
+[node name="StackCrate1" type="Sprite2D" parent="Bridge"]
+z_index = -5
+position = Vector2(1704, -28)
+texture = ExtResource("32_j2tvb")
+centered = false
+
+[node name="StackCrateBody1" type="StaticBody2D" parent="Bridge"]
+position = Vector2(1718, -13.5)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/StackCrateBody1"]
+shape = SubResource("RectangleShape2D_pttqs")
+
+[node name="StackCrate2" type="Sprite2D" parent="Bridge"]
+z_index = -5
+position = Vector2(1704, -56)
+texture = ExtResource("32_j2tvb")
+centered = false
+
+[node name="StackCrateBody2" type="StaticBody2D" parent="Bridge"]
+position = Vector2(1718, -41.5)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/StackCrateBody2"]
+shape = SubResource("RectangleShape2D_bnxqg")
+
+[node name="BoxTruck" type="Node2D" parent="Bridge"]
+position = Vector2(1744, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/BoxTruck"]
+z_index = 0
+position = Vector2(0, -124)
+texture = ExtResource("36_bzem1")
+centered = false
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/BoxTruck"]
+z_index = 1
+position = Vector2(40, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/BoxTruck"]
+z_index = 1
+position = Vector2(70, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Wheel3" type="Sprite2D" parent="Bridge/BoxTruck"]
+z_index = 1
+position = Vector2(226, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/BoxTruck"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/BoxTruck/Body"]
+position = Vector2(90, -62)
+shape = SubResource("RectangleShape2D_e0wge")
+
+[node name="Shape2" type="CollisionShape2D" parent="Bridge/BoxTruck/Body"]
+position = Vector2(199, -52)
+shape = SubResource("RectangleShape2D_2t46l")
+
+[node name="Shape3" type="CollisionShape2D" parent="Bridge/BoxTruck/Body"]
+position = Vector2(237, -30)
+shape = SubResource("RectangleShape2D_q97os")
+
+[node name="Flatbed2" type="Node2D" parent="Bridge"]
+position = Vector2(2010, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Flatbed2"]
+z_index = 0
+position = Vector2(0, -110)
+texture = ExtResource("30_zkwjd")
+centered = false
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/Flatbed2"]
+z_index = 1
+position = Vector2(44, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/Flatbed2"]
+z_index = 1
+position = Vector2(74, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Wheel3" type="Sprite2D" parent="Bridge/Flatbed2"]
+z_index = 1
+position = Vector2(232, -14)
+texture = ExtResource("31_pd21v")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/Flatbed2"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/Flatbed2/Body"]
+position = Vector2(99, -25)
+shape = SubResource("RectangleShape2D_3n5fb")
+
+[node name="Shape2" type="CollisionShape2D" parent="Bridge/Flatbed2/Body"]
+position = Vector2(221, -48)
+shape = SubResource("RectangleShape2D_h0xrh")
+
+[node name="Shape3" type="CollisionShape2D" parent="Bridge/Flatbed2/Body"]
+position = Vector2(262, -36)
+shape = SubResource("RectangleShape2D_ot6kn")
+
+[node name="Drum1" type="StaticBody2D" parent="Bridge" groups=["ship_barrel"]]
+position = Vector2(2060, -38)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("37_60tbp")
+blast_size = 1.0
+boss_damage = 4.0
+fire_time = 5.0
+z_index = -2
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Drum1"]
+position = Vector2(-10, -28)
+texture = ExtResource("38_zvaxi")
+centered = false
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/Drum1"]
+position = Vector2(0, -13)
+shape = SubResource("RectangleShape2D_khp4u")
+
+[node name="Drum2" type="StaticBody2D" parent="Bridge" groups=["ship_barrel"]]
+position = Vector2(2084, -38)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("37_60tbp")
+blast_size = 1.0
+boss_damage = 4.0
+fire_time = 5.0
+z_index = -2
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Drum2"]
+position = Vector2(-10, -28)
+texture = ExtResource("38_zvaxi")
+centered = false
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/Drum2"]
+position = Vector2(0, -13)
+shape = SubResource("RectangleShape2D_ioqvp")
+
+[node name="Drum3" type="StaticBody2D" parent="Bridge" groups=["ship_barrel"]]
+position = Vector2(2150, -38)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("37_60tbp")
+blast_size = 1.0
+boss_damage = 4.0
+fire_time = 5.0
+z_index = -2
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Drum3"]
+position = Vector2(-10, -28)
+texture = ExtResource("38_zvaxi")
+centered = false
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/Drum3"]
+position = Vector2(0, -13)
+shape = SubResource("RectangleShape2D_8ifzq")
+
+[node name="Sedan2" type="Node2D" parent="Bridge"]
+position = Vector2(2380, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Sedan2"]
+z_index = 0
+position = Vector2(0, -100)
+texture = ExtResource("39_evrip")
+centered = false
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/Sedan2"]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("21_avarj")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/Sedan2"]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("21_avarj")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/Sedan2"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/Sedan2/Body"]
+position = Vector2(17, -27)
+shape = SubResource("RectangleShape2D_nl7at")
+
+[node name="Shape2" type="CollisionShape2D" parent="Bridge/Sedan2/Body"]
+position = Vector2(76, -44)
+shape = SubResource("RectangleShape2D_a210z")
+
+[node name="Shape3" type="CollisionShape2D" parent="Bridge/Sedan2/Body"]
+position = Vector2(148, -23)
+shape = SubResource("RectangleShape2D_6z1jc")
+
+[node name="Sedan3" type="Node2D" parent="Bridge"]
+position = Vector2(2600, 0)
+z_index = -6
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/Sedan3"]
+z_index = 0
+position = Vector2(0, -100)
+texture = ExtResource("40_t0ygx")
+centered = false
+
+[node name="Wheel1" type="Sprite2D" parent="Bridge/Sedan3"]
+z_index = 1
+position = Vector2(34, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Wheel2" type="Sprite2D" parent="Bridge/Sedan3"]
+z_index = 1
+position = Vector2(148, -13)
+texture = ExtResource("13_m4esx")
+hframes = 4
+
+[node name="Body" type="StaticBody2D" parent="Bridge/Sedan3"]
+
+[node name="Shape1" type="CollisionShape2D" parent="Bridge/Sedan3/Body"]
+position = Vector2(17, -27)
+shape = SubResource("RectangleShape2D_nbx2n")
+
+[node name="Shape2" type="CollisionShape2D" parent="Bridge/Sedan3/Body"]
+position = Vector2(76, -44)
+shape = SubResource("RectangleShape2D_7zgsl")
+
+[node name="Shape3" type="CollisionShape2D" parent="Bridge/Sedan3/Body"]
+position = Vector2(148, -23)
+shape = SubResource("RectangleShape2D_l9qhs")
+
+[node name="Barricade1" type="Sprite2D" parent="Bridge"]
+z_index = -4
+position = Vector2(2830, -30)
+texture = ExtResource("41_pc4pe")
+centered = false
+
+[node name="BarricadeBody1" type="StaticBody2D" parent="Bridge"]
+position = Vector2(2856, -11)
+collision_layer = 32
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/BarricadeBody1"]
+shape = SubResource("RectangleShape2D_73q30")
+
+[node name="Barricade2" type="Sprite2D" parent="Bridge"]
+z_index = -4
+position = Vector2(2904, -30)
+texture = ExtResource("41_pc4pe")
+centered = false
+
+[node name="BarricadeBody2" type="StaticBody2D" parent="Bridge"]
+position = Vector2(2930, -11)
+collision_layer = 32
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/BarricadeBody2"]
+shape = SubResource("RectangleShape2D_rdbga")
+
+[node name="Catwalk" type="Sprite2D" parent="Bridge"]
+z_index = -2
+position = Vector2(3010, -154)
+texture = ExtResource("42_e0pri")
+centered = false
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 260, 12)
+
+[node name="CatwalkBody" type="StaticBody2D" parent="Bridge" groups=["platform"]]
+position = Vector2(3140, -147)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/CatwalkBody"]
+shape = SubResource("RectangleShape2D_txreo")
+one_way_collision = true
+
+[node name="Post1" type="Sprite2D" parent="Bridge"]
+z_index = -9
+position = Vector2(3006, -150)
+texture = ExtResource("43_aksjk")
+centered = false
+
+[node name="Post2" type="Sprite2D" parent="Bridge"]
+z_index = -9
+position = Vector2(3258, -150)
+texture = ExtResource("43_aksjk")
+centered = false
+
+[node name="LadderW" type="Node2D" parent="Bridge"]
+position = Vector2(3010, -150)
+script = ExtResource("35_t0f3r")
+side = 1.0
+length = 150.0
+
+[node name="LadderE" type="Node2D" parent="Bridge"]
+position = Vector2(3270, -150)
+script = ExtResource("35_t0f3r")
+side = -1.0
+length = 150.0
+
+[node name="Sandbags1" type="StaticBody2D" parent="Bridge"]
+position = Vector2(3060, 0)
+z_index = -2
+script = ExtResource("44_hid18")
+
+[node name="Sandbags2" type="StaticBody2D" parent="Bridge"]
+position = Vector2(3190, 0)
+z_index = -2
+script = ExtResource("44_hid18")
+
+[node name="ArenaDrum" type="StaticBody2D" parent="Bridge" groups=["ship_barrel"]]
+position = Vector2(3130, 0)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("37_60tbp")
+blast_size = 1.0
+boss_damage = 4.0
+fire_time = 5.0
+z_index = -2
+
+[node name="Sprite" type="Sprite2D" parent="Bridge/ArenaDrum"]
+position = Vector2(-10, -28)
+texture = ExtResource("38_zvaxi")
+centered = false
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/ArenaDrum"]
+position = Vector2(0, -13)
+shape = SubResource("RectangleShape2D_1nitb")
+
+[node name="Wagon" type="AnimatableBody2D" parent="Bridge"]
+position = Vector2(3430, 0)
+z_index = -3
+script = ExtResource("45_otjnm")
+facing = 1.0
+
+[node name="Murphy" type="CharacterBody2D" parent="Bridge"]
+position = Vector2(3370, -114)
+script = ExtResource("46_e4g55")
+kind = "chief"
+weapon = ExtResource("47_mjnvs")
+weapon_texture = ExtResource("48_wtpv6")
+max_health = 30
+walk_speed = 40.0
+sight_range = 460.0
+aim_time = 0.65
+aim_turn_speed = 160.0
+burst_count = 6
+burst_interval = 0.09
+spread_deg = 5.0
+bullet_speed = 400.0
+bullet_lifetime = 1.4
+preferred_range = 170.0
+drops_weapon = false
+respawn_time = 0.0
+trip_time = 1.2
+start_facing = -1.0
+wagon_path = NodePath("../Wagon")
+foot_span = Vector2(3000, 3280)
+
+[node name="EdgeRight" type="StaticBody2D" parent="Bridge"]
+position = Vector2(3716, -200)
+
+[node name="Shape" type="CollisionShape2D" parent="Bridge/EdgeRight"]
+shape = SubResource("RectangleShape2D_9zqsd")
+
+[node name="RoadCop1" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(740, 0)
+start_facing = -1.0
+respawn_time = 0.0
+whistle = true
+stationary = true
+look_back = Vector2(3, 5)
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="RoadCop2" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(1390, 0)
+start_facing = -1.0
+respawn_time = 0.0
+patrol_span = 40.0
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="RoadCop3" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(1470, 0)
+start_facing = -1.0
+respawn_time = 0.0
+whistle = true
+stationary = true
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="TrolleyTommy" parent="Bridge" instance=ExtResource("22_bo8uy")]
+position = Vector2(1220, -134)
+start_facing = -1.0
+respawn_time = 0.0
+stationary = true
+walk_speed = 0.0
+look_back = Vector2(3, 5)
+
+[node name="BoxLupara" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(1900, -112)
+start_facing = -1.0
+respawn_time = 0.0
+stationary = true
+walk_speed = 0.0
+
+[node name="DrumGoon" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(2180, -38)
+start_facing = -1.0
+respawn_time = 0.0
+stationary = true
+walk_speed = 0.0
+look_back = Vector2(2.5, 4)
+weapon = ExtResource("4_zgtxs")
+max_health = 2
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="RoadLupara" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(2330, 0)
+start_facing = -1.0
+respawn_time = 0.0
+patrol_span = 30.0
+
+[node name="RoofGoon" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(2470, -88)
+start_facing = -1.0
+respawn_time = 0.0
+stationary = true
+walk_speed = 0.0
+weapon = ExtResource("4_zgtxs")
+max_health = 2
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="BarricadeCop1" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(2880, 0)
+start_facing = -1.0
+respawn_time = 0.0
+whistle = true
+stationary = true
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="BarricadeCop2" parent="Bridge" instance=ExtResource("18_7sjai")]
+position = Vector2(2962, 0)
+start_facing = -1.0
+respawn_time = 0.0
+patrol_span = 20.0
+kind = "cop"
+weapon = ExtResource("4_zgtxs")
+aim_time = 0.75
+cooldown = Vector2(1, 1.5)
+pellets = 1
+spread_deg = 3.0
+bullet_lifetime = 1.4
+preferred_range = 0.0
+
+[node name="BridgeFood1" parent="Bridge" instance=ExtResource("49_el88l")]
+position = Vector2(1120, -144)
+
+[node name="BridgeAmmo1" parent="Bridge" instance=ExtResource("50_1xisr")]
+position = Vector2(1960, -120)
+
+[node name="BridgeMedkit" parent="Bridge" instance=ExtResource("49_el88l")]
+position = Vector2(2690, -98)
+kind = &"medkit"
+
+[node name="BridgeAmmo2" parent="Bridge" instance=ExtResource("50_1xisr")]
+position = Vector2(2800, -8)
+
+[node name="ArenaFood" parent="Bridge" instance=ExtResource("49_el88l")]
+position = Vector2(3140, -160)
+
+[node name="BridgeFar" type="Parallax2D" parent="."]
+z_index = -17
+visible = false
+scroll_scale = Vector2(0.35, 1)
+repeat_size = Vector2(640, 0)
+repeat_times = 4
+
+[node name="Sprite" type="Sprite2D" parent="BridgeFar"]
+position = Vector2(-640, -230)
+texture = ExtResource("25_dxuh0")
+centered = false
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(2000, 32)
+
+[node name="Shape" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("RectangleShape2D_cq1o3")
+
+[node name="EdgeLeft" type="StaticBody2D" parent="."]
+position = Vector2(-16, -168)
+
+[node name="Shape" type="CollisionShape2D" parent="EdgeLeft"]
+shape = SubResource("RectangleShape2D_eo49g")
+
+[node name="TaxiWallR" type="StaticBody2D" parent="."]
+position = Vector2(656, -200)
+
+[node name="Shape" type="CollisionShape2D" parent="TaxiWallR"]
+shape = SubResource("RectangleShape2D_n6zo7")
+
+[node name="Spawn33" type="Marker2D" parent="."]
+position = Vector2(300, -88)
+
+[node name="Spawn34" type="Marker2D" parent="."]
+position = Vector2(520, -38)
+
+[node name="Spawn35" type="Marker2D" parent="."]
+position = Vector2(1790, -112)
+
+[node name="Spawn36" type="Marker2D" parent="."]
+position = Vector2(2790, 0)
+
+[node name="TrolleyBark" type="Area2D" parent="."]
+position = Vector2(990, -60)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="TrolleyBark"]
+shape = SubResource("RectangleShape2D_se00f")
+
+[node name="Checkpoint35" type="Area2D" parent="."]
+position = Vector2(1790, -150)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="Checkpoint35"]
+shape = SubResource("RectangleShape2D_wv2ty")
+
+[node name="DrumBark" type="Area2D" parent="."]
+position = Vector2(1985, -100)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="DrumBark"]
+shape = SubResource("RectangleShape2D_m930n")
+
+[node name="BossTrigger" type="Area2D" parent="."]
+position = Vector2(3000, -150)
+collision_layer = 0
+collision_mask = 2
+
+[node name="Shape" type="CollisionShape2D" parent="BossTrigger"]
+shape = SubResource("RectangleShape2D_cvj40")
+
+[node name="Ricco" parent="." instance=ExtResource("51_j6odm")]
+position = Vector2(300, -88)
+
+[node name="HUD" parent="." instance=ExtResource("52_62jpd")]

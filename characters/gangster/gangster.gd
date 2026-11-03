@@ -65,6 +65,7 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var patrol_span: float = 0.0              ## px – hliadkuje len ±toľko od miesta, kde začal (0 = kým nenarazí)
 @export var flashlight: bool = false              ## svieti si baterkou pred seba – v kuželi Ricca vidno (pivnica)
 @export var passive: bool = false                 ## Ricca si nevšíma (napr. vyhadzovač pred pizzeriou) – kým ho Ricco nezasiahne
+@export var relentless: bool = false              ## stále vie, kde Ricco je, a ide po ňom (poskoci Big Lou na lodi – nedajú sa zaskočiť zozadu)
 @export var whistle: bool = false                 ## policajt: keď Ricca prvý raz zbadá, zapíska a privolá ostatných v okolí (WHISTLE_RANGE)
 
 @export_group("Armor & cold")
@@ -120,6 +121,8 @@ const RIGS := {
 	"bellhop": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # liftboy / poslíček hotela Majestic (bordová uniforma)
 	"riveter": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # nitovač na stavbe veže Iron Mikea (biela košeľa, traky, baretka)
 	"smuggler": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # pašerák rumu z Long Islandu (pletená čiapka, sveter – kapitola IV)
+	"keeper": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # hájnik panstva Vito (kapitola IV – tvídové sako, placatá čiapka, Winchester)
+	"chief": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Police Chief Murphy – biela čiapka, dvojradový kabát (kapitola III – most) – characters/murphy/
 	"mike": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Iron Mike – stavbyvedúci (vesta, kravata, tvrdý klobúk) – characters/iron_mike/
 }
 ## Pózy dvojdielnych rúk: [nadlaktie predné, predlaktie predné, nadlaktie zadné, predlaktie zadné, náklon px]
@@ -165,6 +168,7 @@ var look_timer: float = 0.0
 var _alert_mark: Label
 var goto_x: float = NAN   ## px – skriptovaný presun (napr. mafián ide zaklopať na dvere); NAN = normálne správanie
 var _whistled: bool = false   ## policajt už zapískal (len raz)
+var _relentless_t: float = 0.0
 var _aggro: float = 0.0   ## s – po zásahu klobúkom vie, kde Ricco je (vidí ho aj v tme a za chrbtom)
 var _investigate_x: float = 0.0   ## px – kam sa ide pozrieť (počul výstrel / pád kamaráta)
 var _investigate_phase: int = 0   ## 0 = zarazí sa, 1 = ide tam, 2 = obzerá sa, 3 = vracia sa
@@ -340,6 +344,20 @@ func _set_facing(f: float) -> void:
 
 
 var _flash: Node2D
+var _wall_cover: float = 0.0   ## 0–1: nakoľko ho zakrýva predná stena (prierez vozňa/miestnosti) – set_wall_cover
+
+
+## Prierez: keď je predná stena zatvorená (Ricco je vonku), nevidno cez ňu baterku ani „?“/„!“ nad hlavou.
+## Volá to level (napr. train.gd) každý snímok podľa priehľadnosti steny; 0 = všetko vidno, 1 = schované.
+func set_wall_cover(a: float) -> void:
+	_wall_cover = a
+	var k: float = 1.0 - a
+	if _flash:
+		_flash.modulate.a = k
+	if _alert_mark:
+		_alert_mark.self_modulate.a = k
+	if _question_mark:
+		_question_mark.self_modulate.a = k
 
 ## Baterka: kužeľ svetla pred ním (je v kostre, takže sa otáča s ním) + LightZone v kuželi
 func _make_flashlight() -> void:
@@ -381,6 +399,8 @@ func _physics_process(delta: float) -> void:
 		player = get_tree().get_first_node_in_group(&"player") as Node2D
 	timer -= delta
 	_aggro -= delta
+	if relentless and state != State.DEAD:
+		_aggro = maxf(_aggro, 1.0)
 	_hop_cool -= delta
 	_flash_t -= delta
 	flash.visible = _flash_t > 0.0
@@ -388,6 +408,14 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 		return
 	var sees: bool = state != State.DEAD and _can_see_player()
+	if relentless and not sees and state in [State.PATROL, State.IDLE, State.INVESTIGATE]:
+		_relentless_t -= delta
+		if _relentless_t <= 0.0:   # Ricca nevidí (ďaleko, za krytom) – ide tam, kde je teraz
+			_relentless_t = 0.8
+			if state == State.INVESTIGATE and _investigate_phase == 1:
+				_investigate_x = player.global_position.x   # už ide – len si opraví cieľ
+			else:
+				hear(player.global_position)
 	if sees:
 		_last_seen = player.global_position
 
@@ -555,6 +583,7 @@ func _show_alert_mark() -> void:
 		_alert_mark.add_theme_constant_override(&"outline_size", 4)
 		_alert_mark.position = Vector2(-3, -96)
 		_alert_mark.z_index = 30
+		_alert_mark.self_modulate.a = 1.0 - _wall_cover
 		add_child(_alert_mark)
 	_alert_mark.visible = true
 	_alert_mark.modulate.a = 1.0
@@ -635,10 +664,20 @@ static func noise(pos: Vector2, radius: float) -> void:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return
+	radius = _masked(tree, pos, radius)
 	for n in tree.get_nodes_in_group(&"enemies"):
 		var g := n as Gangster
 		if g and g.global_position.distance_to(pos) < radius:
 			g.hear(pos)
+
+
+## Hluk pri hučiacom stroji (skupina „noise_masks“ – napr. čerpadlo v pivnici vily, levels/level4/pump.gd) počuť len zblízka:
+## každý taký uzol má mask(pos, radius) -> float a vráti zmenšený dosah zvuku
+static func _masked(tree: SceneTree, pos: Vector2, radius: float) -> float:
+	for m in tree.get_nodes_in_group(&"noise_masks"):
+		if m.has_method(&"mask"):
+			radius = m.mask(pos, radius)
+	return radius
 
 
 ## Riccov výstrel: kto má výhľad na ústie (pozerá sa tým smerom a nič nie je medzi nimi), uvidí záblesk aj v tme
@@ -648,6 +687,7 @@ static func gunshot(pos: Vector2, radius: float) -> void:
 	if tree == null:
 		return
 	Guest.panic(pos, radius)   # smútiaci (world/npc/guest.gd, flee) pred streľbou utečú
+	radius = _masked(tree, pos, radius)   # záblesk (_sees_flash) vidno aj tak, len rana sa stratí v hluku
 	for n in tree.get_nodes_in_group(&"enemies"):
 		var g := n as Gangster
 		if g == null or g.state == State.DEAD or g.passive:
@@ -740,7 +780,7 @@ func _investigate(delta: float) -> void:
 				look_timer = 0.8
 			else:
 				_set_facing(signf(dx))
-				velocity.x = signf(dx) * walk_speed * 1.3
+				velocity.x = signf(dx) * (maxf(run_speed, walk_speed * 2.2) if relentless else walk_speed * 1.3)
 		2:   # obzerá sa
 			velocity.x = move_toward(velocity.x, 0.0, 400.0 * delta)
 			look_timer -= delta
@@ -778,6 +818,7 @@ func _show_question_mark() -> void:
 		_question_mark.add_theme_constant_override(&"outline_size", 4)
 		_question_mark.position = Vector2(-4, -100)
 		_question_mark.z_index = 30
+		_question_mark.self_modulate.a = 1.0 - _wall_cover
 		add_child(_question_mark)
 	_question_mark.visible = true
 	_question_mark.modulate.a = 1.0
@@ -1007,6 +1048,23 @@ func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
 	take_hit(damage, dir)
 
 
+const HIT_RED := Color(2.2, 0.42, 0.38)   ## farba tela hneď po zásahu (potom sa vráti k pôvodnej)
+var _tint_tw: Tween
+var _base_tint: Color = Color.WHITE
+
+
+## Krátke zafarbenie tela (zásah, omráčenie) – potom späť na pôvodnú farbu (napr. NIGHT na cintoríne, nie biela)
+## Godot docs: classes/class_tween
+func _tint_flash(col: Color, t: float) -> void:
+	if _tint_tw and _tint_tw.is_running():
+		_tint_tw.kill()   # ešte doznieva predchádzajúci – základ ostáva
+	else:
+		_base_tint = rig.modulate
+	rig.modulate = col
+	_tint_tw = create_tween()
+	_tint_tw.tween_property(rig, "modulate", _base_tint, t)
+
+
 func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 	if state == State.DEAD:
 		return
@@ -1016,8 +1074,7 @@ func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 		Sfx.play(&"impact_body", global_position + Vector2(0, -40), -2.0)
 		Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -44), dir + Vector2(0, -0.3),
 				Color(0.62, 0.05, 0.05), 6, 90.0, Vector2(0, 520), 0.5)
-	rig.modulate = Color(3, 3, 3)
-	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.12)
+	_tint_flash(HIT_RED, 0.22)   # zásah = krátko sčervenie
 	if health <= 0:
 		_die(dir)
 		return
@@ -1050,8 +1107,7 @@ func takedown(dir: Vector2) -> void:
 	health = 0
 	Burst.spawn(get_tree().current_scene, global_position + Vector2(0, -66), Vector2.UP,
 			Color(1.0, 0.86, 0.35), 8, 60.0, Vector2(0, 60), 0.6)
-	rig.modulate = Color(2, 2, 2)
-	create_tween().tween_property(rig, "modulate", Color.WHITE, 0.15)
+	_tint_flash(Color(2, 2, 2), 0.15)
 	_die(dir, true)
 
 
@@ -1215,10 +1271,11 @@ func _die(dir: Vector2, quiet: bool = false) -> void:
 	tw.tween_property(leg_front, "rotation", -0.3, 0.4)
 	tw.tween_property(leg_back, "rotation", 0.25, 0.4)
 	tw.tween_property(head, "rotation", -0.4, 0.4)
-	# krabička nábojov
-	var a := AMMO.instantiate()
-	get_tree().current_scene.add_child.call_deferred(a)
-	a.position = global_position + Vector2(0, -8)   # current_scene je v počiatku
+	# krabička nábojov – len od toho, kto mal strelnú zbraň (päste, palica a hák nemajú čo stratiť)
+	if weapon:
+		var a := AMMO.instantiate()
+		get_tree().current_scene.add_child.call_deferred(a)
+		a.position = global_position + Vector2(0, -8)   # current_scene je v počiatku
 	# v test room sa po chvíli objaví znova
 	var fade := create_tween()
 	fade.tween_interval(3.0)

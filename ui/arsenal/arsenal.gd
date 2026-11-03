@@ -51,7 +51,8 @@ const ENTRIES: Array[Dictionary] = [
 	{"res": "res://weapons/tommy/tommy.tres", "title": "THOMPSON", "model": "M1928   .45 ACP",
 		"text": ["THE CHICAGO TYPEWRITER.", "LOUD, HUNGRY, AND IT", "NEVER STOPS TALKING."]},
 	{"res": ""},   # Winchester 1894
-	{"res": ""},   # Springfield 1903
+	{"res": "res://weapons/springfield/springfield.tres", "title": "SPRINGFIELD 1903", "model": "M1903   .30-06",
+		"text": ["FROM THE WIDOW'S TROPHY ROOM.", "FIVE ROUNDS, ONE BOLT.", "ONE MAN PER SHOT."]},
 	{"res": ""},   # BAR M1918
 ]
 const SIDEARMS := 4

@@ -84,7 +84,7 @@ signal food_changed ## zobral alebo zjedol jedlo (HUD sloty – ui/food_slots.gd
 
 @export_group("Health")
 @export var max_health: int = 8               ## 8 = celá pizza v HUD (1 zásah = 1 kúsok)
-@export var invulnerable_time: float = 1.0    ## s po zásahu, kedy Ricca nič nezraní (bliká)
+@export var invulnerable_time: float = 1.0    ## s po zásahu, kedy Ricca nič nezraní (sčervenie a postupne zbledne)
 @export var hurt_knockback: Vector2 = Vector2(70, 0)  ## odhodenie od zdroja zásahu (y = 0 → bez poskoku)
 @export var respawn_delay: float = 2.5        ## s po smrti, kým sa level reštartuje
 @export_group("")
@@ -238,6 +238,7 @@ var reload_time: float:
 var health: int = 0
 var run_backwards: bool = false   ## beh pustený odzadu (Ricco ide opačne, než sa pozerá)
 var invulnerable_timer: float = 0.0
+const HURT_TINT := Color(1.0, 0.32, 0.3)   ## farba Ricca hneď po zásahu
 var slide_dust_timer: float = 0.0
 var stand_shape: Shape2D             ## kapsula postavy (pri šmyku sa vymení za nízku)
 var slide_shape: CapsuleShape2D      ## ležiaca kapsula pri šmyku
@@ -1065,7 +1066,7 @@ func _draw_weapon(animate: bool = true) -> void:
 # ---------------------------------------------------------------- záblesk z hlavne
 const FLASH_TEX := preload("res://weapons/pistol/muzzle_flash_big.png")
 const GLOW_TEX := preload("res://levels/level1/art/glow.png")
-const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8, "Winchester": 1.7}
+const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8, "Winchester": 1.7, "Springfield": 1.5}
 var _flash_glow: Sprite2D
 var _flash_light: PointLight2D   ## záblesk na okamih osvetlí okolie (aj v tme – CanvasModulate „Darkness“)
 # Jeden tween na každú časť záblesku: nový výstrel starý zruší. Inak pri dávke dobehol tween
@@ -1299,6 +1300,12 @@ func _pump_action(delay: float = -1.0) -> void:
 	var tw := create_tween()
 	_pump_tween = tw
 	tw.tween_interval(weapon.pump_delay if delay < 0.0 else delay)
+	if weapon.bolt_action:   # závorník (Springfield): ruka k rúčke, hore, dozadu, dopredu, dole, späť na predok
+		var tb: float = weapon.pump_time / 5.0
+		_bolt_open_steps(tw, tb, true)
+		_bolt_close_steps(tw, tb)
+		tw.tween_callback(func(): _pump_tween = null)
+		return
 	tw.tween_callback(func(): Sfx.play(&"pump_back", Vector2.INF, -5.0, 0.05))
 	tw.tween_property(_pump, "position", rest + back, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(offhand, "position", hand + back, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -1307,6 +1314,43 @@ func _pump_action(delay: float = -1.0) -> void:
 	tw.tween_property(_pump, "position", rest, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(offhand, "position", hand, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func(): _pump_tween = null)
+
+
+## Závorník: kde je druhá ruka, keď drží rúčku závorníka, ktorý je na mieste at (súradnice ako _pump.position)
+func _bolt_hand(at: Vector2) -> Vector2:
+	return at + weapon.bolt_knob_px - OFFHAND_GRIP
+
+
+## Závorník otvorený (zdvihnutý a dozadu)
+func _bolt_open_pos() -> Vector2:
+	return _gun_px(weapon.pump_px) + Vector2(-weapon.pump_travel, -weapon.bolt_lift)
+
+
+## Do tweenu pridá otvorenie závorníka: ruka prejde k rúčke, zdvihne ju a potiahne dozadu (eject = vyletí nábojnica).
+## Trvá 2,5 × t. Godot docs: classes/class_tween (tween_property, parallel)
+func _bolt_open_steps(tw: Tween, t: float, eject: bool) -> void:
+	var rest: Vector2 = _gun_px(weapon.pump_px)
+	var up := Vector2(0.0, -weapon.bolt_lift)
+	tw.tween_property(offhand, "position", _bolt_hand(rest), t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func(): Sfx.play(&"pump_back", Vector2.INF, -8.0, 0.05))
+	tw.tween_property(_pump, "position", rest + up, t * 0.5)
+	tw.parallel().tween_property(offhand, "position", _bolt_hand(rest + up), t * 0.5)
+	tw.tween_property(_pump, "position", _bolt_open_pos(), t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(offhand, "position", _bolt_hand(_bolt_open_pos()), t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if eject:
+		tw.tween_callback(_eject_shell)
+
+
+## Do tweenu pridá zatvorenie závorníka: dopredu, sklopiť rúčku a ruka späť na predok zbrane. Trvá 2,5 × t.
+func _bolt_close_steps(tw: Tween, t: float) -> void:
+	var rest: Vector2 = _gun_px(weapon.pump_px)
+	var up := Vector2(0.0, -weapon.bolt_lift)
+	tw.tween_callback(func(): Sfx.play(&"pump_fwd", Vector2.INF, -7.0, 0.05))
+	tw.tween_property(_pump, "position", rest + up, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(offhand, "position", _bolt_hand(rest + up), t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(_pump, "position", rest, t * 0.5)
+	tw.parallel().tween_property(offhand, "position", _bolt_hand(rest), t * 0.5)
+	tw.tween_property(offhand, "position", _offhand_rest(), t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 ## Vystrelená nábojnica vyletí z okienka pri puzdre (mag_px) hore a dozadu
@@ -1335,6 +1379,8 @@ func _start_shell_reload() -> void:
 	offhand.fade = 1.0
 	var tw := create_tween()
 	_reload_tween = tw
+	if weapon.bolt_action:   # Springfield: najprv otvoriť závorník – náboje idú zhora do puzdra
+		_bolt_open_steps(tw, weapon.reload_time * 0.4, false)
 	tw.tween_property(gun, "rotation", 0.2 * gun.scale.y, 0.08)   # ústie trochu dole, otvor k ruke
 	tw.tween_callback(_load_one_shell)
 
@@ -1347,14 +1393,17 @@ func _load_one_shell() -> void:
 	var hand: Node = offhand.get_node("NewMag")
 	hand.texture = weapon.new_mag_texture
 	hand.visible = true
+	var from_dir := Vector2(-5.0, 9.0)   # pumpovačka: náboj ide zdola do otvoru pod puzdrom
+	if weapon.bolt_action:
+		from_dir = Vector2(-4.0, -9.0)   # závorník: zhora do otvoreného puzdra
 	var tw := create_tween()
 	_reload_tween = tw
-	tw.tween_property(offhand, "position", port + Vector2(-5.0, 9.0), 0.45 * k).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(offhand, "position", port + from_dir, 0.45 * k).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(offhand, "position", port, 0.2 * k).set_ease(Tween.EASE_IN)
 	tw.tween_callback(_shell_in)
 	tw.tween_property(gun, "rotation", 0.2 * gun.scale.y - 0.06 * gun.scale.y, 0.05 * k)
 	tw.tween_property(gun, "rotation", 0.2 * gun.scale.y, 0.1 * k)
-	tw.parallel().tween_property(offhand, "position", port + Vector2(-3.0, 7.0), 0.15 * k)
+	tw.parallel().tween_property(offhand, "position", port + from_dir * 0.75, 0.15 * k)
 	tw.tween_callback(_after_shell)
 
 
@@ -1374,6 +1423,12 @@ func _after_shell() -> void:
 		return
 	var tw := create_tween()
 	_reload_tween = tw
+	if weapon.bolt_action:   # závorník zatvoriť – náboj do komory
+		tw.tween_property(gun, "rotation", 0.0, 0.12)
+		tw.parallel().tween_property(offhand, "position", _bolt_hand(_bolt_open_pos()), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_bolt_close_steps(tw, weapon.reload_time * 0.4)
+		tw.tween_callback(_finish_shell_reload)
+		return
 	tw.tween_property(offhand, "position", _offhand_rest(), 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.parallel().tween_property(gun, "rotation", 0.0, 0.14)
 	tw.tween_callback(_finish_shell_reload)
@@ -1385,7 +1440,7 @@ func _finish_shell_reload() -> void:
 	offhand.get_node("NewMag").visible = false
 	offhand.position = _offhand_rest()
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
-	if _reload_empty and ammo_in_mag > 0:   # z prázdnej zbrane – náboj do komory
+	if _reload_empty and ammo_in_mag > 0 and not weapon.bolt_action:   # z prázdnej zbrane – náboj do komory (závorník už zavrel)
 		_pump_action(0.0)
 		fire_timer = maxf(fire_timer, weapon.pump_time + 0.05)
 	_reload_empty = false
@@ -2125,9 +2180,12 @@ func heal(amount: int = 1) -> void:
 func _update_invulnerability(delta: float) -> void:
 	if invulnerable_timer > 0.0:
 		invulnerable_timer -= delta
-		visual.visible = fmod(invulnerable_timer, 0.12) < 0.08   # blikanie
-	else:
-		visual.visible = true
+		# po zásahu Ricco sčervenie a počas nezraniteľnosti plynulo bledne (jemne pulzuje) – žiadne blikanie viditeľnosti
+		var k: float = clampf(invulnerable_timer / maxf(invulnerable_time, 0.01), 0.0, 1.0)
+		var pulse: float = 0.75 + 0.25 * cos(invulnerable_timer * TAU * 4.0)
+		sprite.modulate = Color.WHITE.lerp(HURT_TINT, k * pulse)
+	elif sprite.modulate != Color.WHITE:
+		sprite.modulate = Color.WHITE
 
 
 func _die() -> void:
@@ -2166,9 +2224,7 @@ func _blood_fx(from: Vector2) -> void:
 	away = (away + Vector2(0, -0.5)).normalized()
 	Burst.spawn(get_tree().current_scene, chest, away, Color(0.62, 0.04, 0.06), 10, 90.0, Vector2(0, 520), 0.55)
 	Burst.spawn(get_tree().current_scene, chest, away, Color(0.85, 0.12, 0.1), 5, 50.0, Vector2(0, 520), 0.4)
-	sprite.modulate = Color(1.0, 0.72, 0.72)   # jemný červený nádych
-	var tw := create_tween()
-	tw.tween_property(sprite, "modulate", Color.WHITE, 0.3).set_delay(0.08)
+	# červený nádych robí _update_invulnerability (plynulo, bez blikania)
 
 
 # ---------------------------------------------------------------- plávanie

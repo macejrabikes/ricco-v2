@@ -225,6 +225,16 @@ func _cover(tex: String, x: float, y_bottom: float) -> void:
 	_node(s, "Sprite", b)
 
 
+## Oceľový kryt (skriňa na vesty, vetrací komín) – pevný, guľky ho nerozbijú. Ricco sa za ním skrčí (C);
+## Lou v rozbehu doň narazí a je omámený (big_lou.gd → _crash). Výška 32 px = skrčený Ricco (22 px) je celý schovaný
+## aj pred strelbou zhora z mostíka. Počiatok obrázka = ľavý dolný roh na palube.
+func _steel(nm: String, tex: String, x: float, size: Vector2) -> void:
+	var t: Texture2D = load(ART + tex)
+	var spr := _sprite(tex, Vector2(x - (t.get_width() - size.x) / 2.0, -t.get_height()), null, nm)
+	spr.z_index = -1
+	_block(nm + "Body", Rect2(x, -size.y, size.x, size.y))
+
+
 func _parallax(nm: String, scroll: float, z: int, autoscroll: Vector2 = Vector2.ZERO) -> Parallax2D:
 	var p := Parallax2D.new()
 	p.scroll_scale = Vector2(scroll, 1.0)
@@ -346,6 +356,10 @@ func _build_cargo() -> void:
 	_platform()
 	_cover("crate_whisky.png", 1150, 0)
 	_cover("crate.png", 1150, -20)
+	# pevné oceľové kryty (nedajú sa rozstrieľať) – pri štarte boja, v strede a v zmenšenej aréne po páde žeriavu
+	_steel("SteelLocker1", "steel_locker.png", 650, Vector2(40, 32))
+	_steel("SteelLocker2", "steel_locker.png", 866, Vector2(40, 32))   # medzi ňou a pätou žeriavu musí byť miesto (mafiáni preskočia)
+	_steel("Vent1", "vent_cowl.png", 1214, Vector2(18, 40))
 	var hatch := _sprite("hatch.png", Vector2(HATCH_X - 32, -14), null, "Hatch")
 	hatch.z_index = -2
 	_marker("HatchSpot", Vector2(HATCH_X, 0))   # odtiaľto vylezú poskoci (margaret.gd → _henchmen)

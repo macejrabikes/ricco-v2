@@ -38,11 +38,14 @@ const DOOR_X := 1615.0                        ## dvere do kajuty v spodnej nadst
 const ESCAPE_TIME := 46.0                     ## s na útek k člnu, potom loď vybuchne
 const ESCAPE_FIRES := [[Vector2(1420, 0), 20.0], [Vector2(1060, 0), 18.0], [Vector2(545, -26), 16.0], [Vector2(420, 0), 16.0]]
 const BLASTS := [1300.0, 960.0, 640.0, 300.0]  ## keď Ricco prebehne toto x, kúsok za ním niečo vybuchne
-## Poskoci v dvoch vlnách: [scéna, odkiaľ ("hatch" = nákladný poklop, "stern" = dvere kajuty na korme), oneskorenie s]
+## Poskoci v dvoch vlnách: [druh, odkiaľ ("hatch" = nákladný poklop, "stern" = dvere kajuty na korme), oneskorenie s].
+## „revolver“ = mafián s revolverom .38 (Thompson má na lodi len Big Lou). Všetci sú relentless – idú rovno po Riccovi.
 const WAVES := [
-	[["gangster_tommy", "hatch", 0.0], ["gangster_coppola", "stern", 1.2], ["gangster_tommy", "hatch", 2.0]],
-	[["gangster_slugger", "hatch", 0.0], ["gangster_coppola", "hatch", 1.4], ["gangster_tommy", "stern", 2.4]],
+	[["revolver", "hatch", 0.0], ["gangster_coppola", "stern", 1.2], ["revolver", "hatch", 2.0]],
+	[["gangster_slugger", "hatch", 0.0], ["gangster_coppola", "hatch", 1.4], ["revolver", "stern", 2.4]],
 ]
+const REVOLVER_MAN := {"kind": "tommy", "weapon": preload("res://weapons/revolver/revolver.tres"), "weapon_texture": null,
+		"burst_count": 1, "pellets": 1, "spread_deg": 3.0, "bullet_lifetime": 1.4, "cooldown": Vector2(1.0, 1.5), "aim_time": 0.7}
 
 const ARRIVE: Array[String] = [
 	"Two A.M. on the dot. The Margaret's pullin' out and I'm aboard.",
@@ -273,8 +276,12 @@ func _next_wave() -> void:
 
 ## Poskok vylezie z nákladného poklopu (zdola) alebo vyjde z dverí kajuty na korme – a ide rovno po Riccovi
 func _henchman(scene: String, from: String, delay: float) -> void:
-	var g := load("res://characters/gangster/%s.tscn" % scene).instantiate() as Gangster
+	var g := load("res://characters/gangster/%s.tscn" % ("gangster_coppola" if scene == "revolver" else scene)).instantiate() as Gangster
+	if scene == "revolver":
+		for k in REVOLVER_MAN:
+			g.set(k, REVOLVER_MAN[k])
 	g.respawn_time = 0.0
+	g.relentless = true   # povinne po Riccovi – nečakajú, kým ich niekto vyruší
 	_henchmen_left.append(g)
 	if delay > 0.0:
 		await _wait(delay)

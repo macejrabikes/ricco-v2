@@ -73,3 +73,10 @@ enum AltMode { NONE, SEMI, DOUBLE }
 @export var pump_time: float = 0.24                ## s – celý ťah (dozadu aj dopredu)
 ## Nabíja sa po jednom náboji (reload_time = jeden náboj) – streľba nabíjanie preruší, zbraň vystrelí, čo v nej je
 @export var shell_reload: bool = false
+## Závorník (Springfield 1903): pump_texture = závorník s rúčkou, pump_body_texture = zbraň bez neho. Po výstrele druhá ruka
+## pustí predok, chytí rúčku (bolt_knob_px v obrázku závorníka), zdvihne ju (bolt_lift), potiahne dozadu (pump_travel –
+## vyletí nábojnica), zatlačí dopredu, sklopí a vráti sa na predok. Pri nabíjaní (shell_reload) ostane závorník otvorený
+## a náboje idú zhora do puzdra (mag_px). Godot docs: classes/class_tween
+@export var bolt_action: bool = false
+@export var bolt_knob_px: Vector2 = Vector2.ZERO
+@export var bolt_lift: float = 1.0

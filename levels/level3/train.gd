@@ -13,6 +13,8 @@ extends Level3
 ##   (prikrčiť sa za vetrák alebo šmyk ju nepustí) → 5 poštový vozeň v tme: Tommy s baterkou, cez otvorené bočné dvere
 ##   občas prebehne svetlo pouličnej lampy (MailSweep) → 6 čelný vozeň: mafián drží motorovodiča ako rukojemníka.
 ##   Keď ho Ricco zloží, motorovodič zabrzdí v stanici 125 St (keby Ricco trafil motorovodiča, zabrzdí „mŕtvy muž“).
+##   Všetky vozne sú prierezy – zoskočí zo strechy do medzery a dverami dnu (1, 2, 4: cestujúci, v 2 a 4 aj mafián).
+##   Kým je Ricco vonku, predná stena je zatvorená a baterky ani „?“/„!“ mafiánov vnútri cez ňu nevidno.
 ##   Ricco vyjde čelom vozňa na nástupište stanice 125 St → jazzový klub The Blue Canary (časť 5 – club.gd).
 ## Checkpointy (Level3.checkpoint): 9 = strecha vozňa 1, 10 = pred vozňom 3, 11 = pred vozňom 4, 12 = pred vozňom 5,
 ## 13 = pred vozňom 6.
@@ -26,8 +28,11 @@ const BEAM_HALF := 16.0          ## polovica šírky nosníka
 const BEAM_DAMAGE := 2
 const BEAM_END := 2500.0         ## px – za touto čiarou (koniec strechy čelného vozňa) už nosníky nechodia
 const DUCK_NEAR := 90.0          ## px – takto ďaleko pred nosníkom sa mafián prikrčí
-## prierezy: predná stena zmizne, keď je Ricco vnútri (uzol → vnútro od–do x)
+## prierezy (všetkých šesť vozňov): predná stena zmizne, keď je Ricco vnútri (uzol → vnútro od–do x)
 const WALLS := {
+	^"Car1Wall": Vector2(2.0, 398.0),
+	^"Car2Wall": Vector2(434.0, 830.0),
+	^"Car4Wall": Vector2(1298.0, 1694.0),
 	^"Car3Wall": Vector2(866.0, 1262.0),
 	^"Car5Wall": Vector2(1730.0, 2126.0),
 	^"Car6Wall": Vector2(2162.0, 2558.0),
@@ -490,14 +495,25 @@ func _view_rect() -> Rect2:
 
 # ---------------------------------------------------------------- prierezy a Colt
 
-## Predná stena vozňa zmizne, keď je Ricco vnútri (prierez ako v návrhu B)
+## Predná stena vozňa zmizne, keď je Ricco vnútri (prierez ako v návrhu B). Mafiánom vo vozni so zatvorenou stenou
+## schová baterku a „?“/„!“ (Gangster.set_wall_cover) – zvonku ich cez plech nevidno.
 func _update_walls(delta: float) -> void:
 	var p: Vector2 = player.global_position
+	var enemies := get_tree().get_nodes_in_group(&"enemies")
+	var covered := {}
 	for w in _walls:
 		var r: Vector2 = w[1]
 		var inside: bool = p.x > r.x and p.x < r.y and p.y > ROOF_Y + 14.0
 		var c := w[0] as CanvasItem
 		c.modulate.a = move_toward(c.modulate.a, 0.0 if inside else 1.0, delta * 4.0)
+		for e in enemies:
+			var g := e as Node2D
+			if g and g.has_method(&"set_wall_cover") and g.global_position.x > r.x - 2.0 and g.global_position.x < r.y + 2.0 \
+					and g.global_position.y > ROOF_Y + 14.0:
+				covered[g] = c.modulate.a
+	for e in enemies:
+		if e.has_method(&"set_wall_cover"):
+			e.set_wall_cover(covered.get(e, 0.0))
 
 
 func _on_weapon(w: WeaponData) -> void:

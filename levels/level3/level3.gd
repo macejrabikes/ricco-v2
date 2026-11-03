@@ -7,7 +7,8 @@ extends Node2D
 ## a do jazzového klubu The Blue Canary (časť 5 – club.gd: ulica a sála, časť 6 – club_back.gd: zákulisie, Sal),
 ## potom zadným vchodom do hotela Majestic (časť 7 – hotel.gd: kuchyňa, práčovňa, nákladný výťah) a na gala „M.“
 ## v Starlight Room a na strechu s nápisom MAJESTIC (časť 8 – hotel_gala.gd) a za svitania na vrchol rozostavaného
-## mrakodrapu Iron Mikea (časť 9 – tower.gd: boss Iron Mike, vzducholoď „M.“).
+## mrakodrapu Iron Mikea (časť 9 – tower.gd: boss Iron Mike, vzducholoď „M.“) a naháňačka taxíkom za vzducholoďou
+## cez Manhattan na Queensboro Bridge (časť 10 – chase.gd: zápcha na moste, boss Police Chief Murphy) → kapitola IV.
 ## Scény píše Claude priamo ako .tscn (_art_src/make_city_scene.py, make_roofs_scene.py, make_train_scene.py… mimo repa),
 ## len úvod generuje tools/build_level3.gd.
 ## Godot docs: classes/class_tween, classes/class_canvaslayer, classes/class_area2d
@@ -21,6 +22,7 @@ const CLUB_BACK := "res://levels/level3/club_back.tscn"   ## časť 6: zákulisi
 const HOTEL := "res://levels/level3/hotel.tscn"     ## časť 7: hotel Majestic – ulička, kuchyňa, poschodie, práčovňa, výťah
 const HOTEL_GALA := "res://levels/level3/hotel_gala.tscn"   ## časť 8: gala v Starlight Room, strecha s nápisom MAJESTIC
 const TOWER := "res://levels/level3/tower.tscn"     ## časť 9: veža Iron Mikea – oceľová kostra, žeriav, boss, vzducholoď
+const CHASE := "res://levels/level3/chase.tscn"     ## časť 10: taxík za vzducholoďou, zápcha na Queensboro Bridge, Chief Murphy
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const REVOLVER := preload("res://weapons/revolver/revolver.tres")
 const LUPARA := preload("res://weapons/lupara/lupara.tres")
@@ -38,7 +40,8 @@ const TOMMY_START_AMMO := 20                        ## náboje do Thompsonu sú 
 ## 17–21 = zákulisie (club_back.gd – zákulisie, šatne, pivnica, šachta pri herni, strecha),
 ## 22–25 = hotel (hotel.gd – ulička, príjem / galéria, poschodie, práčovňa),
 ## 26–29 = gala (hotel_gala.gd – špajza čašníkov, Starlight Room, balkón, strecha),
-## 30–32 = veža (tower.gd – stavenisko, 3. poschodie, vrchol – boj s Iron Mikeom).
+## 30–32 = veža (tower.gd – stavenisko, 3. poschodie, vrchol – boj s Iron Mikeom),
+## 33–36 = naháňačka (chase.gd – taxík, most po nehode, stred mosta, pred zábranami – boj s Chiefom Murphym).
 ## Statické premenné prežijú smrť (reload scény), úvodné menu a koniec kapitoly II ich vynulujú (reset()).
 static var checkpoint: int = 0
 static var arrived: bool = false                    ## Riccove myšlienky po pristátí už zazneli
@@ -58,6 +61,10 @@ static var toast_done: bool = false                 ## prípitok Iron Mikea na g
 static var tower_arrived: bool = false              ## Riccove myšlienky na stavenisku veže už zazneli
 static var mike_phase: int = 0                      ## dosiahnutá fáza boja s Iron Mikeom (po smrti pokračuje v nej; 0 = ešte nezačal)
 static var mike_revealed: bool = false              ## Mike už raz vyšiel na nosníku hore (po smrti bez úvodu)
+static var chase_arrived: bool = false              ## úvod naháňačky (taxikár, Riccove myšlienky) už bol
+static var chase_wave: int = 0                      ## dosiahnutá vlna prenasledovateľov v taxíku (po smrti pokračuje od nej)
+static var murphy_phase: int = 0                    ## dosiahnutá fáza boja s Chiefom Murphym (0 = ešte nezačal)
+static var murphy_revealed: bool = false            ## Murphy už raz zakričal z voza (po smrti bez úvodu)
 static var carried: Array[WeaponData] = []          ## výbava pri vstupe do časti (napr. Colt 1911 namiesto revolvera); prázdne = začiatočná
 
 const ARRIVE: Array[String] = [
@@ -91,6 +98,10 @@ static func reset() -> void:
 	tower_arrived = false
 	mike_phase = 0
 	mike_revealed = false
+	chase_arrived = false
+	chase_wave = 0
+	murphy_phase = 0
+	murphy_revealed = false
 	barks.clear()
 	tommy_ammo = [TOMMY_START_AMMO, 0]
 	carried.clear()
@@ -99,6 +110,8 @@ static func reset() -> void:
 
 ## Scéna časti kapitoly podľa checkpointu (po smrti sa pokračuje tam)
 static func part_for(cp: int) -> String:
+	if cp >= 33:
+		return CHASE
 	if cp >= 30:
 		return TOWER
 	if cp >= 26:

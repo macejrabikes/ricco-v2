@@ -57,7 +57,7 @@ The Don is buried, and the trail leads to the waterfront – and to **Big Lou**.
 - **The escape** – a letter in Lou's cabin from someone in New York who signs it "M.", then 46 seconds to reach the lifeboat
   across the burning, listing deck while beams fall from the bridge. The chapter ends at dawn out at sea.
 
-### Chapter III – The Big Apple *(in progress)*
+### Chapter III – The Big Apple
 
 The letter from "M." leads Ricco and the ghost to New York.
 
@@ -91,7 +91,11 @@ The letter from "M." leads Ricco and the ghost to New York.
   and fight the wind on the top floors. At the very top Iron Mike rides the last beam of his tower on the crane hook,
   pumping a Winchester trench gun – then it's twelve-gauge on the deck, falling rivet kegs, and a final duel on the
   mast of a zeppelin with "M." waiting in the gondola.
-- Coming next: a car chase.
+- **The chase** – ride the roof of a yellow cab up Second Avenue after the zeppelin, under the El. Cop cars and
+  Margaret's boys pull up behind you, motorcycle cops overtake and shoot back – hide behind the cab, shoot the drivers
+  and duck the low girders. Then the cabbie runs out of brakes at the Queensboro Bridge: hop across a morning traffic
+  jam of trucks, a trolley and gasoline drums to the police barricades, where **Chief Murphy** waits with a Tommy gun
+  and an armored patrol wagon he's not afraid to drive straight at you.
 
 ### Chapter IV – The Widow *(in progress)*
 
@@ -103,13 +107,18 @@ The letter from "M." leads Ricco and the ghost to New York.
   freighter SEA WIDOW. In the office, a ledger of payments – and a name above Margaret's.
 - **The boathouse** – slips, a dry dock, lofts and scaffolding. Shoot your way through or sneak over the beams: drop
   the LADY M. off its hoist, chain a fuel tank into the gas pump – then ride the old freight elevator up toward the mansion.
+- **The cellars** – four floors of stone under the Vito estate. Dive under the flooded old cellar while guards wade with
+  flashlights (or drop a live lamp into the water), sneak between the wine racks, flood the winery floor with wine from a
+  fermenting vat, ride grape baskets over the guards' heads – or knock three times on the Don's private barrel and climb
+  his secret shaft straight up behind the library bookcase. Upstairs: a trophy room full of crystal chandeliers and a
+  gamekeeper with a shotgun. The cellar pump drowns out gunfire around it – switch it off and the old cellar drains.
 
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
 - **Tight platforming** – coyote time, jump buffering, variable jump, ledge grab, wall jump, penguin belly slide (slide into a goon to trip him)
 - **Stealth** – light and darkness, sneaking, ducking behind low cover, silent takedowns from behind, a hat throw that stuns (or puts out a lamp)
 - **The Don's ghost** – a spectral hand holds the gun and reloads it; slow‑mo turns the screen ghost‑blue
-- **Period weapons** – Don's derringer, a .38 revolver, a Colt 1911, the lupara, the Thompson, Iron Mike's Winchester 1897 pump gun (shell-by-shell reload). One sidearm + two primaries, pick up from the ground or swap with `F`
+- **Period weapons** – Don's derringer, a .38 revolver, a Colt 1911, the lupara, the Thompson, Iron Mike's Winchester 1897 pump gun (shell-by-shell reload), a bolt-action Springfield 1903 from the widow's trophy room. One sidearm + two primaries, pick up from the ground or swap with `F`
 - **Real ammo** – limited magazines and reserves, empty mags and shells drop and bounce, every gun has its own reload animation (the derringer breaks open)
 - **Fire modes** – the Tommy gun switches between full auto and semi, the lupara can fire both barrels at once
 - **Gunfeel** – spread and bloom, damage falloff with distance, muzzle flash that lights up the dark, lingering smoke, camera kick; enemies hear shots
@@ -155,8 +164,8 @@ All keys can be changed in **Settings → Controls → Keyboard**. Defaults:
 - [x] **Chapter II – Wharf Rats** – the Don's funeral at the cemetery, the foggy docks, Big Lou's cold storage, the S.S. Margaret in a storm, **boss fight with Big Lou**, the escape from the burning ship and a cliffhanger
 - [x] Weapons: derringer, revolver, lupara, Tommy gun, fire modes, Arsenal, shooting range
 - [ ] More period weapons (Colt 1911, Winchester 1897, Mauser C96…), human shield, loadout screen with weapon stats between levels
-- [ ] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops ✔, the El train ✔, a Harlem jazz club ✔, the Hotel Majestic ✔, boss Iron Mike ✔, a car chase
-- [ ] **Chapter IV – The Widow** – the pier ✔, the smugglers' cave ✔, the boathouse ✔, the wine cellar, the gardens, the mansion, boss Margaret
+- [x] **Chapter III – The Big Apple** – the arrival in New York ✔, the waterfront ✔, streets and rooftops ✔, the El train ✔, a Harlem jazz club ✔, the Hotel Majestic ✔, boss Iron Mike ✔, the car chase and Chief Murphy ✔
+- [ ] **Chapter IV – The Widow** – the pier ✔, the smugglers' cave ✔, the boathouse ✔, the wine cellar ✔, the mansion, boss Margaret
 - [ ] Next chapters – revenge, bosses, abilities unlocked level by level
 - [ ] Style meter, more secrets (swimming ✔, ice ✔, meat hooks ✔)
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)
@@ -207,6 +216,7 @@ godot --headless --path . --script res://tools/build_range.gd      # shooting ra
 - **Character art:** generated with PixelLab and Google Gemini, then cleaned up into pixel art by hand/script
 - **Sound effects:** CC0 (public domain) recordings – [Kenney](https://kenney.nl) (Impact Sounds, RPG Audio, Casino Audio), Ben Burnes (Organic Wooshes, Smol Mechanisms), [Warfork](https://github.com/Warfork) and *40 CC0 water SFX*, collected in [CC0-Public-Domain-Sounds](https://github.com/lavenderdotpet/CC0-Public-Domain-Sounds); the rest is generated procedurally
 - **Ricco's footsteps, ladder and takedown**: cut and pitched from the [Sonniss #GameAudioGDC Bundle](https://sonniss.com/gameaudiogdc) (royalty-free) – TheWorkRoom *Flip Flops*, Epic Stock Media *HD Game Materials*, 344 Audio *Cinematic Fight*
+- **Car chase** (cab engine, motorcycle, tire skids, street traffic): cut from the [Sonniss #GameAudioGDC Bundle](https://sonniss.com/gameaudiogdc) (royalty-free) – SoundBits *Cars – Mad Mustang Mercury*, *Motorcycles – Honda*, *Pass-By – Trains, Trucks & Cars 2*; the siren and the klaxon are generated
 - **Docks ambience** (water lapping at the piers, creaking timber): mixed from the [Sonniss #GameAudioGDC Bundle](https://sonniss.com/gameaudiogdc) (royalty-free) – Soundopolis *Water Ambiences 01* (River Huron Lapping, Lake Huron Mackinaw Evening), RDG *Squeaks and Creaks*
 - **Gunshots:** layered from CC0 samples – Warfork weapon sounds, Ben Burnes *2HTC Samples Vol 4* (snaps, kicks, clicks), Kenney RPG Audio and *metal interactions* (CC0-Public-Domain-Sounds), with saturation and a short room reverb
 - **Music:** loops from *2HTC Samples Vol 4* (+ Addendum) by Ben Burnes – CC0 (public domain): *At the Threshold – Smooth Jazz Loop*, *Midnight Murmurs – Rainy Noir*, *Chasing Crop Circles – Spooky*, *Sometimes, You Don't Make it to Level Two – Night Cafe Vibes*, *The Infested Power Grid – Desolation*, *I Should Be Sleeping – Intensity*

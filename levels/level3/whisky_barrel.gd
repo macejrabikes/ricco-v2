@@ -9,6 +9,7 @@ extends StaticBody2D
 @export var puddle_floor: NodePath            ## úsek podlahy pod mlákou (StaticBody2D)
 @export var puddle_half: float = 44.0         ## px – polovica šírky mláky
 @export var leak_texture: Texture2D
+@export var stream_color: Color = Color(0.85, 0.55, 0.15, 0.85)   ## farba prúdu z diery (whisky; víno z kade v pivnici vily – kapitola IV)
 
 const TRIP_COOL := 3.0   ## s – ten istý mafián sa znova pošmykne až po tomto čase
 
@@ -55,7 +56,7 @@ func _physics_process(delta: float) -> void:
 	_stream_t -= delta
 	if _wet < 1.0 and _stream_t <= 0.0:
 		_stream_t = 0.07
-		Burst.spawn(get_parent(), global_position + Vector2(0, 3), Vector2(0.3, 1.0), Color(0.85, 0.55, 0.15, 0.85), 2, 40.0, Vector2(0, 300), 0.4)
+		Burst.spawn(get_parent(), global_position + Vector2(0, 3), Vector2(0.3, 1.0), stream_color, 2, 40.0, Vector2(0, 300), 0.4)
 	_drip_t -= delta
 	if _drip_t <= 0.0:
 		_drip_t = randf_range(1.4, 2.6)

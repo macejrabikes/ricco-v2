@@ -47,7 +47,7 @@ func _ready() -> void:
 		spot.used.connect(_read_ledger)
 	var net := get_node_or_null(^"CraneNet")
 	if net:
-		net.landed.connect(_on_net_landed)
+		net.connect(&"landed", _on_net_landed)
 	var cv := get_node_or_null(^"Conveyor") as Node2D
 	if cv:
 		_belt_len = float(cv.get(&"length"))

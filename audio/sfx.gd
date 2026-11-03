@@ -20,7 +20,7 @@ const MAX_DISTANCE := 900.0   ## px – ďalej od kamery 2D zvuk nepočuť
 
 ## Výstrel podľa zbrane (WeaponData.name); nepriateľská pištoľ má vlastný hlas (pistol_b), aby sa dala rozoznať od Riccovej
 const SHOTS := {"Derringer": &"pistol_c", "Pistol": &"pistol_a", "Revolver": &"revolver_shot", "Tommy gun": &"tommy_shot", "Lupara": &"lupara_shot",
-		"Winchester": &"lupara_shot"}   ## Winchester 1897 (Iron Mike) – zatiaľ hlas brokovnice ako lupara
+		"Winchester": &"lupara_shot", "Springfield": &"revolver_shot"}   ## Winchester 1897 (Iron Mike) – zatiaľ hlas brokovnice ako lupara; Springfield zatiaľ ako revolver
 const ENEMY_SHOTS := {"Pistol": &"pistol_b", "Springfield": &"revolver_shot"}   ## Springfield – odstreľovač na streche hotela Majestic
 
 static var _setup_done: bool = false

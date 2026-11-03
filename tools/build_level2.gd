@@ -38,7 +38,7 @@ const TOMBS := [
 const LAMP_L := 97     ## lampy pri pohrebe (dlaždica) – svetlo ±2,5 dlaždice
 const LAMP_R := 107
 const CRYPT_X := 128   ## krypta (6 dlaždíc) – dvere v strede = východ
-const STREET_X := -60  ## ľavý koniec ulice pred cintorínom (dlaždice) – level2.gd: MAP
+const STREET_X := -76  ## ľavý koniec ulice pred cintorínom (dlaždice) – level2.gd: MAP
 const GATE := Rect2(-96, -104, 96, 104)   ## zamknutá brána (px) – pevná, cez ňu sa dá len preliezť po konári
 ## Konáre stromu pri bráne (x od, x do, y v px) – musia sedieť s konármi nakreslenými v art/street/gate_tree.png
 const BRANCHES := [[-232.0, -168.0, -44.0], [-184.0, -120.0, -88.0], [-152.0, -20.0, -124.0]]
@@ -375,21 +375,21 @@ func _build_street() -> void:
 	street.z_index = 1   # cez trávu prvého radu dlaždíc
 	_node(street, "Street", lvl)
 	# pouličné lampy (svetlo = tu Ricca vidno)
-	for lx in [-840.0, -392.0]:
+	for lx in [-1060.0, -322.0]:
 		_sprite("lamp_post.png", Vector2(lx - 8, -64), null, "StreetLamp")
 		_glow(Vector2(lx, -55), Color(1.0, 0.82, 0.5, 0.6), 2.2)
 		_glow(Vector2(lx, -6), Color(1.0, 0.75, 0.45, 0.22), 2.0)
 		_light(Rect2(lx - 40, -72, 80, 72))
 	# autá Rodiny a pohrebák (za Riccom, kolesá na obrubníku)
-	for c in [["sedan.png", -780.0, false], ["sedan_brown.png", -676.0, true], ["hearse.png", -560.0, false]]:
+	for c in [["sedan.png", -1010.0, false], ["sedan_brown.png", -800.0, true], ["hearse.png", -590.0, false]]:
 		var car := _sprite("street/" + c[0], Vector2(c[1], 0), null, c[0].get_basename().to_pascal_case())
 		car.position.y = -car.texture.get_height() + 2
 		car.flip_h = c[2]
 		car.z_index = -1
-	_glow(Vector2(-428, -18), Color(1.0, 0.9, 0.6, 0.5), 0.5)   # svetlo pohrebáka
+	_glow(Vector2(-368, -33), Color(1.0, 0.9, 0.6, 0.5), 0.5)   # svetlo pohrebáka
 	# šofér pohrebáka – opretý o auto, pozerá k bráne, občas sa obzrie; fajčí (level2.gd)
-	_gunman("Driver", Vector2(-410, 0), 1.0, {"kind": "coppola", "stationary": true, "look_back": Vector2(4.0, 7.0)})
-	_trigger("HearseBark", Vector2(-600, -2 * T), Vector2(16, 4 * T))
+	_gunman("Driver", Vector2(-336, 0), 1.0, {"kind": "coppola", "stationary": true, "look_back": Vector2(4.0, 7.0)})
+	_trigger("HearseBark", Vector2(-640, -2 * T), Vector2(16, 4 * T))
 	# strom pri bráne: konáre sú plošiny
 	var tree := _sprite("street/gate_tree.png", Vector2(-260, -260), null, "GateTree")
 	tree.z_index = -2

@@ -16,7 +16,7 @@ extends Level3
 ##   1. Mike na poslednom nosníku na háku žeriavu → popruh praskne, Mike zletí na palubu, nosník spadne vedľa
 ##   2. paluba – pumpovačka, nabíjanie po náboji, pažba, kopanec do vyhne; žeriavnik púšťa sudy s nitami (tieň)
 ##   3. plošina stožiara; smrť – chytí sa povrazového rebríka gondoly, závoj v okne… a rebrík niekto odreže.
-##      Vzducholoď „M.“ odletí, Winchester 1897 ostane na plošine. Zatiaľ koniec kapitoly (naháňačka autom príde).
+##      Vzducholoď „M.“ odletí, Winchester 1897 ostane na plošine → naháňačka taxíkom (časť 10 – chase.gd).
 ## Checkpointy (Level3.checkpoint): 30 = stavenisko, 31 = 3. poschodie, 32 = vrchol (boj; mike_phase = dosiahnutá fáza).
 ## Godot docs: classes/class_tween, classes/class_characterbody2d (move_and_collide), classes/class_canvaslayer
 
@@ -326,4 +326,4 @@ func _mike_dies() -> void:
 	await _wait(3.6)
 	bark("GRAB THAT SHOTGUN, KID.\nWE GOT A LADY TO CATCH.")
 	await _wait(5.0)
-	_to_be_continued()
+	_leave_door(CHASE, 33, false)   # dole na ulicu, taxík za vzducholoďou (časť 10 – chase.gd)
