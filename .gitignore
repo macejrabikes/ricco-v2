@@ -4,3 +4,9 @@
 
 # surové zvukové knižnice (veľké, len lokálne)
 _raw_audio/
+
+# exportované .exe buildy (idú do GitHub Releases)
+_exports_of_exe_files/
+
+# poznámky pre Claude – len lokálne
+CLAUDE.md
