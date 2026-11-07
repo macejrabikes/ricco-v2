@@ -52,6 +52,7 @@ enum AltMode { NONE, SEMI, DOUBLE }
 @export var mag_visible: bool = true               ## zásobník je vidno aj mimo prebíjania
 @export var drop_count: int = 1                    ## koľko kúskov vypadne (revolver 6 nábojníc)
 @export var new_mag_texture: Texture2D             ## čo prinesie druhá ruka (nový zásobník, broky, rýchlonabíjač)
+@export var mag_from_top: bool = false             ## nový zásobník ide zhora (Mauser C96 – nabíjací pásik do puzdra)
 
 @export_group("Break open")
 ## Lámacia zbraň (derringer): pri prebíjaní sa hlavne vyklopia na pánte hore, nábojnice vypadnú (mag_px = komora).
@@ -80,3 +81,10 @@ enum AltMode { NONE, SEMI, DOUBLE }
 @export var bolt_action: bool = false
 @export var bolt_knob_px: Vector2 = Vector2.ZERO
 @export var bolt_lift: float = 1.0
+## Páka (Winchester 1894): pump_texture = páka so slučkou, pump_body_texture = zbraň bez nej (ľavý horný roh páky na pump_px).
+## Po výstrele ruka so spúšťou stiahne páku dole – otočí sa okolo čapu lever_pivot_px (bod v obrázku páky) o lever_deg,
+## vyletí nábojnica – a vráti ju hore. Druhá ruka ostáva na predpažbí. Nabíja sa po jednom náboji (shell_reload) dvierkami
+## na boku puzdra (mag_px). Godot docs: classes/class_sprite2d (offset), classes/class_tween
+@export var lever_action: bool = false
+@export var lever_pivot_px: Vector2 = Vector2.ZERO
+@export var lever_deg: float = 42.0

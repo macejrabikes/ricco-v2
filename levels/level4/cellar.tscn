@@ -32,7 +32,7 @@
 [ext_resource type="Texture2D" path="res://levels/level4/art/chandelier.png" id="30_u48pv"]
 [ext_resource type="Script" path="res://world/npc/dog.gd" id="31_h5pz1"]
 [ext_resource type="Texture2D" path="res://levels/level4/art/trophy_case.png" id="32_2c3ms"]
-[ext_resource type="Resource" path="res://weapons/winchester/winchester.tres" id="33_3zsrg"]
+[ext_resource type="Resource" path="res://weapons/winchester1894/winchester1894.tres" id="33_3zsrg"]
 [ext_resource type="PackedScene" path="res://characters/gangster/gangster_coppola.tscn" id="34_cmcye"]
 [ext_resource type="PackedScene" path="res://characters/gangster/gangster_tommy.tscn" id="35_yxcod"]
 [ext_resource type="PackedScene" path="res://props/ammo/ammo_pickup.tscn" id="36_l71am"]
@@ -1518,9 +1518,9 @@ respawn_time = 0.0
 kind = "keeper"
 weapon = ExtResource("33_3zsrg")
 max_health = 4
-pellets = 5
-spread_deg = 10.0
-preferred_range = 140.0
+pellets = 1
+spread_deg = 2.0
+preferred_range = 220.0
 patrol_span = 120.0
 walk_speed = 26.0
 sight_range = 340.0

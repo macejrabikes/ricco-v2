@@ -6,7 +6,7 @@ extends Level4
 ##   U1 780 – izby pre hostí, galéria portrétov (lustre, hliadky s baterkami), hudobný salón, izby služobníctva;
 ##   U2 560 – Margaretina pracovňa (list od „C.“ – READ), budoár (ochranka vo vestách), zimná záhrada (mesiac cez sklo),
 ##        podkrovie (rebrík cez poklop na strechu);
-##   R 340 – strecha so stožiarom a vzducholoďou IRON, kupola so zrkadlovou sieňou (boss Margaret – ďalšia časť).
+##   R 340 – strecha so stožiarom a vzducholoďou IRON, kupola so zrkadlovou sieňou (boss Margaret – mirror_hall.gd).
 ## Átrium 2000–3600 cez tri poschodia: schodiská cik-cak (levels/level4/stairs.gd – v pozadí, naskočí sa skokom),
 ## mostík na U2 nesie obrí luster (drop_weight.gd – reťaz prestreliť → zmetie prízemie), hore schody A3 rovno do siene.
 ## Tichá cesta: výťah na jedlo z kuchyne do podkrovia → rebrík → strecha → sklenené dvere do siene.
@@ -134,12 +134,11 @@ func _on_grand_chandelier(kills: int) -> void:
 		say("SEVEN HUNDRED CRYSTALS... AND YOU MISSED.")
 
 
-## Zrkadlová sieň (schody A3 alebo sklenené dvere zo strechy) – boss Margaret príde v ďalšej časti
+## Zrkadlová sieň (schody A3 alebo sklenené dvere zo strechy) – boss Margaret (časť 6 – mirror_hall.gd)
 func _mirror_hall() -> void:
 	if _leaving:
 		return
 	player.set_cutscene(true)
 	player.sprite.play(player._hat_anim(&"idle"))
 	await ThoughtBox.think(self, HALL_THOUGHT).finished
-	player.set_cutscene(false)
-	_to_be_continued()
+	_leave_door(MIRROR_HALL, 11, false)

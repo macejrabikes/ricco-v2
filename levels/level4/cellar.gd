@@ -13,7 +13,7 @@ extends Level4
 ##      kto cez mláku prejde, pošmykne sa; trám s košmi na kladke (world/coldstore/hook_rail.gd – kôš = kryt,
 ##      voľný hák = vezie sa ponad hlavy; chytiť sa dá z okraja kade alebo zo steny sudov), lis TORCHIO, Thompson.
 ##   F3 prízemie vily – knižnica (krb, otočná polica), vestibul s dverami GRAND HALL (koniec časti),
-##      trofejová izba: dva lustre (drop_weight.gd), doberman na reťazi, hájnik (kind keeper) s Winchestrom,
+##      trofejová izba: dva lustre (drop_weight.gd), doberman na reťazi, hájnik (kind keeper) s pákovým Winchestrom 1894,
 ##      vitrína so Springfieldom (F OPEN → puška vypadne na zem ako weapons/weapon_pickup.gd).
 ##      Dvere GRAND HALL → vila (villa.tscn, checkpoint 8).
 ## Checkpointy (Level4.checkpoint): 5 = výťah dole, 6 = vínna pivnica (hore na schodoch), 7 = vinárstvo.

@@ -20,8 +20,11 @@ const MAX_DISTANCE := 900.0   ## px – ďalej od kamery 2D zvuk nepočuť
 
 ## Výstrel podľa zbrane (WeaponData.name); nepriateľská pištoľ má vlastný hlas (pistol_b), aby sa dala rozoznať od Riccovej
 const SHOTS := {"Derringer": &"pistol_c", "Pistol": &"pistol_a", "Revolver": &"revolver_shot", "Tommy gun": &"tommy_shot", "Lupara": &"lupara_shot",
-		"Winchester": &"lupara_shot", "Springfield": &"revolver_shot"}   ## Winchester 1897 (Iron Mike) – zatiaľ hlas brokovnice ako lupara; Springfield zatiaľ ako revolver
-const ENEMY_SHOTS := {"Pistol": &"pistol_b", "Springfield": &"revolver_shot"}   ## Springfield – odstreľovač na streche hotela Majestic
+		"Winchester": &"lupara_shot", "Springfield": &"rifle_shot", "Winchester 1894": &"winchester94_shot",
+		"Mauser C96": &"c96_shot"}
+## Winchester 1897 (Iron Mike) – zatiaľ hlas brokovnice ako lupara. Pušky majú vlastné nahrávky (Sonniss GDC, _art_src/make_rifle_shots.py):
+## Springfield = M1917 Enfield (.30-06), Winchester 1894 = Model 1894, Mauser C96 (Margaret) = ostrý štek Walther PPQ
+const ENEMY_SHOTS := {"Pistol": &"pistol_b"}
 
 static var _setup_done: bool = false
 static var slowmo: bool = false

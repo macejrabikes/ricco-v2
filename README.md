@@ -33,14 +33,14 @@ A full remake of my old high‑school project (SOČ), rebuilt from scratch.
 - **I – The Don's Ghost** – a rainy street, a private party, a speakeasy door with a secret knock, prohibition tunnels and the dying Don.
 - **II – Wharf Rats** – the Don's funeral, foggy docks, a cold storage with meat hooks and ice, and **Big Lou** on a ship in a storm.
 - **III – The Big Apple** – New York: rooftops, the El train, a Harlem jazz club, the Hotel Majestic, **Iron Mike** on his skyscraper and **Chief Murphy** on the Queensboro Bridge.
-- **IV – The Widow** *(in progress)* – a smugglers' cave, a boathouse, the cellars under Margaret's mansion and the mansion itself: a three-storey grand hall with a giant chandelier, maids who scream, a dumbwaiter to the attic and a hall of mirrors under a glass dome.
+- **IV – The Widow** *(in progress)* – a smugglers' cave, a boathouse, the cellars under Margaret's mansion and the mansion itself: a three-storey grand hall with a giant chandelier, maids who scream, a dumbwaiter to the attic and a hall of mirrors under a glass dome, where **Margaret Vito** hides among the reflections, sets the curtains on fire and makes her last stand on the airship mast in a thunderstorm.
 
 <p align="center"><img src="docs/media/h_features.png" alt="Features" width="100%"></p>
 
 - **Platforming** – ledge grab, wall jump, ladders, penguin belly slide (trips goons), swimming and sliding on ice
 - **Stealth** – light and darkness, sneaking, cover, takedowns from behind, a hat throw that stuns or puts out a lamp
 - **Slow‑mo** – the Don's ghost holds the gun and slows down time
-- **Period weapons** – derringer, .38 revolver, Colt 1911, lupara, Thompson, Winchester 1897, Springfield 1903; limited ammo, fire modes, unique reloads
+- **Period weapons** – derringer, .38 revolver, Colt 1911, lupara, Thompson, Winchester 1897, Winchester 1894, Springfield 1903, Mauser C96; limited ammo, fire modes, unique reloads
 - **Bosses** with phases, a health bar and plenty of explosions
 - **Extras** – Arsenal of unlocked guns, a shooting range, chapter select, rebindable keys
 
@@ -60,7 +60,7 @@ All keys can be changed in **Settings → Controls**.
 <p align="center"><img src="docs/media/h_roadmap.png" alt="Roadmap" width="100%"></p>
 
 - [x] Chapters I–III
-- [ ] Chapter IV – boss Margaret in the hall of mirrors
+- [ ] Chapter IV – polish the Margaret fight, the escape from the villa
 - [ ] More weapons, human shield, loadout screen
 - [ ] Next chapters (at least 8 in total), style meter, secrets
 - [ ] A small 3D retro car race (a tribute to a certain 2002 mafia game 🚗)

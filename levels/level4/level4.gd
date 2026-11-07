@@ -10,7 +10,8 @@ extends Node2D
 ## predavač s luparou za pultom. Na zadnej stene búdy visia siete – za nimi tajné dvere do skaly →
 ## tunel do jaskyne pašerákov (časť 2 – cave.gd) → lodenica s výťahom do sídla (časť 3 – boathouse.gd)
 ## → pivnica vily: zatopená stará pivnica, vínna pivnica, vinárstvo, knižnica a trofejová izba (časť 4 – cellar.gd)
-## → vila: átrium so schodmi, tri poschodia izieb, strecha a kupola so zrkadlovou sieňou (časť 5 – villa.gd).
+## → vila: átrium so schodmi, tri poschodia izieb, strecha a kupola so zrkadlovou sieňou (časť 5 – villa.gd)
+## → zrkadlová sieň a strecha so stožiarom: boss Margaret Vito (časť 6 – mirror_hall.gd).
 ## Celé mólo je „tma“ (player.dark_area): vidno ťa len vo svetle lampáša, okna búdy a v kuželi baterky.
 ## Godot docs: classes/class_tween, classes/class_canvaslayer, classes/class_area2d
 
@@ -21,6 +22,7 @@ const CAVE := "res://levels/level4/cave.tscn"         ## časť 2: jaskyňa paš
 const BOATHOUSE := "res://levels/level4/boathouse.tscn"   ## časť 3: lodenica v jaskyni a výťah do vínnej pivnice
 const CELLAR := "res://levels/level4/cellar.tscn"     ## časť 4: pivnica vily (štyri poschodia, schody, tajný rebrík)
 const VILLA := "res://levels/level4/villa.tscn"       ## časť 5: vila (átrium, tri poschodia, strecha, kupola so zrkadlovou sieňou)
+const MIRROR_HALL := "res://levels/level4/mirror_hall.tscn"   ## časť 6: zrkadlová sieň a strecha – boss Margaret
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const PISTOL := preload("res://weapons/pistol/pistol.tres")          ## Colt 1911
 const WINCHESTER := preload("res://weapons/winchester/winchester.tres")   ## Winchester 1897 po Iron Mikeovi
@@ -39,6 +41,8 @@ static var cave_arrived: bool = false               ## …v jaskyni
 static var boathouse_arrived: bool = false          ## …v lodenici
 static var cellar_arrived: bool = false             ## …v pivnici vily
 static var villa_arrived: bool = false              ## …vo vile
+static var margaret_phase: int = 1                  ## boss Margaret – dosiahnutá fáza (po smrti sa pokračuje v nej)
+static var margaret_met: bool = false               ## Margaret už privítala Ricca v sieni
 static var ledger_read: bool = false                ## Ricco čítal knihu v kancelárii jaskyne („C.M.“)
 static var tommy_ammo: Array = [TOMMY_START_AMMO, 0]  ## náboje Thompsonu [v bubne, v zásobe] – prenesú sa do ďalšej časti
 static var carried: Array[WeaponData] = []          ## výbava pri vstupe do časti; prázdne = začiatočná
@@ -68,6 +72,8 @@ static func reset() -> void:
 	boathouse_arrived = false
 	cellar_arrived = false
 	villa_arrived = false
+	margaret_phase = 1
+	margaret_met = false
 	ledger_read = false
 	barks.clear()
 	tommy_ammo = [TOMMY_START_AMMO, 0]
@@ -77,6 +83,8 @@ static func reset() -> void:
 
 ## Scéna časti kapitoly podľa checkpointu (po smrti sa pokračuje tam)
 static func part_for(cp: int) -> String:
+	if cp >= 11:
+		return MIRROR_HALL
 	if cp >= 8:
 		return VILLA
 	if cp >= 5:

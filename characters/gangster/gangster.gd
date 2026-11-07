@@ -124,6 +124,7 @@ const RIGS := {
 	"keeper": {"torso": Vector2(14, 28), "hat": Vector2(8, 8)},   # hájnik panstva Vito (kapitola IV – tvídové sako, placatá čiapka, Winchester)
 	"chief": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Police Chief Murphy – biela čiapka, dvojradový kabát (kapitola III – most) – characters/murphy/
 	"mike": {"torso": Vector2(11, 26), "hat": Vector2(8, 8)},   # Iron Mike – stavbyvedúci (vesta, kravata, tvrdý klobúk) – characters/iron_mike/
+	"widow": {"torso": Vector2(23, 28), "hat": Vector2(8, 8)},   # Margaret Vito – smútočné šaty po zem (sukňa je v torze), cloche so závojom – characters/margaret/
 }
 ## Pózy dvojdielnych rúk: [nadlaktie predné, predlaktie predné, nadlaktie zadné, predlaktie zadné, náklon px]
 ## uhly sú v kostre otočenej doprava (0 = vpred, PI/2 = dole), predlaktie má globálny uhol

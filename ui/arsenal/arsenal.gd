@@ -43,14 +43,16 @@ const ENTRIES: Array[Dictionary] = [
 		"text": ["SIX ROUNDS AND IT NEVER JAMS.", "EVERY COP IN TOWN CARRIES ONE."]},
 	{"res": "res://weapons/pistol/pistol.tres", "title": "COLT 1911", "model": "M1911   .45 ACP",
 		"text": ["ARMY SURPLUS, SMUGGLED IN", "A CRATE OF OLIVE OIL."]},
-	{"res": ""},   # Mauser C96
+	{"res": "res://weapons/c96/c96.tres", "title": "MAUSER C96", "model": "BROOMHANDLE   7.63 MM",
+		"text": ["THE WIDOW'S PISTOL.", "TEN ROUNDS ON A STRIPPER CLIP.", "SHE NEVER MISSED A FUNERAL."]},
 	{"res": "res://weapons/lupara/lupara.tres", "title": "LUPARA", "model": "SAWN-OFF DOUBLE   12 GA",
 		"text": ["AN OLD SICILIAN TRADITION.", "UP CLOSE, NOTHING ARGUES BACK."]},
 	{"res": "res://weapons/winchester/winchester.tres", "title": "WINCHESTER 1897", "model": "TRENCH GUN   12 GA",
 		"text": ["IRON MIKE BROUGHT IT HOME", "FROM THE TRENCHES OF FRANCE.", "PUMP. BOOM. PUMP."]},
 	{"res": "res://weapons/tommy/tommy.tres", "title": "THOMPSON", "model": "M1928   .45 ACP",
 		"text": ["THE CHICAGO TYPEWRITER.", "LOUD, HUNGRY, AND IT", "NEVER STOPS TALKING."]},
-	{"res": ""},   # Winchester 1894
+	{"res": "res://weapons/winchester1894/winchester1894.tres", "title": "WINCHESTER 1894", "model": "MODEL 1894   .30-30",
+		"text": ["THE VITO GAMEKEEPER'S RIFLE.", "LEVER DOWN, LEVER UP.", "EIGHT IN THE TUBE."]},
 	{"res": "res://weapons/springfield/springfield.tres", "title": "SPRINGFIELD 1903", "model": "M1903   .30-06",
 		"text": ["FROM THE WIDOW'S TROPHY ROOM.", "FIVE ROUNDS, ONE BOLT.", "ONE MAN PER SHOT."]},
 	{"res": ""},   # BAR M1918

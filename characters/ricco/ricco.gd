@@ -1066,7 +1066,8 @@ func _draw_weapon(animate: bool = true) -> void:
 # ---------------------------------------------------------------- záblesk z hlavne
 const FLASH_TEX := preload("res://weapons/pistol/muzzle_flash_big.png")
 const GLOW_TEX := preload("res://levels/level1/art/glow.png")
-const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8, "Winchester": 1.7, "Springfield": 1.5}
+const FLASH_SCALE := {"Derringer": 0.9, "Pistol": 1.1, "Revolver": 1.35, "Tommy gun": 1.0, "Lupara": 1.8, "Winchester": 1.7, "Springfield": 1.5,
+		"Winchester 1894": 1.35, "Mauser C96": 1.0}
 var _flash_glow: Sprite2D
 var _flash_light: PointLight2D   ## záblesk na okamih osvetlí okolie (aj v tme – CanvasModulate „Darkness“)
 # Jeden tween na každú časť záblesku: nový výstrel starý zruší. Inak pri dávke dobehol tween
@@ -1184,7 +1185,7 @@ func _start_reload() -> void:
 	var tilt: float = -0.35 * gun.scale.y   # hlaveň mierne hore, pažba k Riccovi
 	var mag_in: Vector2 = _gun_px(weapon.mag_px)
 	var inside: Vector2 = mag_in - OFFHAND_MAG + (Vector2(0, 0) if weapon.mag_visible else Vector2(0, -2))  # zasunutý
-	var under: Vector2 = inside + Vector2(0, 7)   # nový zásobník tesne pod miestom
+	var under: Vector2 = inside + (Vector2(0, -9) if weapon.mag_from_top else Vector2(0, 7))   # nový zásobník tesne pod (nad) miestom
 	mag.texture = weapon.mag_texture
 	mag.position = mag_in
 	mag.visible = true
@@ -1292,14 +1293,28 @@ func _pump_action(delay: float = -1.0) -> void:
 		return
 	if _pump_tween:
 		_pump_tween.kill()
-	var rest: Vector2 = _gun_px(weapon.pump_px)
+	var rest: Vector2 = _pump_rest()
 	var hand: Vector2 = _offhand_rest()
 	var back := Vector2(-weapon.pump_travel, 0.0)
 	var t: float = weapon.pump_time * 0.5
 	_pump.position = rest
+	_pump.rotation = 0.0
 	var tw := create_tween()
 	_pump_tween = tw
 	tw.tween_interval(weapon.pump_delay if delay < 0.0 else delay)
+	if weapon.lever_action:   # páka (Winchester 1894): ruka so spúšťou ju stiahne dole a vráti hore, druhá drží predok
+		var down: float = -deg_to_rad(weapon.lever_deg)   # zadok páky (slučka) ide dole – zrkadlenie rieši gun.scale.y
+		var grip: Vector2 = _ghost_grip_rest()
+		var drop := Vector2(0.0, 2.0)
+		tw.tween_callback(func(): Sfx.play(&"pump_back", Vector2.INF, -6.0, 0.12))
+		tw.tween_property(_pump, "rotation", down, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(ghost_hand, "position", grip + drop, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_callback(_eject_shell)
+		tw.tween_callback(func(): Sfx.play(&"pump_fwd", Vector2.INF, -5.0, 0.12))
+		tw.tween_property(_pump, "rotation", 0.0, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(ghost_hand, "position", grip, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func(): _pump_tween = null)
+		return
 	if weapon.bolt_action:   # závorník (Springfield): ruka k rúčke, hore, dozadu, dopredu, dole, späť na predok
 		var tb: float = weapon.pump_time / 5.0
 		_bolt_open_steps(tw, tb, true)
@@ -1314,6 +1329,19 @@ func _pump_action(delay: float = -1.0) -> void:
 	tw.tween_property(_pump, "position", rest, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(offhand, "position", hand, t).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func(): _pump_tween = null)
+
+
+## Pokojová poloha _pump v zbrani. Páka sa otáča okolo čapu – Sprite2D.offset (nastavený pri výmene zbrane) posunie
+## obrázok tak, aby bol čap v počiatku spritu, a sprite stojí na mieste čapu. Godot docs: classes/class_sprite2d (offset)
+func _pump_rest() -> Vector2:
+	if weapon.lever_action:
+		return _gun_px(weapon.pump_px + weapon.lever_pivot_px)
+	return _gun_px(weapon.pump_px)
+
+
+## Kde je ruka ducha (drží zbraň za krk pažby), keď nič nerobí
+func _ghost_grip_rest() -> Vector2:
+	return _gun_px(weapon.grip_px) + Vector2(-10, -6)
 
 
 ## Závorník: kde je druhá ruka, keď drží rúčku závorníka, ktorý je na mieste at (súradnice ako _pump.position)
@@ -1371,10 +1399,12 @@ func _eject_shell() -> void:
 func _start_shell_reload() -> void:
 	_reload_cancel = false
 	_reload_empty = ammo_in_mag == 0
-	if _pump_tween:   # pumpa ešte dobieha – dorovnať
+	if _pump_tween:   # pumpa / páka ešte dobieha – dorovnať
 		_pump_tween.kill()
 		_pump_tween = null
-		_pump.position = _gun_px(weapon.pump_px)
+		_pump.position = _pump_rest()
+		_pump.rotation = 0.0
+		ghost_hand.position = _ghost_grip_rest()
 	offhand.visible = true
 	offhand.fade = 1.0
 	var tw := create_tween()
@@ -1393,7 +1423,7 @@ func _load_one_shell() -> void:
 	var hand: Node = offhand.get_node("NewMag")
 	hand.texture = weapon.new_mag_texture
 	hand.visible = true
-	var from_dir := Vector2(-5.0, 9.0)   # pumpovačka: náboj ide zdola do otvoru pod puzdrom
+	var from_dir := Vector2(-5.0, 9.0)   # pumpovačka: náboj ide zdola do otvoru pod puzdrom (páka: do dvierok na boku)
 	if weapon.bolt_action:
 		from_dir = Vector2(-4.0, -9.0)   # závorník: zhora do otvoreného puzdra
 	var tw := create_tween()
@@ -1539,11 +1569,13 @@ func _equip(i: int, animate: bool = true) -> void:
 	if weapon.pump_texture:   # pumpovačka: telo zvlášť, pumpa ako samostatný obrázok (hýbe sa)
 		gun.texture = weapon.pump_body_texture if weapon.pump_body_texture else weapon.texture
 		_pump.texture = weapon.pump_texture
-		_pump.position = _gun_px(weapon.pump_px)
+		_pump.offset = -weapon.lever_pivot_px if weapon.lever_action else Vector2.ZERO   # páka sa otáča okolo čapu
+		_pump.rotation = 0.0
+		_pump.position = _pump_rest()
 	_pump.visible = weapon.pump_texture != null
 	gun.position = PISTOL_GRIP - _gun_px(weapon.grip_px)
 	gun_base_x = gun.position.x
-	ghost_hand.position = _gun_px(weapon.grip_px) + Vector2(-10, -6)
+	ghost_hand.position = _ghost_grip_rest()
 	muzzle.position = _gun_px(weapon.muzzle_px)
 	mag.texture = weapon.mag_texture
 	mag.position = _gun_px(weapon.mag_px)
