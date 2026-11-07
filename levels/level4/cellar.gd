@@ -15,6 +15,7 @@ extends Level4
 ##   F3 prízemie vily – knižnica (krb, otočná polica), vestibul s dverami GRAND HALL (koniec časti),
 ##      trofejová izba: dva lustre (drop_weight.gd), doberman na reťazi, hájnik (kind keeper) s Winchestrom,
 ##      vitrína so Springfieldom (F OPEN → puška vypadne na zem ako weapons/weapon_pickup.gd).
+##      Dvere GRAND HALL → vila (villa.tscn, checkpoint 8).
 ## Checkpointy (Level4.checkpoint): 5 = výťah dole, 6 = vínna pivnica (hore na schodoch), 7 = vinárstvo.
 ## Godot docs: classes/class_collisionpolygon2d, classes/class_animatablebody2d, classes/class_tween
 
@@ -148,15 +149,14 @@ func _open_shelf() -> void:
 			sp.queue_free()
 
 
-## Dvere do hlavnej haly – koniec časti (vila pokračuje v ďalšej časti)
+## Dvere do hlavnej haly – hore do vily (časť 5, checkpoint 8)
 func _grand_hall() -> void:
 	if _leaving:
 		return
 	player.set_cutscene(true)
 	player.sprite.play(player._hat_anim(&"idle"))
 	await ThoughtBox.think(self, HALL_THOUGHT).finished
-	player.set_cutscene(false)
-	_to_be_continued()
+	_leave_door(VILLA, 8)
 
 
 func _on_lamp_shorted(kills: int) -> void:

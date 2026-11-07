@@ -392,8 +392,8 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   `ricco-v2-kapitola4-lodenica/` mimo repa. Každá časť = jeden veľký maľovaný obrázok pozadia (súradnice sveta = pixely
   obrázka, Sprite2D na (0,0), z −20), kolízie sú StaticBody obdĺžniky a one-way plošiny (skupina `platform`).
   Dvere a otvory sú na výšku mafiánov (≥ 96 px) – Ricco je nižší než ktorýkoľvek nepriateľ. Noc (`NIGHT`), `dark_area`.
-  **Level4** (`levels/level4/level4.gd`, `class_name Level4`): statické `checkpoint` (0 mólo, 1–2 jaskyňa, 3–4 lodenica),
-  `barks`, `arrived`, `cave_arrived`, `boathouse_arrived`, `ledger_read`, `tommy_ammo`, `carried`; `reset()`, `part_for(cp)`
+  **Level4** (`levels/level4/level4.gd`, `class_name Level4`): statické `checkpoint` (0 mólo, 1–2 jaskyňa, 3–4 lodenica, 5–7 pivnica, 8–10 vila),
+  `barks`, `arrived`, `cave_arrived`, `boathouse_arrived`, `cellar_arrived`, `villa_arrived`, `ledger_read`, `tommy_ammo`, `carried`; `reset()`, `part_for(cp)`
   (pomocné funkcie ako Level3: `_leave_door`, `say`, `bark`, `_to_be_continued`…). Výbava Pistol + Winchester + Tommy.
   **Časť 1 – mólo** (`pier.tscn`, 1440×660): rozhegané mólo nad vodou (`WaterZone`, diery s rebríkmi), hnilá doska
   (`roof_plank.gd`), hojdajúci sa lampáš (`levels/level4/sway.gd` – kývanie + nárazy vetra) so svetlom, čajky
@@ -426,12 +426,27 @@ docs/media/   obrázky do README (bannery v jednotnom „S2“ štýle)
   rebríky na kadiach, koše s hroznom na kladke (`hook_rail.gd`, `carcass_texture` = basket.png), stena sudov (one-way navrch),
   lis TORCHIO. F3: krb, lustre `Chandelier1/2` (`drop_weight.gd`), doberman, hájnik (kind `keeper` s Winchestrom 1897),
   vitrína so Springfieldom (`TrophyCase` 2 snímky, `CaseSpot` „OPEN“ → `weapon_pickup` s 15 nábojmi). Dvere GRAND HALL (`GrandHallSpot`) → zatiaľ TO BE CONTINUED.
-  Checkpointy 5 výťah, 6 vínna pivnica, 7 vinárstvo.
+  Checkpointy 5 výťah, 6 vínna pivnica, 7 vinárstvo. Dvere GRAND HALL → vila (checkpoint 8).
+  **Časť 5 – vila** (`villa.gd extends Level4`, `villa.tscn` píše `_art_src/make_villa_scene.py`, obrázky
+  `make_ch4_villa_art.py` + `villa_paint.py`, spoločné rozloženie `villa_layout.py`; 5600×1100 – vila je **do šírky**,
+  nie do výšky): poschodia po 220 px – G 1000, U1 780, U2 560, R 340 (strecha / podlaha zrkadlovej siene).
+  Ľavé krídlo 140–2000 (G vestibul s dverami CELLAR, jedáleň, salón; U1 izby hostí, galéria portrétov; U2 Margaretina
+  pracovňa s listom od „C.“ – `LetterSpot` READ → `letter_big.png`, budoár), átrium 2000–3600 cez tri poschodia
+  (fontána, sochy, dvojposchodové okná, mostík na U2 nesie obrí luster `GrandChandelier` – `drop_weight.gd`, kill_half 96),
+  pravé krídlo 3600–5460 (G biliard, kuchyňa; U1 hudobný salón, izby služobníctva; U2 zimná záhrada s mesiacom, podkrovie).
+  **Schody v átriu** (`levels/level4/stairs.gd`): ramená 45° cik-cak A1L/A1R (G→U1), A2L/A2R (U1→U2), A3 (U2→R) sú
+  „v pozadí“ – kolízia (pás 12 px) je na vlastnom bite vrstvy 11–15 a Riccova maska ho zapne, len keď je nad ramenom
+  (naskočí sa skokom, zhora z ochodze sa vojde samo, pri samom spodku chôdzou nie – popod schody sa prechádza);
+  nepriatelia ani guľky ich nevidia. Nad vrchom ramena je v podlahe one-way mreža. Dole z U2 sa Ricco nevracia (ako v pivnici).
+  Svedkovia: slúžky (`maid.png`, `waiter.gd`), komorník (`club/waiter.png`), kuchárka (`hotel/cook_a.png`).
+  Tichá cesta: výťah na jedlo v kuchyni (`DumbwaiterSpotG` RIDE UP) → podkrovie → rebrík cez poklop → strecha
+  (stožiar, vzducholoď IRON) → sklenené dvere `MirrorDoorSpot`. Hore schodmi A3 → `HallEnter`. Oboje zatiaľ TO BE CONTINUED.
+  Checkpointy 8 príchod, 9 prvé poschodie, 10 druhé poschodie (`part_for`: cp ≥ 8 → VILLA).
   **Pašerák:** gangster `kind = "smuggler"` (`characters/gangster/smuggler/`, prefarbený z riveter – modrý sveter,
   červená čiapka; RIGS v gangster.gd). **Hájnik:** `kind = "keeper"` (`characters/gangster/keeper/` – tvídové sako,
   pumpky, placatá čiapka; tiež `make_ch4_people.py`). **Úpravy spoločných skriptov:** `pigeons.gd` `@export texture`, `hook_rail.gd`
   `@export carcass_texture` (+ `wood` na carcass – drevený zvuk a triesky).
-  **Ďalej:** hlavná hala a poschodie vily (záhrady podľa potreby), boss Margaret + odhalenie Manciniho;
+  **Ďalej:** boss Margaret v zrkadlovej sieni (Mauser C96, odrazy v zrkadlách, fáza 2 horiace závesy, fáza 3 strecha pri stožiari v búrke) + odhalenie Manciniho;
   vlastný zvuk výstrelu Springfieldu.
 - **Plávanie:** v pivnici sú zatopené katakomby (kostnica ~113 dlaždíc: bazény, rošt nad vodou s hliadkou s baterkou – popod ňu sa dá preplávať,
   dlhý sifón, krypta so strážou chrbtom, dosky cez vodu). Hlboká voda je v MAZE znak `%`, build z nej spraví `WaterZone`
