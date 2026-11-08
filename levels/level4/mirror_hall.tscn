@@ -27,12 +27,13 @@
 [ext_resource type="Texture2D" path="res://levels/level3/art/tower/gondola.png" id="25_16999"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/tower/prop.png" id="26_clp66"]
 [ext_resource type="Script" path="res://world/fx/rain.gd" id="27_z4165"]
-[ext_resource type="Script" path="res://characters/margaret/margaret.gd" id="28_3prmt"]
-[ext_resource type="Resource" path="res://weapons/c96/c96.tres" id="29_sy8f8"]
-[ext_resource type="PackedScene" path="res://props/ammo/ammo_pickup.tscn" id="30_vaqy9"]
-[ext_resource type="PackedScene" path="res://props/food/food_pickup.tscn" id="31_rjq7n"]
-[ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="32_6x9ny"]
-[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="33_xumfo"]
+[ext_resource type="Texture2D" path="res://levels/level4/art/hatch.png" id="28_3prmt"]
+[ext_resource type="Script" path="res://characters/margaret/margaret.gd" id="29_vaqy9"]
+[ext_resource type="Resource" path="res://weapons/c96/c96.tres" id="30_rjq7n"]
+[ext_resource type="PackedScene" path="res://props/ammo/ammo_pickup.tscn" id="31_iaa8u"]
+[ext_resource type="PackedScene" path="res://props/food/food_pickup.tscn" id="32_k7v80"]
+[ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="33_iy3q2"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="34_eks3b"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_tbv0v"]
 blend_mode = 1
@@ -85,10 +86,13 @@ size = Vector2(60, 206)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_c0wzo"]
 size = Vector2(160, 8)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_iaa8u"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_sy8f8"]
+size = Vector2(60, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6x9ny"]
 size = Vector2(1500, 80)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_k7v80"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xumfo"]
 size = Vector2(30, 80)
 
 [node name="MirrorHall" type="Node2D"]
@@ -651,11 +655,128 @@ default_color = Color(0.6, 0.6, 0.62, 1)
 [node name="Rain" type="CPUParticles2D" parent="."]
 script = ExtResource("27_z4165")
 
+[node name="Hatch" type="Sprite2D" parent="."]
+z_index = -3
+position = Vector2(2100, 556)
+texture = ExtResource("28_3prmt")
+centered = false
+hframes = 2
+
+[node name="HatchSpot" type="Area2D" parent="."]
+position = Vector2(2122, 520)
+script = ExtResource("6_ui1ae")
+verb = "CLIMB DOWN"
+hint_offset = Vector2(0, -70)
+once = true
+
+[node name="Shape" type="CollisionShape2D" parent="HatchSpot"]
+shape = SubResource("RectangleShape2D_sy8f8")
+
+[node name="HouseFire" type="Node2D" parent="."]
+z_index = -19
+visible = false
+
+[node name="Flame0" type="Sprite2D" parent="HouseFire"]
+position = Vector2(1760.4, 461.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 0
+
+[node name="Glow0" type="Sprite2D" parent="HouseFire"]
+modulate = Color(1, 0.5, 0.15, 0.7)
+z_index = 1
+material = SubResource("CanvasItemMaterial_tbv0v")
+position = Vector2(1770, 540)
+scale = Vector2(3, 3)
+texture = ExtResource("2_342kl")
+
+[node name="Flame1" type="Sprite2D" parent="HouseFire"]
+position = Vector2(1877.52, 429.76)
+scale = Vector2(0.52, 0.52)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 1
+
+[node name="Flame2" type="Sprite2D" parent="HouseFire"]
+position = Vector2(1994.64, 398.32)
+scale = Vector2(0.64, 0.64)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 2
+
+[node name="Glow2" type="Sprite2D" parent="HouseFire"]
+modulate = Color(1, 0.5, 0.15, 0.7)
+z_index = 1
+material = SubResource("CanvasItemMaterial_tbv0v")
+position = Vector2(2010, 540)
+scale = Vector2(3, 3)
+texture = ExtResource("2_342kl")
+
+[node name="Flame3" type="Sprite2D" parent="HouseFire"]
+position = Vector2(2120.4, 461.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 0
+
+[node name="Flame4" type="Sprite2D" parent="HouseFire"]
+position = Vector2(2237.52, 429.76)
+scale = Vector2(0.52, 0.52)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 1
+
+[node name="Glow4" type="Sprite2D" parent="HouseFire"]
+modulate = Color(1, 0.5, 0.15, 0.7)
+z_index = 1
+material = SubResource("CanvasItemMaterial_tbv0v")
+position = Vector2(2250, 540)
+scale = Vector2(3, 3)
+texture = ExtResource("2_342kl")
+
+[node name="Flame5" type="Sprite2D" parent="HouseFire"]
+position = Vector2(2354.64, 398.32)
+scale = Vector2(0.64, 0.64)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 2
+
+[node name="Flame6" type="Sprite2D" parent="HouseFire"]
+position = Vector2(2480.4, 461.2)
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 0
+
+[node name="Glow6" type="Sprite2D" parent="HouseFire"]
+modulate = Color(1, 0.5, 0.15, 0.7)
+z_index = 1
+material = SubResource("CanvasItemMaterial_tbv0v")
+position = Vector2(2490, 540)
+scale = Vector2(3, 3)
+texture = ExtResource("2_342kl")
+
+[node name="Flame7" type="Sprite2D" parent="HouseFire"]
+position = Vector2(2597.52, 429.76)
+scale = Vector2(0.52, 0.52)
+texture = ExtResource("16_m7he6")
+centered = false
+hframes = 3
+frame = 1
+
 [node name="Margaret" type="CharacterBody2D" parent="."]
 position = Vector2(1565, 560)
-script = ExtResource("28_3prmt")
+script = ExtResource("29_vaqy9")
 kind = "widow"
-weapon = ExtResource("29_sy8f8")
+weapon = ExtResource("30_rjq7n")
 max_health = 36
 walk_speed = 34.0
 sight_range = 480.0
@@ -680,16 +801,16 @@ position = Vector2(1200, 560)
 [node name="MastSpot" type="Marker2D" parent="."]
 position = Vector2(2380, 340)
 
-[node name="HallAmmo1" parent="." instance=ExtResource("30_vaqy9")]
+[node name="HallAmmo1" parent="." instance=ExtResource("31_iaa8u")]
 position = Vector2(300, 552)
 
-[node name="HallAmmo2" parent="." instance=ExtResource("30_vaqy9")]
+[node name="HallAmmo2" parent="." instance=ExtResource("31_iaa8u")]
 position = Vector2(1420, 552)
 
-[node name="RoofAmmo" parent="." instance=ExtResource("30_vaqy9")]
+[node name="RoofAmmo" parent="." instance=ExtResource("31_iaa8u")]
 position = Vector2(2000, 552)
 
-[node name="HallFood" parent="." instance=ExtResource("31_rjq7n")]
+[node name="HallFood" parent="." instance=ExtResource("32_k7v80")]
 position = Vector2(760, 550)
 
 [node name="FireBark" type="Area2D" parent="."]
@@ -698,7 +819,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="FireBark"]
-shape = SubResource("RectangleShape2D_iaa8u")
+shape = SubResource("RectangleShape2D_6x9ny")
 
 [node name="RoofBark" type="Area2D" parent="."]
 position = Vector2(1760, 520)
@@ -706,12 +827,12 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="RoofBark"]
-shape = SubResource("RectangleShape2D_k7v80")
+shape = SubResource("RectangleShape2D_xumfo")
 
 [node name="Spawn11" type="Marker2D" parent="."]
 position = Vector2(90, 560)
 
-[node name="Ricco" parent="." instance=ExtResource("32_6x9ny")]
+[node name="Ricco" parent="." instance=ExtResource("33_iy3q2")]
 position = Vector2(90, 560)
 
-[node name="HUD" parent="." instance=ExtResource("33_xumfo")]
+[node name="HUD" parent="." instance=ExtResource("34_eks3b")]

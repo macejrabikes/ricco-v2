@@ -8,7 +8,8 @@ extends Level4
 ##   1. zrkadlá – ona a jej odrazy; blesk (tu: _lightning) odrazy zhasne, praskne zrkadlo, kam ju Ricco trafí
 ##   2. vystúpi zo zrkadla, kopne do svietnika – závesy horia a oheň sa šíri na susedné (každých SPREAD s)
 ##   3. sklenými dverami na strechu, hore na plošinu stožiara; blesk do stožiara ju omráči (a Ricca na rebríku popáli)
-##   smrť – C96 jej vypadne, blesk, padá zo stožiara cez zábradlie do tmy nad morom; vzducholoď sa odtrhne a odletí.
+##   smrť – C96 jej vypadne, kľačí („I just signed the checks“), blesk, padá zo stožiara do tmy nad morom, vzducholoď
+##   odletí; niekto podpálil vilu → poklop pri stožiari = útek (časť 7 – villa_fire.gd, na útese čaká Mancini).
 ## Checkpoint 11 = začiatok boja (margaret_phase = dosiahnutá fáza – po smrti sa pokračuje v nej).
 ## Godot docs: classes/class_tween, classes/class_canvaslayer, classes/class_line2d
 
@@ -25,8 +26,8 @@ const ARRIVE_HALL: Array[String] = [
 	"Mirrors floor to ceiling. Somebody likes looking at herself.",
 ]
 const END_THOUGHT: Array[String] = [
-	"She was taking orders, same as Lou, same as Mike. 'C.' in Chicago.",
-	"The widow's done. The house is burning. Time to go.",
+	"'Signed the checks.' For who? 'C.M.' in the ledger, 'C.' in the letter.",
+	"The widow was just the face. Somebody's still running this show.",
 ]
 const MIRROR_LINES: Array[String] = [
 	"WHICH ONE OF ME DO YOU LOVE, DARLING?",
@@ -62,6 +63,7 @@ var _strikes: int = 0
 var _flash: ColorRect
 var _rain: CPUParticles2D
 var _door_open: bool = false
+var _fire_anim: float = 0.0
 
 
 func _ready() -> void:
@@ -99,6 +101,10 @@ func _ready() -> void:
 	_connect(^"RoofBark", func():
 		if _fight:
 			_say_once(&"roof", "SHE'S HEADIN' FOR THE ZEPPELIN!\nUP THE MAST - QUICK!"))
+	var hatch := get_node_or_null(^"HatchSpot") as InteractSpot
+	if hatch:
+		hatch.monitoring = false   # zapne sa po smrti Margaret
+		hatch.used.connect(_down_the_hatch)
 	Sfx.loop(&"wind_loop", self, Vector2.INF, -24.0)
 	Sfx.loop(&"airship_drone", self, Vector2(MAST_X + 150.0, 200.0), -14.0)
 	Sfx.music(&"intensity")
@@ -122,6 +128,7 @@ func _process(delta: float) -> void:
 	if player == null:
 		return
 	_tick_say(delta)
+	_process_house_fire(delta)
 	_line_cd -= delta
 	if _rain:
 		_rain.emitting = player.global_position.x > ROOF_X - 40.0
@@ -364,18 +371,25 @@ func _margaret_dies() -> void:
 	_say_queue.clear()
 	Sfx.music(&"", 2.5)
 	var m := _m
+	player.set_cutscene(true)
+	player.sprite.play(player._hat_anim(&"idle"))
 	await _wait(0.6)
-	_speak(m, "VITO... YOU OLD FOOL... YOU SENT A BOY...", 96.0)
-	# potáca sa k okraju plošiny (preč od Ricca)
-	var away: float = 1.0 if m.global_position.x >= player.global_position.x else -1.0
-	m.call(&"_set_facing", -away)
-	var edge: float = MAST_X + away * 62.0
-	var tw := create_tween()
-	tw.tween_property(m, "global_position:x", edge, 1.2).set_trans(Tween.TRANS_SINE)
-	await tw.finished
-	await _wait(0.6)
-	# blesk do stožiara – a pád cez zábradlie do tmy nad morom
+	# potáca sa k pravému okraju plošiny a klesne na kolená (sukňa – stačí rig posunúť nižšie)
 	m.set_physics_process(false)
+	m.call(&"_set_facing", -1.0)
+	var tw := create_tween()
+	tw.tween_property(m, "global_position:x", MAST_X + 40.0, 1.0).set_trans(Tween.TRANS_SINE)
+	var rig := m.get(&"rig") as Node2D
+	if rig:
+		tw.tween_property(rig, "position:y", rig.position.y + 8.0, 0.4)
+	await tw.finished
+	_speak(m, "YOU THINK A WIDOW BOUGHT A WHOLE CITY?", 96.0)
+	await _wait(2.8)
+	_speak(m, "I JUST SIGNED THE CHECKS, BOY.", 96.0)
+	await _wait(2.8)
+	_speak(m, "VITO... YOU OLD FOOL... YOU SENT A BOY...", 96.0)
+	await _wait(2.6)
+	# blesk do stožiara – a pád cez zábradlie do tmy nad morom
 	_strikes = 0
 	_bolt(MAST_X, MAST_TOP - 60.0)
 	_flash.color.a = 0.9
@@ -384,8 +398,8 @@ func _margaret_dies() -> void:
 	player.set(&"shake_timer", 0.4)
 	m.hands_up = true
 	var fall := create_tween().set_parallel(true)
-	fall.tween_property(m, "global_position", m.global_position + Vector2(away * 160.0, 520.0), 1.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	fall.tween_property(m, "rotation", away * 2.6, 1.7)
+	fall.tween_property(m, "global_position", m.global_position + Vector2(170.0, 520.0), 1.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	fall.tween_property(m, "rotation", 2.6, 1.7)
 	Sfx.play(&"enemy_death", m.global_position, 0.0)
 	# vzducholoď sa odtrhne od stožiara a odpláva do búrky
 	var ship := get_node_or_null(^"Airship") as Node2D
@@ -399,9 +413,51 @@ func _margaret_dies() -> void:
 	await _wait(1.8)
 	m.queue_free()
 	await _wait(1.0)
-	await ThoughtBox.think(self, END_THOUGHT).finished
 	bark("MARGARET... SHE WAS NEVER MINE.\nNOT EVEN ON OUR WEDDING DAY.")
 	await _wait(3.6)
-	bark("TAKE HER PISTOL, KID.\nAND GET OUT BEFORE THE ROOF COMES DOWN.")
-	await _wait(6.0)
-	_to_be_continued()
+	await ThoughtBox.think(self, END_THOUGHT).finished
+	# niekto podpálil prízemie (Manciniho ľudia – ukáže sa na útese) – plamene a dym spoza okraja strechy
+	_house_on_fire()
+	await _wait(1.2)
+	bark("SOMEBODY'S TORCHING THE HOUSE!\nGRAB HER PISTOL - DOWN THE HATCH!")
+	var hatch := get_node_or_null(^"Hatch") as Sprite2D
+	if hatch:
+		hatch.frame = 1
+	var spot := get_node_or_null(^"HatchSpot") as InteractSpot
+	if spot:
+		spot.monitoring = true
+	player.set_cutscene(false)
+
+
+## Vila horí – plamene a žiara spoza okraja strechy, dym, výbuch dole
+func _house_on_fire() -> void:
+	var fire := get_node_or_null(^"HouseFire") as Node2D
+	if fire:
+		fire.visible = true
+		fire.modulate.a = 0.0
+		create_tween().tween_property(fire, "modulate:a", 1.0, 1.5)
+	Sfx.play(&"explosion", Vector2(ROOF_X + 500.0, FLOOR + 80.0), -4.0)
+	player.set(&"shake_timer", 0.5)
+	Sfx.loop(&"fuse", self, Vector2(ROOF_X + 500.0, FLOOR + 40.0), -14.0)
+	for i in 6:
+		Burst.spawn(self, Vector2(ROOF_X + 120.0 + i * 150.0, FLOOR + 6.0), Vector2.UP, Color(0.2, 0.18, 0.2, 0.7), 8, 40.0, Vector2(0, -30), 1.6)
+
+
+func _process_house_fire(delta: float) -> void:
+	var fire := get_node_or_null(^"HouseFire") as Node2D
+	if fire == null or not fire.visible:
+		return
+	_fire_anim += delta * 10.0
+	var i := 0
+	for c in fire.get_children():
+		if c is Sprite2D and (c as Sprite2D).hframes == 3:
+			(c as Sprite2D).frame = (int(_fire_anim) + i) % 3
+			i += 1
+	if randf() < delta * 4.0:
+		Burst.spawn(self, Vector2(randf_range(ROOF_X, ROOF_X + 1000.0), FLOOR + 4.0), Vector2.UP, Color(1.0, 0.6, 0.2), 2, 50.0, Vector2(0, -40), 0.9)
+
+
+## Poklop pri stožiari – dolu do podkrovia horiacej vily (časť 7)
+func _down_the_hatch() -> void:
+	Sfx.play(&"ladder_rung", player.global_position, -4.0)
+	_leave_door(VILLA_FIRE, 12, false)

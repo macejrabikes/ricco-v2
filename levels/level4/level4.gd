@@ -11,7 +11,8 @@ extends Node2D
 ## tunel do jaskyne pašerákov (časť 2 – cave.gd) → lodenica s výťahom do sídla (časť 3 – boathouse.gd)
 ## → pivnica vily: zatopená stará pivnica, vínna pivnica, vinárstvo, knižnica a trofejová izba (časť 4 – cellar.gd)
 ## → vila: átrium so schodmi, tri poschodia izieb, strecha a kupola so zrkadlovou sieňou (časť 5 – villa.gd)
-## → zrkadlová sieň a strecha so stožiarom: boss Margaret Vito (časť 6 – mirror_hall.gd).
+## → zrkadlová sieň a strecha so stožiarom: boss Margaret Vito (časť 6 – mirror_hall.gd), Mancini ju zastrelí z gondoly
+## → útek z horiacej vily pravým krídlom na útes, svitanie, koniec kapitoly (časť 7 – villa_fire.gd).
 ## Celé mólo je „tma“ (player.dark_area): vidno ťa len vo svetle lampáša, okna búdy a v kuželi baterky.
 ## Godot docs: classes/class_tween, classes/class_canvaslayer, classes/class_area2d
 
@@ -23,6 +24,7 @@ const BOATHOUSE := "res://levels/level4/boathouse.tscn"   ## časť 3: lodenica 
 const CELLAR := "res://levels/level4/cellar.tscn"     ## časť 4: pivnica vily (štyri poschodia, schody, tajný rebrík)
 const VILLA := "res://levels/level4/villa.tscn"       ## časť 5: vila (átrium, tri poschodia, strecha, kupola so zrkadlovou sieňou)
 const MIRROR_HALL := "res://levels/level4/mirror_hall.tscn"   ## časť 6: zrkadlová sieň a strecha – boss Margaret
+const VILLA_FIRE := "res://levels/level4/villa_fire.tscn"     ## časť 7: útek z horiacej vily na útes
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")
 const PISTOL := preload("res://weapons/pistol/pistol.tres")          ## Colt 1911
 const WINCHESTER := preload("res://weapons/winchester/winchester.tres")   ## Winchester 1897 po Iron Mikeovi
@@ -43,6 +45,7 @@ static var cellar_arrived: bool = false             ## …v pivnici vily
 static var villa_arrived: bool = false              ## …vo vile
 static var margaret_phase: int = 1                  ## boss Margaret – dosiahnutá fáza (po smrti sa pokračuje v nej)
 static var margaret_met: bool = false               ## Margaret už privítala Ricca v sieni
+static var fire_arrived: bool = false               ## Riccove myšlienky na streche horiacej vily už zazneli
 static var ledger_read: bool = false                ## Ricco čítal knihu v kancelárii jaskyne („C.M.“)
 static var tommy_ammo: Array = [TOMMY_START_AMMO, 0]  ## náboje Thompsonu [v bubne, v zásobe] – prenesú sa do ďalšej časti
 static var carried: Array[WeaponData] = []          ## výbava pri vstupe do časti; prázdne = začiatočná
@@ -74,6 +77,7 @@ static func reset() -> void:
 	villa_arrived = false
 	margaret_phase = 1
 	margaret_met = false
+	fire_arrived = false
 	ledger_read = false
 	barks.clear()
 	tommy_ammo = [TOMMY_START_AMMO, 0]
@@ -83,6 +87,8 @@ static func reset() -> void:
 
 ## Scéna časti kapitoly podľa checkpointu (po smrti sa pokračuje tam)
 static func part_for(cp: int) -> String:
+	if cp >= 12:
+		return VILLA_FIRE
 	if cp >= 11:
 		return MIRROR_HALL
 	if cp >= 8:
