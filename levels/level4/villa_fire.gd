@@ -10,6 +10,7 @@ extends Level4
 ##   G    kuchyňa → vyrazené zadné dvere → útes za svitania: čierne auto, Mancini a dvaja ochrankári s Thompsonmi.
 ##        Rozhovor (Mancini sa prizná), húkačky hasičov – „Not here. Not today. See you in Chicago.“ Auto odíde.
 ##        Ricco a duch pri lavičke nad morom → END OF CHAPTER IV / THE WIDOW → TO BE CONTINUED.
+## Na začiatku duch ukáže akimbo – druhou rukou drží druhú bočnú zbraň (ricco.gd, kláves B).
 ## Checkpointy 12 strecha, 13 hudobný salón, 14 kuchyňa. Godot docs: classes/class_tween, classes/class_area2d
 
 const FIRE_MAP := Rect2i(0, 0, 2940, 1100)
@@ -84,6 +85,18 @@ func _arrive() -> void:
 	await _wait(0.8)
 	player.set_cutscene(false)
 	await ThoughtBox.think(self, ARRIVE_FIRE).finished
+	_show_akimbo()
+
+
+## Duch dá Riccovi druhú zbraň do druhej ruky: vezme bočnú zbraň a zapne akimbo
+func _show_akimbo() -> void:
+	var i: int = player._slot_index("SIDEARM")
+	if i >= 0:
+		player._draw_weapon()
+		player._equip(i)
+	player.set_akimbo(true)
+	player.refill_weapon(player.weapon)   # duch ju podá nabitú
+	bark("TWO HANDS, KID. ONE FOR EACH PISTOL.\n%s TO PUT ONE AWAY." % KeyBindings.short(&"fire_mode"))
 
 
 func _process(delta: float) -> void:

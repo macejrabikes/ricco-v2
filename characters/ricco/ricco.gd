@@ -25,6 +25,8 @@ extends CharacterBody2D
 ## krok 20: markíza ako trampolína (world/fx/awning.gd – bounce), šnúra s prádlom = jazda na kladke (world/fx/clothesline.gd,
 ##          rovnako ako hák na mäso – grab_hook / _process_hook)
 ## krok 21: animácia lezenia po rebríku (sprites/ladder.png – bokom čelom k stene, snímky podľa prelezenej vzdialenosti)
+## krok 22: akimbo – druhá ruka ducha drží druhú bočnú zbraň (kláves B pri bočnej zbrani, odomkne sa v kapitole IV).
+##          Obe mieria na myš a strieľajú striedavo; zásobník je dvojnásobný, prebíjanie dlhšie, rozptyl väčší.
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
 enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM, HOOK, LADDER }
@@ -80,6 +82,8 @@ signal food_changed ## zobral alebo zjedol jedlo (HUD sloty – ui/food_slots.gd
 @export var aim_facing: bool = true           ## Ricco sa pozerá tam, kam mieri (ako v My Friend Pedro)
 @export_range(0.0, 90.0) var ground_aim_max_down_deg: float = 50.0  ## na zemi sa nedá mieriť strmšie dole (zbraň by išla do podlahy)
 @export var magazine_scene: PackedScene = preload("res://weapons/pistol/magazine_drop.tscn")
+## Akimbo (druhá bočná zbraň v druhej ruke ducha) sa dá zapnúť klávesom B – level to odomkne (kapitola IV, útek z vily)
+@export var akimbo_unlocked: bool = false
 @export_group("")
 
 @export_group("Health")
@@ -231,10 +235,10 @@ var ducked: bool = false              ## skrčený za krytom – nízka kapsula,
 var cover_side: float = 0.0           ## kde je kryt (+1 vpravo, -1 vľavo)
 var _cover_pop: float = 0.0           ## s – po výstrele z krytu je chvíľu vystrčený
 var cover_shape: CapsuleShape2D       ## nízka kapsula pri skrčení za krytom
-var mag_size: int:                    ## pre HUD – veľkosť zásobníka zbrane v ruke
-	get: return weapon.mag_size if weapon else 0
+var mag_size: int:                    ## pre HUD – veľkosť zásobníka zbrane v ruke (akimbo = oba zásobníky spolu)
+	get: return _mag_cap(weapon) if weapon else 0
 var reload_time: float:
-	get: return weapon.reload_time if weapon else 1.0
+	get: return weapon.reload_time * (AKIMBO_RELOAD if is_akimbo() else 1.0) if weapon else 1.0
 var health: int = 0
 var run_backwards: bool = false   ## beh pustený odzadu (Ricco ide opačne, než sa pozerá)
 var invulnerable_timer: float = 0.0
@@ -282,6 +286,7 @@ func _ready() -> void:
 	_pump.visible = false
 	gun.add_child(_pump)
 	gun.move_child(_pump, mag.get_index() + 1)   # nad telom zbrane, pod rukou ducha
+	_setup_akimbo()
 	for w in loadout:
 		weapon_ammo.append([w.mag_size, w.reserve_start])
 	_equip(0, false)
@@ -918,6 +923,7 @@ func _update_aim() -> void:
 			aim_dir = Vector2.from_angle(PI - max_down)
 	aim.rotation = aim_dir.angle()
 	gun.scale.y = -1.0 if aim_dir.x < 0.0 else 1.0
+	_update_akimbo_pose()
 	var busy: bool = sprite.animation in [&"hat_throw", &"hat_throw_walk", &"hat_catch"] and sprite.is_playing() or eating
 	aim.visible = not busy and weapon != null and (not holstered or _holstering)
 	# Ricco sa pozerá tam, kam mieri (okrem šmýkania po stene a hodu)
@@ -970,6 +976,13 @@ func _shoot() -> void:
 	# obe hlavne naraz (lupara 2x) – len keď sú v nej dva náboje, inak normálny výstrel
 	var shells: int = 2 if alt and weapon.alt_mode == WeaponData.AltMode.DOUBLE and ammo_in_mag >= 2 else 1
 	fire_timer = maxf(weapon.fire_cooldown, 0.1) if semi else weapon.fire_cooldown
+	# akimbo: strieľa striedavo predná a zadná zbraň – každá má čas na spätný ráz, takže idú rýchlejšie za sebou
+	var duo: bool = is_akimbo()
+	var back: bool = duo and _akimbo_back_next
+	if duo:
+		fire_timer = weapon.fire_cooldown * AKIMBO_COOLDOWN
+		_akimbo_back_next = not _akimbo_back_next
+	var from: Vector2 = _gun2_muzzle.global_position if back else muzzle.global_position
 	if in_cover:
 		_cover_pop = COVER_POP_TIME   # vystrčí sa nad kryt a chvíľu ostane hore
 		_set_duck(false)
@@ -981,7 +994,8 @@ func _shoot() -> void:
 		var b := bullet_scene.instantiate()
 		# broky sa rozložia do vejára, jedna guľka má len malý náhodný rozptyl;
 		# po jednom (SEMI) je samopal presnejší, dve hlavne naraz rozhodia vejár o trochu širšie
-		var spread: float = (weapon.spread_deg * (0.6 if semi else 1.0) + _bloom) * (1.2 if shells == 2 else 1.0)
+		var spread: float = (weapon.spread_deg * (0.6 if semi else 1.0) + _bloom) * (1.2 if shells == 2 else 1.0) \
+				* (AKIMBO_SPREAD if duo else 1.0)
 		var a: float = randf_range(-spread, spread) if pellets == 1 \
 				else lerpf(-spread / 2.0, spread / 2.0, (i + randf()) / pellets)
 		b.direction = aim_dir.rotated(deg_to_rad(a))
@@ -992,23 +1006,26 @@ func _shoot() -> void:
 		b.lifetime = weapon.bullet_lifetime
 		b.effective_range = weapon.effective_range
 		b.falloff_range = weapon.falloff_range
-		b.global_position = muzzle.global_position
+		b.global_position = from
 		get_tree().current_scene.add_child(b)
 	_bloom = minf(_bloom + weapon.spread_bloom_deg * (0.5 if semi else 1.0), weapon.spread_max_deg)
 	# šťava: zvuk, záblesk (3 snímky + žiara + dym), cuknutie a nadhodenie zbrane, zatrasenie kamery
 	Sfx.shot(weapon)
 	if shells == 2:
 		Sfx.shot(weapon)   # druhá hlaveň v tom istom okamihu – hlasnejšia, hrubšia rana
-	_muzzle_flash(1.35 if shells == 2 else 1.0)
 	var recoil: float = weapon.recoil_px * (1.5 if shells == 2 else 1.0)
-	gun.position.x = gun_base_x - recoil
-	var kick: float = -0.045 * recoil * gun.scale.y   # hlaveň vyskočí hore
-	if _recoil_tween:
-		_recoil_tween.kill()
-	_recoil_tween = create_tween().set_parallel(true)
-	gun.rotation = kick
-	_recoil_tween.tween_property(gun, "position:x", gun_base_x, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_recoil_tween.tween_property(gun, "rotation", 0.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if back:
+		_akimbo_shot(recoil)
+	else:
+		_muzzle_flash(1.35 if shells == 2 else 1.0)
+		gun.position.x = gun_base_x - recoil
+		var kick: float = -0.045 * recoil * gun.scale.y   # hlaveň vyskočí hore
+		if _recoil_tween:
+			_recoil_tween.kill()
+		_recoil_tween = create_tween().set_parallel(true)
+		gun.rotation = kick
+		_recoil_tween.tween_property(gun, "position:x", gun_base_x, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_recoil_tween.tween_property(gun, "rotation", 0.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	if weapon.recoil_px >= 6.0 and is_on_floor():
 		velocity.x -= aim_dir.x * 60.0 * shells   # lupara odtlačí Ricca (obe hlavne dvakrát viac)
 	shake_timer = 0.12 * (1.5 if shells == 2 else 1.0)
@@ -1175,13 +1192,15 @@ func _start_reload() -> void:
 		return
 	reloading = true
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, true)
+	if is_akimbo():
+		_akimbo_reload_out()
 	if weapon.frame_texture:
 		_start_break_reload()
 		return
 	if weapon.shell_reload:
 		_start_shell_reload()
 		return
-	var k: float = weapon.reload_time / 1.0   # časovanie nižšie je pre 1 s
+	var k: float = reload_time / 1.0   # časovanie nižšie je pre 1 s (akimbo trvá dlhšie – prebíja obe)
 	var tilt: float = -0.35 * gun.scale.y   # hlaveň mierne hore, pažba k Riccovi
 	var mag_in: Vector2 = _gun_px(weapon.mag_px)
 	var inside: Vector2 = mag_in - OFFHAND_MAG + (Vector2(0, 0) if weapon.mag_visible else Vector2(0, -2))  # zasunutý
@@ -1227,7 +1246,7 @@ func _start_reload() -> void:
 ## nábojnice vypadnú z komôr, druhá ruka ducha zasunie nové náboje a hlavne sa zaklapnú. Hlavne sú samostatný Sprite (_barrels)
 ## nad rámom (weapon.frame_texture), otáča sa okolo weapon.hinge_px.
 func _start_break_reload() -> void:
-	var k: float = weapon.reload_time / 1.0
+	var k: float = reload_time / 1.0
 	var tilt: float = -0.25 * gun.scale.y
 	var open: float = -deg_to_rad(weapon.open_deg)   # v priestore zbrane: záporný uhol = ústie hore, kladný = dole
 	var chamber: Vector2 = _gun_px(weapon.mag_px)
@@ -1515,10 +1534,215 @@ func _finish_reload() -> void:
 	offhand.get_node("NewMag").visible = false
 	offhand.visible = weapon.two_handed
 	offhand.fade = 1.0
+	if is_akimbo():
+		_akimbo_reload_in()
 	ammo_changed.emit(ammo_in_mag, ammo_reserve, false)
 	if _holster_after_reload:
 		_holster_after_reload = false
 		_holster()
+
+
+# ---------------------------------------------------------------- akimbo (dve bočné zbrane)
+## Druhá ruka ducha drží druhú, rovnakú bočnú zbraň (duch si ju „vyčaruje“ – netreba zbierať druhú). Zadná zbraň je
+## kúsok vpredu a vyššie (AKIMBO_OFF), za Riccom (z_index -1) a tmavšia – je ďalej od kamery. Obe mieria na myš
+## a strieľajú striedavo (predná, zadná, …). Náboje sú spoločné: ammo_in_mag = oba zásobníky spolu (mag_size je
+## dvojnásobný), rezerva je jedna. Pri prebíjaní zadná zbraň pustí svoj zásobník a počká (zošedne), kým druhá ruka
+## dobije prednú – preto to trvá dlhšie (AKIMBO_RELOAD). Len bočné zbrane (SIDEARM) – dvojručné by nedržal.
+## Godot docs: classes/class_sprite2d (z_index, self_modulate), classes/class_tween
+
+const AKIMBO_OFF := Vector2(3, -6)            ## px – zadná zbraň voči prednej (v priestore Aim, pri mierení doľava sa y otočí)
+const AKIMBO_SHADE := Color(0.72, 0.72, 0.8)  ## zadná zbraň a ruka sú tmavšie
+const AKIMBO_COOLDOWN := 0.6                  ## × fire_cooldown – striedavá streľba je rýchlejšia
+const AKIMBO_SPREAD := 1.5                    ## × rozptyl – z dvoch zbraní naraz sa mieri horšie
+const AKIMBO_RELOAD := 1.5                    ## × reload_time – prebíja obe
+const GHOST_HAND_SCENE := preload("res://characters/ricco/ghost_hand/ghost_hand.tscn")
+
+static var akimbo: bool = false   ## hráč má akimbo zapnuté (pamätá sa medzi časťami kapitoly); platí len pri bočnej zbrani
+var _gun2: Sprite2D               ## zadná zbraň (dieťa Aim)
+var _gun2_mag: Sprite2D
+var _gun2_hand: GhostHand
+var _gun2_muzzle: Marker2D
+var _gun2_flash: Sprite2D
+var _gun2_x: float = 0.0          ## px – posun zadnej zbrane dozadu (spätný ráz, prebíjanie, objavenie)
+var _gun2_tween: Tween
+var _gun2_flash_tw: Tween
+var _akimbo_back_next: bool = false   ## ďalší výstrel ide zo zadnej zbrane
+
+
+## Akimbo práve platí (zapnuté, odomknuté a v ruke je bočná zbraň)
+func is_akimbo() -> bool:
+	return akimbo and akimbo_unlocked and weapon != null and weapon.slot_name == "SIDEARM"
+
+
+## Dá sa akimbo prepnúť klávesom B (nie počas prebíjania – zásobníky by sa pomiešali)
+func can_akimbo() -> bool:
+	return akimbo_unlocked and weapon != null and weapon.slot_name == "SIDEARM" and not reloading and not holstered
+
+
+## Koľko nábojov sa zmestí do zbrane w (pri akimbo dva zásobníky)
+func _mag_cap(w: WeaponData) -> int:
+	return w.mag_size * (2 if akimbo and akimbo_unlocked and w.slot_name == "SIDEARM" else 1)
+
+
+## Zapne / vypne akimbo. Pri vypnutí sa náboje z druhého zásobníka vrátia do rezervy.
+func set_akimbo(on: bool) -> void:
+	akimbo = on
+	_store_ammo()
+	if not on:
+		for i in loadout.size():
+			var w: WeaponData = loadout[i]
+			var extra: int = weapon_ammo[i][0] - w.mag_size
+			if extra > 0:
+				weapon_ammo[i] = [w.mag_size, weapon_ammo[i][1] + extra]
+		if weapon:
+			ammo_in_mag = weapon_ammo[weapon_index][0]
+			ammo_reserve = weapon_ammo[weapon_index][1]
+	_akimbo_back_next = false
+	_update_akimbo_gun(true)
+	if weapon and weapon.slot_name == "SIDEARM":
+		Sfx.play(&"slide_rack" if on else &"mag_in", global_position, -6.0, 0.05)
+	fire_mode_changed.emit(is_akimbo())
+	ammo_changed.emit(ammo_in_mag, ammo_reserve, reloading)
+
+
+func _setup_akimbo() -> void:
+	_gun2 = Sprite2D.new()
+	_gun2.z_index = -1   # za Riccom – je to vzdialenejšia ruka
+	_gun2.self_modulate = AKIMBO_SHADE
+	_gun2.visible = false
+	aim.add_child(_gun2)
+	aim.move_child(_gun2, 0)
+	_gun2_mag = Sprite2D.new()
+	_gun2_mag.centered = false
+	_gun2_mag.show_behind_parent = true
+	_gun2_mag.self_modulate = AKIMBO_SHADE
+	_gun2.add_child(_gun2_mag)
+	_gun2_hand = GHOST_HAND_SCENE.instantiate() as GhostHand
+	(_gun2_hand.get_node(^"Hand") as CanvasItem).self_modulate = AKIMBO_SHADE
+	_gun2.add_child(_gun2_hand)
+	_gun2_muzzle = Marker2D.new()
+	_gun2.add_child(_gun2_muzzle)
+	_gun2_flash = Sprite2D.new()
+	_gun2_flash.texture = FLASH_TEX
+	_gun2_flash.hframes = 3
+	_gun2_flash.centered = false
+	_gun2_flash.offset = Vector2(-3, -12)
+	_gun2_flash.position = Vector2(1, 0)
+	_gun2_flash.visible = false
+	_gun2_muzzle.add_child(_gun2_flash)
+
+
+## Zadná zbraň podľa zbrane v ruke (alebo sa schová, ak akimbo neplatí). animate = vysunie sa spoza Ricca.
+func _update_akimbo_gun(animate: bool = false) -> void:
+	if _gun2 == null:
+		return
+	if _gun2_tween:
+		_gun2_tween.kill()
+		_gun2_tween = null
+	if not is_akimbo():
+		_gun2.visible = false
+		return
+	_gun2.texture = weapon.texture
+	_gun2.rotation = 0.0
+	_gun2_mag.texture = weapon.mag_texture
+	_gun2_mag.position = _gun_px(weapon.mag_px)
+	_gun2_mag.visible = weapon.mag_visible
+	_gun2_hand.position = _ghost_grip_rest()
+	_gun2_muzzle.position = _gun_px(weapon.muzzle_px)
+	_gun2_flash.visible = false
+	_gun2_x = 0.0
+	_gun2.modulate.a = 1.0
+	_gun2.visible = true
+	if animate:
+		_gun2_x = -10.0
+		_gun2.modulate.a = 0.0
+		_gun2_tween = create_tween().set_parallel(true)
+		_gun2_tween.tween_property(self, "_gun2_x", 0.0, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		_gun2_tween.tween_property(_gun2, "modulate:a", 1.0, 0.1)
+	_update_akimbo_pose()
+
+
+## Zadná zbraň ide s prednou (aj pri jej poskočení pri výmene); pri mierení doľava sa preklopí ako predná
+func _update_akimbo_pose() -> void:
+	if _gun2 == null or not _gun2.visible:
+		return
+	_gun2.scale.y = gun.scale.y
+	_gun2.position = Vector2(gun_base_x + AKIMBO_OFF.x + _gun2_x, gun.position.y + AKIMBO_OFF.y * gun.scale.y)
+
+
+## Výstrel zo zadnej zbrane: záblesk, iskry, dym a spätný ráz len na nej (svetlo záblesku je spoločné)
+func _akimbo_shot(recoil: float) -> void:
+	var k: float = FLASH_SCALE.get(weapon.name, 0.8)
+	_gun2_flash.scale = Vector2(k, k * randf_range(0.85, 1.15))
+	_gun2_flash.rotation = randf_range(-0.12, 0.12)
+	_gun2_flash.frame = 0
+	_gun2_flash.visible = true
+	if _gun2_flash_tw:
+		_gun2_flash_tw.kill()
+	_gun2_flash_tw = create_tween()
+	_gun2_flash_tw.tween_interval(0.045)
+	_gun2_flash_tw.tween_callback(func(): _gun2_flash.frame = 1)
+	_gun2_flash_tw.tween_interval(0.045)
+	_gun2_flash_tw.tween_callback(func(): _gun2_flash.frame = 2)
+	_gun2_flash_tw.tween_interval(0.05)
+	_gun2_flash_tw.tween_callback(func(): _gun2_flash.visible = false)
+	_flash_light.enabled = true
+	_flash_light.energy = (1.1 + 0.3 * k) * randf_range(0.85, 1.1)
+	_flash_light.texture_scale = 2.0 + 1.4 * k
+	if _light_tw:
+		_light_tw.kill()
+	_light_tw = create_tween()
+	_light_tw.tween_property(_flash_light, "energy", 0.0, 0.2).set_delay(0.06)
+	_light_tw.tween_callback(func(): _flash_light.enabled = false)
+	var at: Vector2 = _gun2_muzzle.global_position
+	Burst.spawn(get_tree().current_scene, at, aim_dir, Color(1.0, 0.8, 0.4), 5 if k < 1.2 else 10, 110.0, Vector2(0, 120), 0.22)
+	GunSmoke.spawn(get_tree().current_scene, at, aim_dir, k)
+	if _gun2_tween:
+		_gun2_tween.kill()
+	_gun2_x = -recoil
+	_gun2.rotation = -0.045 * recoil * gun.scale.y
+	_gun2_tween = create_tween().set_parallel(true)
+	_gun2_tween.tween_property(self, "_gun2_x", 0.0, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_gun2_tween.tween_property(_gun2, "rotation", 0.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+## Začiatok prebíjania: zadná zbraň sa nakloní, pustí zásobník (nábojnice) a stiahne sa dozadu – čaká na druhú ruku
+func _akimbo_reload_out() -> void:
+	if _gun2_tween:
+		_gun2_tween.kill()
+	var tilt: float = -0.35 * gun.scale.y
+	_gun2_tween = create_tween()
+	_gun2_tween.tween_property(_gun2, "rotation", tilt, 0.08)
+	_gun2_tween.tween_callback(_akimbo_drop_mag)
+	_gun2_tween.tween_property(self, "_gun2_x", -6.0, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_gun2_tween.parallel().tween_property(_gun2, "modulate:a", 0.4, 0.18)
+
+
+func _akimbo_drop_mag() -> void:
+	if weapon == null or weapon.mag_texture == null:
+		return
+	var center: Vector2 = weapon.mag_texture.get_size() / 2.0
+	for i in weapon.drop_count:
+		var m := magazine_scene.instantiate()
+		m.texture = weapon.mag_texture
+		get_tree().current_scene.add_child(m)
+		m.global_position = _gun2.to_global(_gun_px(weapon.mag_px) + center)
+		m.rotation = _gun2.global_rotation
+		m.velocity = Vector2(-facing * randf_range(15.0, 45.0), randf_range(-20.0, 25.0))
+		m.spin = randf_range(-8.0, 8.0)
+	_gun2_mag.visible = false
+
+
+## Koniec prebíjania: zadná zbraň je zase nabitá a vráti sa na miesto
+func _akimbo_reload_in() -> void:
+	if _gun2_tween:
+		_gun2_tween.kill()
+	_gun2_mag.visible = weapon.mag_visible
+	Sfx.play(&"mag_in", Vector2.INF, -8.0, 0.1)
+	_gun2_tween = create_tween().set_parallel(true)
+	_gun2_tween.tween_property(_gun2, "rotation", 0.0, 0.12)
+	_gun2_tween.tween_property(self, "_gun2_x", 0.0, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_gun2_tween.tween_property(_gun2, "modulate:a", 1.0, 0.1)
 
 
 # ---------------------------------------------------------------- výbava (viac zbraní)
@@ -1585,6 +1809,8 @@ func _equip(i: int, animate: bool = true) -> void:
 	offhand.fade = 1.0
 	offhand.position = _offhand_rest() if weapon.two_handed else OFFHAND_START
 	fire_timer = maxf(fire_timer, 0.12)
+	_akimbo_back_next = false
+	_update_akimbo_gun()
 	if animate:   # zbraň vyskočí zdola (krátke „vytiahnutie“)
 		if _swap_tween:
 			_swap_tween.kill()
@@ -1611,7 +1837,7 @@ func set_loadout(list: Array[WeaponData]) -> void:
 	loadout = list
 	weapon_ammo.clear()
 	for w in loadout:
-		weapon_ammo.append([w.mag_size, w.reserve_start])
+		weapon_ammo.append([_mag_cap(w), w.reserve_start])   # akimbo – obe bočné nabité
 	weapon = null
 	weapon_index = 0
 	last_weapon_index = 0
@@ -1649,6 +1875,10 @@ func _weapon_switch_input(event: InputEvent) -> void:
 		alt_fire[weapon] = not is_alt_fire()
 		Sfx.play(&"dry_fire", global_position, -8.0, 0.05)   # cvaknutie prepínača
 		fire_mode_changed.emit(is_alt_fire())
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed(&"fire_mode") and can_akimbo():
+		set_akimbo(not akimbo)
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed(&"weapon_last"):
@@ -2088,7 +2318,7 @@ func refill_weapon(w: WeaponData) -> bool:
 	if i < 0:
 		return false
 	_store_ammo()
-	var full: Array = [w.mag_size, maxi(weapon_ammo[i][1], w.reserve_start)]
+	var full: Array = [_mag_cap(w), maxi(weapon_ammo[i][1], w.reserve_start)]
 	if weapon_ammo[i][0] >= full[0] and weapon_ammo[i][1] >= full[1]:
 		return false
 	weapon_ammo[i] = full
@@ -2108,10 +2338,12 @@ func is_alt_fire() -> bool:
 	return weapon != null and weapon.alt_mode != WeaponData.AltMode.NONE and alt_fire.get(weapon, false)
 
 
-## Meno režimu pre HUD: AUTO/SEMI (samopal), 1x/2x (dvojhlavňovka), "" = zbraň má len jeden režim
+## Meno režimu pre HUD: AUTO/SEMI (samopal), 1x/2x (dvojhlavňovka), DUO (akimbo), "" = zbraň má len jeden režim
 func fire_mode_label() -> String:
 	if weapon == null:
 		return ""
+	if is_akimbo():
+		return "DUO"
 	match weapon.alt_mode:
 		WeaponData.AltMode.SEMI:
 			return "SEMI" if is_alt_fire() else "AUTO"

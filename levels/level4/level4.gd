@@ -146,6 +146,7 @@ func _setup(map: Rect2i) -> ColorRect:
 	var list: Array[WeaponData] = [PISTOL, WINCHESTER, TOMMY]
 	if not carried.is_empty():
 		list.assign(carried)
+	player.akimbo_unlocked = checkpoint >= 12   # duch ukáže druhú ruku na úteku z horiacej vily (villa_fire.gd)
 	player.set_loadout(list)
 	var ti: int = list.find(TOMMY)
 	if ti >= 0:

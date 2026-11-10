@@ -40,6 +40,7 @@ A full remake of my old high‑school project (SOČ), rebuilt from scratch.
 - **Platforming** – ledge grab, wall jump, ladders, penguin belly slide (trips goons), swimming and sliding on ice
 - **Stealth** – light and darkness, sneaking, cover, takedowns from behind, a hat throw that stuns or puts out a lamp
 - **Slow‑mo** – the Don's ghost holds the gun and slows down time
+- **Akimbo** – the ghost's second hand grabs a second pistol; any sidearm can be fired two at a time
 - **Period weapons** – derringer, .38 revolver, Colt 1911, lupara, Thompson, Winchester 1897, Winchester 1894, Springfield 1903, Mauser C96; limited ammo, fire modes, unique reloads
 - **Bosses** with phases, a health bar and plenty of explosions
 - **Extras** – Arsenal of unlocked guns, a shooting range, chapter select, rebindable keys
@@ -52,7 +53,7 @@ A full remake of my old high‑school project (SOČ), rebuilt from scratch.
 | `Space` / `W` | jump, climb | | Right mouse / `E` | throw the hat |
 | `S` / `Ctrl` | belly slide, dive | | `R` | reload |
 | `C` / `Alt` | sneak, take cover | | `1` `2` `3` / `Q` | weapons / last weapon |
-| `F` | takedown, interact | | `B` | fire mode |
+| `F` | takedown, interact | | `B` | fire mode, akimbo |
 | `Shift` | slow‑mo | | `V` / `X` | eat / holster |
 
 All keys can be changed in **Settings → Controls**.

@@ -8,6 +8,8 @@ extends Control
 ## po prebití sa náboje doplnia jeden po druhom, prázdny zásobník bliká načerveno.
 ## Pod lístkom sú 3 sloty výbavy (klávesy 1–3): NOIR = papierové ústrižky, vybraný je svetlý, dlhší a podčiarknutý;
 ## MINIMAL = malé tmavé políčka. Pri zbrani s dvoma režimami ukáže červená pečiatka AUTO/SEMI alebo 1x/2x (kláves B).
+## Akimbo (dve bočné zbrane, kláves B): náboje v dvoch radoch (horný = predná zbraň, dolný = zadná), NOIR ukáže
+## dvojitú siluetu zbrane, MINIMAL pečiatku DUO.
 
 const ATLAS: Texture2D = preload("res://ui/hud_ammo.png")
 const GLYPH := PixelDigits.GLYPH
@@ -59,6 +61,7 @@ var _mode_label: String = ""       ## AUTO / SEMI / 1x / 2x ("" = zbraň má jed
 var _mode_t: float = 1.0           ## 0 → 1 po prepnutí režimu (pečiatka sa „udrie“)
 var _sel: int = 0                  ## vybraný slot
 var _sel_t: float = 1.0            ## 0 → 1 po zmene slotu (ústrižok sa vysunie)
+var _akimbo: bool = false          ## Ricco strieľa z dvoch zbraní – náboje v dvoch radoch
 static var _icons: Dictionary = {} ## [textúra, šírka, výška] → zmenšená silueta (počíta sa raz)
 
 
@@ -76,7 +79,7 @@ func _ready() -> void:
 		player.weapon_changed.connect(_on_weapon_changed)
 		if player.has_signal(&"fire_mode_changed"):
 			player.fire_mode_changed.connect(func(_alt: bool):
-				_mode_label = player.fire_mode_label()
+				_sync_weapon()
 				_mode_t = 0.0)
 		mag = player.ammo_in_mag
 		reserve = player.ammo_reserve
@@ -120,10 +123,13 @@ func _sync_weapon() -> void:
 		_sel = _player.weapon_index
 		_sel_t = 0.0
 	_mode_label = _player.fire_mode_label() if _player.has_method(&"fire_mode_label") else ""
+	_akimbo = _player.has_method(&"is_akimbo") and _player.is_akimbo()
+	mag_size = _player.mag_size        # pri akimbo oba zásobníky spolu
+	reload_time = _player.reload_time
 
 
 func _on_ammo_changed(new_mag: int, new_reserve: int, new_reloading: bool) -> void:
-	if new_mag == mag - 1:
+	if new_mag == mag - 1 and not _akimbo:
 		_pop_slot = new_mag
 		_pop_t = 0.0
 	if reloading and not new_reloading and new_mag > mag:
@@ -191,9 +197,21 @@ func _shown_rounds() -> int:
 	return mag
 
 
+## Koľko nábojov je v jednom rade (pri akimbo dva rady – jeden na zbraň)
+func _row_size() -> int:
+	return ceili(mag_size / 2.0) if _akimbo else mag_size
+
+
+## Koľko nábojov ukázať v rade row: zbrane strieľajú striedavo, prvá predná – predná má o náboj viac pri nepárnom počte
+func _row_rounds(shown: int, row: int) -> int:
+	if not _akimbo:
+		return shown
+	return ceili(shown / 2.0) if row == 0 else floori(shown / 2.0)
+
+
 func _bars_width(step: float) -> float:
-	if mag_size <= MAX_ICONS:
-		return mag_size * step - 1.0
+	if _row_size() <= MAX_ICONS:
+		return _row_size() * step - 1.0
 	return _number_width(mag_size)
 
 
@@ -227,11 +245,20 @@ func _draw_noir() -> void:
 	var x: float = 4.0
 	var isz: Vector2 = _icon_silhouette.get_size()
 	var icon_pos: Vector2 = (Vector2(x, 0) + (Vector2(ICON_BOX.x, h) - isz) / 2.0).floor()
+	if _akimbo:   # dvojitá silueta – zadná zbraň kúsok vyššie a vpredu, svetlejšia
+		draw_texture(_icon_silhouette, icon_pos + Vector2(2, -2), Color(INK, 0.2 if reloading else 0.45))
 	draw_texture(_icon_silhouette, icon_pos, Color(INK, 0.35 if reloading else 1.0))
 	x += ICON_BOX.x + 4.0
 
 	var by: float = 7.0
-	if mag_size <= MAX_ICONS:
+	if _akimbo and _row_size() <= MAX_ICONS:   # dva rady po 3 px – horný predná zbraň, dolný zadná
+		var shown2: int = _shown_rounds()
+		for row in 2:
+			var n: int = _row_rounds(shown2, row)
+			for i in _row_size():
+				var c: Color = (Color(INK, 0.35) if reloading else INK) if i < n else PAPER_DD
+				draw_rect(Rect2(x + i * 3, by + row * 4, 2, 3), c)
+	elif mag_size <= MAX_ICONS:
 		var shown: int = _shown_rounds()
 		for i in mag_size:
 			var full: bool = i < shown
@@ -252,7 +279,7 @@ func _draw_noir() -> void:
 		draw_rect(Rect2(r.position + Vector2(0, r.size.y - 1), Vector2(r.size.x, 1)), STAMP)
 		draw_rect(Rect2(r.position, Vector2(1, r.size.y)), STAMP)
 		draw_rect(Rect2(r.position + Vector2(r.size.x - 1, 0), Vector2(1, r.size.y)), STAMP)
-	if _mode_label != "":                                       # režim streľby – červená pečiatka za nábojmi
+	if _mode_label != "" and not _akimbo:                       # režim streľby – červená pečiatka za nábojmi (akimbo = dvojitá silueta)
 		var k: float = 1.0 - _mode_t
 		var c := Color(STAMP, 1.0 - 0.5 * k)
 		draw_string(FONT, Vector2(x + bw + 3, by + 5 - roundf(2.0 * k)), _mode_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, c)
@@ -300,12 +327,19 @@ func _draw_minimal() -> void:
 	_draw_number(reserve, Vector2(sx + 5, 12), RED if reserve == 0 else BRASS, 1, true)
 	# pásik nábojov
 	var y: float = 21.0
-	if mag_size <= MAX_ICONS:
+	if _akimbo and _row_size() <= MAX_ICONS:   # dva rady – horný predná zbraň, dolný zadná
+		var shown2: int = _shown_rounds()
+		for row in 2:
+			var n: int = _row_rounds(shown2, row)
+			for i in _row_size():
+				draw_rect(Rect2(x0 + i * 4, y - 1 + row * 3, 3, 2), BRASS if i < n else DIM)
+		y += 2.0   # prúžok prebíjania pod druhým radom
+	elif mag_size <= MAX_ICONS:
 		var shown: int = _shown_rounds()
 		for i in mag_size:
 			draw_rect(Rect2(x0 + i * 4, y, 3, 2), BRASS if i < shown else DIM)
 	if reloading:
-		var bw: float = float(mag_size * 4 - 1) if mag_size <= MAX_ICONS else big_w
+		var bw: float = float(_row_size() * 4 - 1) if _row_size() <= MAX_ICONS else big_w
 		var k: float = clampf(_reload_t / reload_time, 0.0, 1.0)
 		draw_rect(Rect2(x0, y + 3, bw, 1), BRASS_D)
 		draw_rect(Rect2(x0, y + 3, floorf(bw * k), 1), BRASS)
