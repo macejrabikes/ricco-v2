@@ -21,102 +21,104 @@
 [ext_resource type="Script" path="res://levels/level3/skylight.gd" id="19_9kr79"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/skylight_broken.png" id="20_y0ogu"]
 [ext_resource type="Texture2D" path="res://levels/level3/art/roofs/skylight.png" id="21_vttrb"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club/window_cut.png" id="22_09rxp"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/street/fire_escape.png" id="23_9k8uk"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_wall.png" id="24_co762"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/office_wall.png" id="25_cilzu"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club/slab.png" id="26_rqm1z"]
-[ext_resource type="Script" path="res://levels/level3/lock_door.gd" id="27_8cu57"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/door_side.png" id="28_7ur8l"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/mirror.png" id="29_vzjnt"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/portrait.png" id="30_v690j"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/safe.png" id="31_6cpcx"]
-[ext_resource type="Script" path="res://levels/level3/flip_table.gd" id="32_xnpx5"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/desk_flipped.png" id="33_a7wjf"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/desk.png" id="34_1hs8o"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/desk_lamp.png" id="35_0jr85"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/pendant_lamp.png" id="36_8yzhu"]
-[ext_resource type="Texture2D" path="res://levels/level1/art/light_cone.png" id="37_a7sgk"]
-[ext_resource type="PackedScene" path="res://characters/gangster/gangster_tommy.tscn" id="38_f25yu"]
-[ext_resource type="PackedScene" path="res://characters/gangster/gangster_coppola.tscn" id="39_5hid5"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bar_cart.png" id="40_wc660"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_table_flipped.png" id="41_nxbz3"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_table.png" id="42_9pjmq"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_lamp.png" id="43_3n3fl"]
-[ext_resource type="PackedScene" path="res://props/food/food_pickup.tscn" id="44_fkyr9"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/fly_wall.png" id="45_bfl08"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/stage_door.png" id="46_phf8d"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/flat_palm.png" id="47_zfosd"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/flat_city.png" id="48_y7qmr"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/costume_rack.png" id="49_rnpk5"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club/rig_pipe.png" id="50_x7y7e"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club/catwalk.png" id="51_x5fcd"]
-[ext_resource type="Script" path="res://levels/level3/drop_weight.gd" id="52_dt39d"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sandbag.png" id="53_kygh0"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/dressing_wall.png" id="54_2ust6"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/screen.png" id="55_h01du"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/trunk.png" id="56_socgc"]
-[ext_resource type="PackedScene" path="res://characters/gangster/gangster_slugger.tscn" id="57_sfo74"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bulb.png" id="58_qsgrn"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/vanity.png" id="59_81vj9"]
-[ext_resource type="Script" path="res://levels/level3/knock_door.gd" id="60_azj5v"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/card_table.png" id="61_7xi4h"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sofa.png" id="62_qiof6"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/cellar_wall.png" id="63_p1u3v"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club/fill.png" id="64_299qe"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/rack.png" id="65_s2x4s"]
-[ext_resource type="Script" path="res://levels/level3/whisky_barrel.gd" id="66_yd7zu"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/barrel_leak.png" id="67_5gcrn"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/barrel.png" id="68_t5ily"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/puddle.png" id="69_lfj45"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/pipe.png" id="70_pj8e5"]
-[ext_resource type="Script" path="res://levels/level3/train_strap.gd" id="71_mfiju"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club/rig_hook.png" id="72_f0lr3"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/hooch_crate.png" id="73_l6ftn"]
-[ext_resource type="PackedScene" path="res://props/ammo/ammo_pickup.tscn" id="74_zifn6"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/ghost_light.png" id="75_44r1w"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/piano_cover.png" id="76_mwog4"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sandbag_pile.png" id="77_6t46b"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/prop_trunks.png" id="78_ud8jn"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/spotlight.png" id="79_p6j8o"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_quiet.png" id="80_if7at"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_stage.png" id="81_94fuw"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/fuse_box.png" id="82_bw3dc"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_smoke.png" id="83_k4xw1"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/hatboxes.png" id="84_prfb8"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poster_band.png" id="85_oy5ld"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/plant.png" id="86_dfszk"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bouquet.png" id="87_k6tjj"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poster_lark.png" id="88_g7oxm"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/dartboard.png" id="89_7losx"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/clock.png" id="90_fh1me"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_band.png" id="91_cq9ot"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/trumpet.png" id="92_nz71v"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bass.png" id="93_il6a7"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/drum_kit.png" id="94_wg7us"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/music_stand.png" id="95_esl51"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/boiler.png" id="96_3erh4"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/coal.png" id="97_ez9oe"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/still.png" id="98_dxcg3"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/barrel_stack.png" id="99_wkqnc"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/jar_shelf.png" id="100_c2mpt"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/wall_pipes.png" id="101_4z49m"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/cobweb.png" id="102_goqi9"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/coat_rack.png" id="103_txckq"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/radio.png" id="104_j98b4"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/boxing_poster.png" id="105_9idce"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/liquor_cabinet.png" id="106_ie5o0"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poster_sal.png" id="107_yz7bv"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/globe.png" id="108_6wbit"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/city_map.png" id="109_q4amw"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bookshelf.png" id="110_mxbuo"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/file_cabinet.png" id="111_5c5wc"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/water_tower.png" id="112_yi7z2"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/antenna.png" id="113_sj8yg"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/laundry.png" id="114_s922z"]
-[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/pigeon_coop.png" id="115_cq0vz"]
-[ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="116_tfmet"]
-[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="117_6g5dt"]
+[ext_resource type="Script" path="res://levels/level3/shoot_window.gd" id="22_09rxp"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/window_broken.png" id="23_8zne1"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/window_glass.png" id="24_htsom"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/street/fire_escape.png" id="25_y2u8y"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_wall.png" id="26_rqm1z"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/office_wall.png" id="27_f4fu4"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club/slab.png" id="28_rsfdg"]
+[ext_resource type="Script" path="res://levels/level3/lock_door.gd" id="29_7ur8l"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/door_side.png" id="30_v690j"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/mirror.png" id="31_6cpcx"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/portrait.png" id="32_mmibq"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/safe.png" id="33_xnpx5"]
+[ext_resource type="Script" path="res://levels/level3/flip_table.gd" id="34_1hs8o"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/desk_flipped.png" id="35_t22um"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/desk.png" id="36_ank7n"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/desk_lamp.png" id="37_bu3bg"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/pendant_lamp.png" id="38_alzqc"]
+[ext_resource type="Texture2D" path="res://levels/level1/art/light_cone.png" id="39_tthi3"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_tommy.tscn" id="40_j3b0y"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_coppola.tscn" id="41_wc660"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bar_cart.png" id="42_9pjmq"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_table_flipped.png" id="43_lsq6u"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_table.png" id="44_0iauz"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poker_lamp.png" id="45_fkyr9"]
+[ext_resource type="PackedScene" path="res://props/food/food_pickup.tscn" id="46_4tvy9"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/fly_wall.png" id="47_xcqpc"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/stage_door.png" id="48_y7qmr"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/flat_palm.png" id="49_rnpk5"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/flat_city.png" id="50_x7y7e"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/costume_rack.png" id="51_x5fcd"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club/rig_pipe.png" id="52_u8sk5"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club/catwalk.png" id="53_p7idi"]
+[ext_resource type="Script" path="res://levels/level3/drop_weight.gd" id="54_0mxuy"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sandbag.png" id="55_lskax"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/dressing_wall.png" id="56_lbhq7"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/screen.png" id="57_sfo74"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/trunk.png" id="58_okvv5"]
+[ext_resource type="PackedScene" path="res://characters/gangster/gangster_slugger.tscn" id="59_qsgrn"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bulb.png" id="60_81vj9"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/vanity.png" id="61_xkn9v"]
+[ext_resource type="Script" path="res://levels/level3/knock_door.gd" id="62_7xi4h"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/card_table.png" id="63_8ss4k"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sofa.png" id="64_299qe"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/cellar_wall.png" id="65_em0t0"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club/fill.png" id="66_ps1zg"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/rack.png" id="67_5gcrn"]
+[ext_resource type="Script" path="res://levels/level3/whisky_barrel.gd" id="68_t5ily"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/barrel_leak.png" id="69_j9jsv"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/barrel.png" id="70_lfj45"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/puddle.png" id="71_hfyef"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/pipe.png" id="72_f0lr3"]
+[ext_resource type="Script" path="res://levels/level3/train_strap.gd" id="73_l6ftn"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club/rig_hook.png" id="74_im40r"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/hooch_crate.png" id="75_cg3ov"]
+[ext_resource type="PackedScene" path="res://props/ammo/ammo_pickup.tscn" id="76_pyf7c"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/ghost_light.png" id="77_6t46b"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/piano_cover.png" id="78_ud8jn"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sandbag_pile.png" id="79_p6j8o"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/prop_trunks.png" id="80_if7at"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/spotlight.png" id="81_94fuw"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_quiet.png" id="82_bw3dc"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_stage.png" id="83_k4xw1"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/fuse_box.png" id="84_prfb8"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_smoke.png" id="85_oy5ld"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/hatboxes.png" id="86_dfszk"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poster_band.png" id="87_k6tjj"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/plant.png" id="88_g7oxm"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bouquet.png" id="89_7losx"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poster_lark.png" id="90_fh1me"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/dartboard.png" id="91_cq9ot"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/clock.png" id="92_nz71v"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/sign_band.png" id="93_il6a7"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/trumpet.png" id="94_wg7us"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bass.png" id="95_esl51"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/drum_kit.png" id="96_3erh4"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/music_stand.png" id="97_ez9oe"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/boiler.png" id="98_dxcg3"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/coal.png" id="99_wkqnc"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/still.png" id="100_c2mpt"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/barrel_stack.png" id="101_4z49m"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/jar_shelf.png" id="102_goqi9"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/wall_pipes.png" id="103_txckq"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/cobweb.png" id="104_j98b4"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/coat_rack.png" id="105_9idce"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/radio.png" id="106_ie5o0"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/boxing_poster.png" id="107_yz7bv"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/liquor_cabinet.png" id="108_6wbit"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/poster_sal.png" id="109_q4amw"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/globe.png" id="110_mxbuo"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/city_map.png" id="111_5c5wc"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/bookshelf.png" id="112_yi7z2"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/file_cabinet.png" id="113_sj8yg"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/water_tower.png" id="114_s922z"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/antenna.png" id="115_cq0vz"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/laundry.png" id="116_r96nr"]
+[ext_resource type="Texture2D" path="res://levels/level3/art/club_back/pigeon_coop.png" id="117_tmsia"]
+[ext_resource type="PackedScene" path="res://characters/ricco/ricco.tscn" id="118_pj59m"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="119_twras"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_l37ie"]
 blend_mode = 1
@@ -145,95 +147,89 @@ size = Vector2(60, 10)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_9gmmn"]
 size = Vector2(20, 56)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_8zne1"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_9k8uk"]
 size = Vector2(20, 94)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_htsom"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rjwte"]
 size = Vector2(20, 400)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_rjwte"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_720f8"]
 size = Vector2(80, 4)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_y2u8y"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_co762"]
 size = Vector2(32, 720)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_720f8"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_cilzu"]
 size = Vector2(32, 720)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_f4fu4"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8cu57"]
 size = Vector2(880, 10)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_rsfdg"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mbta9"]
 size = Vector2(20, 46)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mbta9"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vzjnt"]
 size = Vector2(16, 94)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_mmibq"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a7wjf"]
 size = Vector2(40, 40)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_t22um"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0jr85"]
 size = Vector2(20, 44)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ank7n"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pg3kd"]
 size = Vector2(14, 18)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_pg3kd"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_8yzhu"]
 size = Vector2(150, 90)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_bu3bg"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_a7sgk"]
 size = Vector2(20, 14)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_alzqc"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_f25yu"]
 size = Vector2(140, 70)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_tthi3"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5hid5"]
 size = Vector2(30, 80)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_j3b0y"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nxbz3"]
 size = Vector2(30, 80)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_lsq6u"]
-size = Vector2(16, 46)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0iauz"]
-size = Vector2(110, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_r54kq"]
-size = Vector2(34, 14)
+size = Vector2(16, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3n3fl"]
+size = Vector2(110, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_w9flu"]
-size = Vector2(160, 80)
+size = Vector2(34, 14)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ayfsi"]
-size = Vector2(30, 80)
+size = Vector2(160, 80)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_4tvy9"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bfl08"]
 size = Vector2(30, 80)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4a1yv"]
-size = Vector2(10, 50)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_xcqpc"]
-size = Vector2(10, 170)
+size = Vector2(30, 80)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_grzy1"]
-size = Vector2(28, 4)
+size = Vector2(10, 50)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pz7z7"]
+size = Vector2(10, 170)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_phf8d"]
+size = Vector2(28, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zfosd"]
 size = Vector2(40, 80)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_u8sk5"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ym9ue"]
 size = Vector2(604, 4)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_p7idi"]
-size = Vector2(16, 160)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ym9ue"]
-size = Vector2(20, 14)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_uas3o"]
-size = Vector2(120, 100)
+size = Vector2(16, 160)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8w2y0"]
 size = Vector2(20, 14)
@@ -241,20 +237,20 @@ size = Vector2(20, 14)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_sir7q"]
 size = Vector2(120, 100)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0mxuy"]
-size = Vector2(14, 162)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dt39d"]
+size = Vector2(20, 14)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_lskax"]
-size = Vector2(14, 162)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kygh0"]
+size = Vector2(120, 100)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_fjw3q"]
-size = Vector2(30, 80)
+size = Vector2(14, 162)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_2ust6"]
+size = Vector2(14, 162)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ptw9u"]
-size = Vector2(12, 56)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_lbhq7"]
-size = Vector2(12, 56)
+size = Vector2(30, 80)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1e6ix"]
 size = Vector2(12, 56)
@@ -263,54 +259,54 @@ size = Vector2(12, 56)
 size = Vector2(12, 56)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_x7slf"]
+size = Vector2(12, 56)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_h01du"]
+size = Vector2(12, 56)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_socgc"]
 size = Vector2(1490, 10)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_okvv5"]
-size = Vector2(16, 14)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_5cfoo"]
-size = Vector2(110, 90)
+size = Vector2(16, 14)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_9hgn3"]
 size = Vector2(110, 90)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_xkn9v"]
-size = Vector2(40, 40)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_azj5v"]
+size = Vector2(110, 90)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gfwc1"]
-size = Vector2(12, 94)
+size = Vector2(40, 40)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_3qzfc"]
-size = Vector2(16, 14)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_8ss4k"]
-size = Vector2(170, 90)
+size = Vector2(12, 94)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s20zs"]
+size = Vector2(16, 14)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qiof6"]
+size = Vector2(170, 90)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p1u3v"]
 size = Vector2(30, 80)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_em0t0"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qwzop"]
 size = Vector2(440, 60)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ps1zg"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_v1vm6"]
 size = Vector2(240, 60)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_qwzop"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s9dw2"]
 size = Vector2(480, 60)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_v1vm6"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s2x4s"]
 size = Vector2(260, 60)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_s9dw2"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yd7zu"]
 size = Vector2(160, 60)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_j9jsv"]
-size = Vector2(22, 26)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jyxrp"]
-size = Vector2(22, 26)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_hfyef"]
 size = Vector2(22, 26)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zw91z"]
@@ -319,11 +315,11 @@ size = Vector2(22, 26)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mmhp4"]
 size = Vector2(22, 26)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_im40r"]
-size = Vector2(26, 27)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pj8e5"]
+size = Vector2(22, 26)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_cg3ov"]
-size = Vector2(26, 27)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mfiju"]
+size = Vector2(22, 26)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_h5am0"]
 size = Vector2(26, 27)
@@ -332,36 +328,42 @@ size = Vector2(26, 27)
 size = Vector2(26, 27)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_27smv"]
-size = Vector2(16, 14)
+size = Vector2(26, 27)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_7o45e"]
-size = Vector2(140, 120)
+size = Vector2(26, 27)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pem9s"]
 size = Vector2(16, 14)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_2qlyb"]
-size = Vector2(120, 120)
+size = Vector2(140, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zifn6"]
+size = Vector2(16, 14)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_lexzd"]
-size = Vector2(30, 80)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_pyf7c"]
-size = Vector2(30, 80)
+size = Vector2(120, 120)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ggz9c"]
+size = Vector2(30, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_44r1w"]
+size = Vector2(30, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mwog4"]
 size = Vector2(40, 80)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_r96nr"]
-size = Vector2(30, 80)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_tmsia"]
-size = Vector2(30, 80)
-
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_74z27"]
-size = Vector2(28, 80)
+size = Vector2(30, 80)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gtgpi"]
+size = Vector2(30, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tfmet"]
+size = Vector2(28, 80)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_6g5dt"]
 size = Vector2(30, 80)
 
 [node name="ClubBack" type="Node2D"]
@@ -548,18 +550,19 @@ position = Vector2(1530, -282)
 [node name="Shape" type="CollisionShape2D" parent="RightWallTopBody"]
 shape = SubResource("RectangleShape2D_9gmmn")
 
-[node name="Window" type="Sprite2D" parent="."]
-z_index = 2
-position = Vector2(1520, -254)
-texture = ExtResource("22_09rxp")
-centered = false
-flip_h = true
-
 [node name="WindowBlock" type="StaticBody2D" parent="."]
-position = Vector2(1530, -207)
+position = Vector2(1520, -254)
+script = ExtResource("22_09rxp")
+broken_texture = ExtResource("23_8zne1")
+
+[node name="Sprite" type="Sprite2D" parent="WindowBlock"]
+z_index = 2
+texture = ExtResource("24_htsom")
+centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="WindowBlock"]
-shape = SubResource("RectangleShape2D_8zne1")
+position = Vector2(10, 47)
+shape = SubResource("RectangleShape2D_9k8uk")
 
 [node name="RightWall" type="Sprite2D" parent="."]
 z_index = 2
@@ -574,12 +577,12 @@ region_rect = Rect2(0, 0, 20, 400)
 position = Vector2(1530, 40)
 
 [node name="Shape" type="CollisionShape2D" parent="RightWallBody"]
-shape = SubResource("RectangleShape2D_htsom")
+shape = SubResource("RectangleShape2D_rjwte")
 
 [node name="FireEscape" type="Sprite2D" parent="."]
 z_index = -3
 position = Vector2(1540, -174)
-texture = ExtResource("23_9k8uk")
+texture = ExtResource("25_y2u8y")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -589,25 +592,25 @@ region_rect = Rect2(0, 0, 80, 20)
 position = Vector2(1580, -158)
 
 [node name="Shape" type="CollisionShape2D" parent="FireEscapeDeck"]
-shape = SubResource("RectangleShape2D_rjwte")
+shape = SubResource("RectangleShape2D_720f8")
 one_way_collision = true
 
 [node name="EdgeLeft" type="StaticBody2D" parent="."]
 position = Vector2(-94, -120)
 
 [node name="Shape" type="CollisionShape2D" parent="EdgeLeft"]
-shape = SubResource("RectangleShape2D_y2u8y")
+shape = SubResource("RectangleShape2D_co762")
 
 [node name="EdgeRight" type="StaticBody2D" parent="."]
 position = Vector2(1656, -120)
 
 [node name="Shape" type="CollisionShape2D" parent="EdgeRight"]
-shape = SubResource("RectangleShape2D_720f8")
+shape = SubResource("RectangleShape2D_cilzu")
 
 [node name="PokerWall" type="Sprite2D" parent="."]
 z_index = -20
 position = Vector2(640, -300)
-texture = ExtResource("24_co762")
+texture = ExtResource("26_rqm1z")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -616,7 +619,7 @@ region_rect = Rect2(0, 0, 460, 140)
 [node name="OfficeWall" type="Sprite2D" parent="."]
 z_index = -20
 position = Vector2(1100, -300)
-texture = ExtResource("25_cilzu")
+texture = ExtResource("27_f4fu4")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -625,7 +628,7 @@ region_rect = Rect2(0, 0, 420, 140)
 [node name="UpperFloor" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(640, -160)
-texture = ExtResource("26_rqm1z")
+texture = ExtResource("28_rsfdg")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -635,7 +638,7 @@ region_rect = Rect2(0, 0, 880, 10)
 position = Vector2(1080, -155)
 
 [node name="Shape" type="CollisionShape2D" parent="UpperFloorBody"]
-shape = SubResource("RectangleShape2D_f4fu4")
+shape = SubResource("RectangleShape2D_8cu57")
 
 [node name="OfficePartition" type="Sprite2D" parent="."]
 z_index = 1
@@ -650,21 +653,21 @@ region_rect = Rect2(0, 0, 20, 46)
 position = Vector2(1110, -277)
 
 [node name="Shape" type="CollisionShape2D" parent="OfficePartitionBody"]
-shape = SubResource("RectangleShape2D_rsfdg")
+shape = SubResource("RectangleShape2D_mbta9")
 
 [node name="OfficeDoor" type="StaticBody2D" parent="."]
 position = Vector2(1110, -160)
-script = ExtResource("27_8cu57")
+script = ExtResource("29_7ur8l")
 
 [node name="Shape" type="CollisionShape2D" parent="OfficeDoor"]
 position = Vector2(0, -47)
-shape = SubResource("RectangleShape2D_mbta9")
+shape = SubResource("RectangleShape2D_vzjnt")
 disabled = true
 
 [node name="Sprite" type="Sprite2D" parent="OfficeDoor"]
 z_index = 2
 position = Vector2(-8, -94)
-texture = ExtResource("28_7ur8l")
+texture = ExtResource("30_v690j")
 centered = false
 hframes = 2
 frame = 1
@@ -672,19 +675,19 @@ frame = 1
 [node name="Mirror" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(1150, -270)
-texture = ExtResource("29_vzjnt")
+texture = ExtResource("31_6cpcx")
 centered = false
 
 [node name="Portrait" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(1330, -268)
-texture = ExtResource("30_v690j")
+texture = ExtResource("32_mmibq")
 centered = false
 
 [node name="Safe" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(1460, -206)
-texture = ExtResource("31_6cpcx")
+texture = ExtResource("33_xnpx5")
 centered = false
 
 [node name="SafeSpot" type="Area2D" parent="."]
@@ -694,12 +697,12 @@ verb = "OPEN"
 hint_offset = Vector2(0, -40)
 
 [node name="Shape" type="CollisionShape2D" parent="SafeSpot"]
-shape = SubResource("RectangleShape2D_mmibq")
+shape = SubResource("RectangleShape2D_a7wjf")
 
 [node name="Desk" type="Node2D" parent="."]
 position = Vector2(1270, -160)
-script = ExtResource("32_xnpx5")
-flipped_texture = ExtResource("33_a7wjf")
+script = ExtResource("34_1hs8o")
+flipped_texture = ExtResource("35_t22um")
 flipped_offset = Vector2(-39, -44)
 noise_radius = 240.0
 flip_dir = -1.0
@@ -709,7 +712,7 @@ wall_px = 37.0
 [node name="Sprite" type="Sprite2D" parent="Desk"]
 z_index = -3
 position = Vector2(-39, -34)
-texture = ExtResource("34_1hs8o")
+texture = ExtResource("36_ank7n")
 centered = false
 
 [node name="Cover" type="StaticBody2D" parent="Desk"]
@@ -718,7 +721,7 @@ collision_mask = 0
 
 [node name="Shape" type="CollisionShape2D" parent="Desk/Cover"]
 position = Vector2(0, -22)
-shape = SubResource("RectangleShape2D_t22um")
+shape = SubResource("RectangleShape2D_0jr85")
 disabled = true
 
 [node name="DeskLamp" type="StaticBody2D" parent="."]
@@ -726,12 +729,12 @@ position = Vector2(1250, -203)
 script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="DeskLamp"]
-shape = SubResource("RectangleShape2D_ank7n")
+shape = SubResource("RectangleShape2D_pg3kd")
 
 [node name="Lamp" type="Sprite2D" parent="DeskLamp"]
 z_index = -2
 position = Vector2(-7, -9)
-texture = ExtResource("35_0jr85")
+texture = ExtResource("37_bu3bg")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="DeskLamp"]
@@ -747,7 +750,7 @@ position = Vector2(5, -2)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="DeskLamp/Light"]
-shape = SubResource("RectangleShape2D_pg3kd")
+shape = SubResource("RectangleShape2D_8yzhu")
 
 [node name="Cord" type="Line2D" parent="."]
 z_index = -4
@@ -761,12 +764,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="OfficeLamp"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_bu3bg")
+shape = SubResource("RectangleShape2D_a7sgk")
 
 [node name="Lamp" type="Sprite2D" parent="OfficeLamp"]
 z_index = -4
 position = Vector2(-8, 0)
-texture = ExtResource("36_8yzhu")
+texture = ExtResource("38_alzqc")
 centered = false
 
 [node name="Cone" type="Sprite2D" parent="OfficeLamp"]
@@ -775,7 +778,7 @@ material = SubResource("CanvasItemMaterial_l37ie")
 position = Vector2(-56, 8)
 modulate = Color(1, 1, 1, 0.45)
 scale = Vector2(1, 0.466667)
-texture = ExtResource("37_a7sgk")
+texture = ExtResource("39_tthi3")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="OfficeLamp"]
@@ -791,7 +794,7 @@ position = Vector2(0, 55)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="OfficeLamp/Light"]
-shape = SubResource("RectangleShape2D_alzqc")
+shape = SubResource("RectangleShape2D_f25yu")
 
 [node name="OfficeEnter" type="Area2D" parent="."]
 position = Vector2(1220, -200)
@@ -799,9 +802,9 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="OfficeEnter"]
-shape = SubResource("RectangleShape2D_tthi3")
+shape = SubResource("RectangleShape2D_5hid5")
 
-[node name="Sal" parent="." instance=ExtResource("38_f25yu")]
+[node name="Sal" parent="." instance=ExtResource("40_j3b0y")]
 position = Vector2(1440, -160)
 start_facing = 1.0
 respawn_time = 0.0
@@ -814,7 +817,7 @@ stationary = true
 sight_range = 320.0
 needs_light = false
 
-[node name="Bodyguard" parent="." instance=ExtResource("39_5hid5")]
+[node name="Bodyguard" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(1380, -160)
 start_facing = 1.0
 respawn_time = 0.0
@@ -836,24 +839,24 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="ExitWindow"]
-shape = SubResource("RectangleShape2D_j3b0y")
+shape = SubResource("RectangleShape2D_nxbz3")
 
 [node name="BarCart" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(1050, -196)
-texture = ExtResource("40_wc660")
+texture = ExtResource("42_9pjmq")
 centered = false
 
 [node name="PokerTable" type="Node2D" parent="."]
 position = Vector2(860, -160)
-script = ExtResource("32_xnpx5")
-flipped_texture = ExtResource("41_nxbz3")
+script = ExtResource("34_1hs8o")
+flipped_texture = ExtResource("43_lsq6u")
 flipped_offset = Vector2(-47, -46)
 
 [node name="Sprite" type="Sprite2D" parent="PokerTable"]
 z_index = -3
 position = Vector2(-47, -34)
-texture = ExtResource("42_9pjmq")
+texture = ExtResource("44_0iauz")
 centered = false
 
 [node name="Cover" type="StaticBody2D" parent="PokerTable"]
@@ -862,7 +865,7 @@ collision_mask = 0
 
 [node name="Shape" type="CollisionShape2D" parent="PokerTable/Cover"]
 position = Vector2(0, -23)
-shape = SubResource("RectangleShape2D_lsq6u")
+shape = SubResource("RectangleShape2D_r54kq")
 disabled = true
 
 [node name="Spot" type="Area2D" parent="PokerTable"]
@@ -872,7 +875,7 @@ verb = "FLIP"
 hint_offset = Vector2(0, -46)
 
 [node name="Shape" type="CollisionShape2D" parent="PokerTable/Spot"]
-shape = SubResource("RectangleShape2D_0iauz")
+shape = SubResource("RectangleShape2D_3n3fl")
 
 [node name="Cord2" type="Line2D" parent="."]
 z_index = -4
@@ -886,12 +889,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="PokerLamp"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_r54kq")
+shape = SubResource("RectangleShape2D_w9flu")
 
 [node name="Lamp" type="Sprite2D" parent="PokerLamp"]
 z_index = -4
 position = Vector2(-15, 0)
-texture = ExtResource("43_3n3fl")
+texture = ExtResource("45_fkyr9")
 centered = false
 
 [node name="Cone" type="Sprite2D" parent="PokerLamp"]
@@ -900,7 +903,7 @@ material = SubResource("CanvasItemMaterial_l37ie")
 position = Vector2(-56, 8)
 modulate = Color(1, 1, 1, 0.45)
 scale = Vector2(1, 0.533333)
-texture = ExtResource("37_a7sgk")
+texture = ExtResource("39_tthi3")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="PokerLamp"]
@@ -916,9 +919,9 @@ position = Vector2(0, 40)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="PokerLamp/Light"]
-shape = SubResource("RectangleShape2D_w9flu")
+shape = SubResource("RectangleShape2D_ayfsi")
 
-[node name="Lieutenant1" parent="." instance=ExtResource("39_5hid5")]
+[node name="Lieutenant1" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(784, -160)
 start_facing = 1.0
 respawn_time = 0.0
@@ -931,14 +934,14 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="Lieutenant2" parent="." instance=ExtResource("39_5hid5")]
+[node name="Lieutenant2" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(812, -160)
 start_facing = 1.0
 respawn_time = 0.0
 stationary = true
 needs_light = true
 
-[node name="Lieutenant3" parent="." instance=ExtResource("39_5hid5")]
+[node name="Lieutenant3" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(908, -160)
 start_facing = -1.0
 respawn_time = 0.0
@@ -951,7 +954,7 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="Lieutenant4" parent="." instance=ExtResource("39_5hid5")]
+[node name="Lieutenant4" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(936, -160)
 start_facing = -1.0
 respawn_time = 0.0
@@ -965,7 +968,7 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="ShaftGuard" parent="." instance=ExtResource("39_5hid5")]
+[node name="ShaftGuard" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(700, -160)
 start_facing = -1.0
 respawn_time = 0.0
@@ -980,7 +983,7 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="QuartersFood" parent="." instance=ExtResource("44_fkyr9")]
+[node name="QuartersFood" parent="." instance=ExtResource("46_4tvy9")]
 position = Vector2(1050, -210)
 
 [node name="PokerBark" type="Area2D" parent="."]
@@ -989,7 +992,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="PokerBark"]
-shape = SubResource("RectangleShape2D_ayfsi")
+shape = SubResource("RectangleShape2D_bfl08")
 
 [node name="LockedBark" type="Area2D" parent="."]
 position = Vector2(1060, -200)
@@ -997,12 +1000,12 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="LockedBark"]
-shape = SubResource("RectangleShape2D_4tvy9")
+shape = SubResource("RectangleShape2D_4a1yv")
 
 [node name="ShaftWall" type="Sprite2D" parent="."]
 z_index = -20
 position = Vector2(-60, -310)
-texture = ExtResource("45_bfl08")
+texture = ExtResource("47_xcqpc")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1031,19 +1034,19 @@ region_rect = Rect2(0, 0, 10, 170)
 position = Vector2(-5, -275)
 
 [node name="Shape" type="CollisionShape2D" parent="WallB1Top"]
-shape = SubResource("RectangleShape2D_4a1yv")
+shape = SubResource("RectangleShape2D_grzy1")
 
 [node name="WallB1LowBody" type="StaticBody2D" parent="."]
 position = Vector2(-5, -75)
 
 [node name="Shape" type="CollisionShape2D" parent="WallB1LowBody"]
-shape = SubResource("RectangleShape2D_xcqpc")
+shape = SubResource("RectangleShape2D_pz7z7")
 
 [node name="ShaftLanding" type="StaticBody2D" parent="." groups=["platform"]]
 position = Vector2(-46, -158)
 
 [node name="Shape" type="CollisionShape2D" parent="ShaftLanding"]
-shape = SubResource("RectangleShape2D_grzy1")
+shape = SubResource("RectangleShape2D_phf8d")
 one_way_collision = true
 
 [node name="LadderShaft" type="Node2D" parent="."]
@@ -1058,12 +1061,12 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="ShaftBark"]
-shape = SubResource("RectangleShape2D_pz7z7")
+shape = SubResource("RectangleShape2D_zfosd")
 
 [node name="FlyWall" type="Sprite2D" parent="."]
 z_index = -20
 position = Vector2(0, -300)
-texture = ExtResource("45_bfl08")
+texture = ExtResource("47_xcqpc")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1072,31 +1075,31 @@ region_rect = Rect2(0, 0, 640, 300)
 [node name="StageDoor" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(22, -98)
-texture = ExtResource("46_phf8d")
+texture = ExtResource("48_y7qmr")
 centered = false
 
 [node name="FlatPalm" type="Sprite2D" parent="."]
 z_index = -10
 position = Vector2(120, -122)
-texture = ExtResource("47_zfosd")
+texture = ExtResource("49_rnpk5")
 centered = false
 
 [node name="FlatCity" type="Sprite2D" parent="."]
 z_index = -10
 position = Vector2(190, -122)
-texture = ExtResource("48_y7qmr")
+texture = ExtResource("50_x7y7e")
 centered = false
 
 [node name="Rack" type="Sprite2D" parent="."]
 z_index = -8
 position = Vector2(560, -58)
-texture = ExtResource("49_rnpk5")
+texture = ExtResource("51_x5fcd")
 centered = false
 
 [node name="Grid" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(0, -276)
-texture = ExtResource("50_x7y7e")
+texture = ExtResource("52_u8sk5")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1105,7 +1108,7 @@ region_rect = Rect2(0, 0, 640, 6)
 [node name="Catwalk" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(16, -160)
-texture = ExtResource("51_x5fcd")
+texture = ExtResource("53_p7idi")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1115,7 +1118,7 @@ region_rect = Rect2(0, 0, 604, 8)
 position = Vector2(318, -158)
 
 [node name="Shape" type="CollisionShape2D" parent="CatwalkDeck"]
-shape = SubResource("RectangleShape2D_u8sk5")
+shape = SubResource("RectangleShape2D_ym9ue")
 one_way_collision = true
 
 [node name="Column" type="Sprite2D" parent="."]
@@ -1131,7 +1134,7 @@ region_rect = Rect2(0, 0, 16, 160)
 position = Vector2(8, -80)
 
 [node name="Shape" type="CollisionShape2D" parent="ColumnBody"]
-shape = SubResource("RectangleShape2D_p7idi")
+shape = SubResource("RectangleShape2D_uas3o")
 
 [node name="LadderCatwalk" type="Node2D" parent="."]
 position = Vector2(16, -160)
@@ -1151,12 +1154,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="WorkLamp1"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_ym9ue")
+shape = SubResource("RectangleShape2D_8w2y0")
 
 [node name="Lamp" type="Sprite2D" parent="WorkLamp1"]
 z_index = -4
 position = Vector2(-8, 0)
-texture = ExtResource("36_8yzhu")
+texture = ExtResource("38_alzqc")
 centered = false
 
 [node name="Cone" type="Sprite2D" parent="WorkLamp1"]
@@ -1165,7 +1168,7 @@ material = SubResource("CanvasItemMaterial_l37ie")
 position = Vector2(-56, 8)
 modulate = Color(1, 1, 1, 0.45)
 scale = Vector2(1, 0.666667)
-texture = ExtResource("37_a7sgk")
+texture = ExtResource("39_tthi3")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="WorkLamp1"]
@@ -1181,7 +1184,7 @@ position = Vector2(0, 70)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="WorkLamp1/Light"]
-shape = SubResource("RectangleShape2D_uas3o")
+shape = SubResource("RectangleShape2D_sir7q")
 
 [node name="Cord4" type="Line2D" parent="."]
 z_index = -4
@@ -1195,12 +1198,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="WorkLamp2"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_8w2y0")
+shape = SubResource("RectangleShape2D_dt39d")
 
 [node name="Lamp" type="Sprite2D" parent="WorkLamp2"]
 z_index = -4
 position = Vector2(-8, 0)
-texture = ExtResource("36_8yzhu")
+texture = ExtResource("38_alzqc")
 centered = false
 
 [node name="Cone" type="Sprite2D" parent="WorkLamp2"]
@@ -1209,7 +1212,7 @@ material = SubResource("CanvasItemMaterial_l37ie")
 position = Vector2(-56, 8)
 modulate = Color(1, 1, 1, 0.45)
 scale = Vector2(1, 0.666667)
-texture = ExtResource("37_a7sgk")
+texture = ExtResource("39_tthi3")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="WorkLamp2"]
@@ -1225,11 +1228,11 @@ position = Vector2(0, 70)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="WorkLamp2/Light"]
-shape = SubResource("RectangleShape2D_sir7q")
+shape = SubResource("RectangleShape2D_kygh0")
 
 [node name="Sandbag1" type="StaticBody2D" parent="."]
 position = Vector2(320, -270)
-script = ExtResource("52_dt39d")
+script = ExtResource("54_0mxuy")
 floor_y = 0.0
 weight_h = 22.0
 kill_half = 18.0
@@ -1250,16 +1253,16 @@ position = Vector2(0, 150)
 [node name="Sprite" type="Sprite2D" parent="Sandbag1/Weight"]
 z_index = -3
 position = Vector2(-8, 0)
-texture = ExtResource("53_kygh0")
+texture = ExtResource("55_lskax")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Sandbag1"]
 position = Vector2(0, 81)
-shape = SubResource("RectangleShape2D_0mxuy")
+shape = SubResource("RectangleShape2D_fjw3q")
 
 [node name="Sandbag2" type="StaticBody2D" parent="."]
 position = Vector2(520, -270)
-script = ExtResource("52_dt39d")
+script = ExtResource("54_0mxuy")
 floor_y = 0.0
 weight_h = 22.0
 kill_half = 18.0
@@ -1280,14 +1283,14 @@ position = Vector2(0, 150)
 [node name="Sprite" type="Sprite2D" parent="Sandbag2/Weight"]
 z_index = -3
 position = Vector2(-8, 0)
-texture = ExtResource("53_kygh0")
+texture = ExtResource("55_lskax")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Sandbag2"]
 position = Vector2(0, 81)
-shape = SubResource("RectangleShape2D_lskax")
+shape = SubResource("RectangleShape2D_2ust6")
 
-[node name="StageHand" parent="." instance=ExtResource("38_f25yu")]
+[node name="StageHand" parent="." instance=ExtResource("40_j3b0y")]
 position = Vector2(300, 0)
 start_facing = 1.0
 respawn_time = 0.0
@@ -1295,7 +1298,7 @@ patrol_span = 110.0
 walk_speed = 24.0
 needs_light = true
 
-[node name="PropMan" parent="." instance=ExtResource("39_5hid5")]
+[node name="PropMan" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(520, 0)
 start_facing = -1.0
 respawn_time = 0.0
@@ -1315,12 +1318,12 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="CatwalkBark"]
-shape = SubResource("RectangleShape2D_fjw3q")
+shape = SubResource("RectangleShape2D_ptw9u")
 
 [node name="DressingWall" type="Sprite2D" parent="."]
 z_index = -20
 position = Vector2(640, -150)
-texture = ExtResource("54_2ust6")
+texture = ExtResource("56_lbhq7")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1329,7 +1332,7 @@ region_rect = Rect2(0, 0, 880, 150)
 [node name="P0" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(628, -150)
-texture = ExtResource("54_2ust6")
+texture = ExtResource("56_lbhq7")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1340,12 +1343,12 @@ modulate = Color(0.8, 0.75, 0.75, 1)
 position = Vector2(634, -122)
 
 [node name="Shape" type="CollisionShape2D" parent="P0Body"]
-shape = SubResource("RectangleShape2D_ptw9u")
+shape = SubResource("RectangleShape2D_1e6ix")
 
 [node name="P1" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(840, -150)
-texture = ExtResource("54_2ust6")
+texture = ExtResource("56_lbhq7")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1356,12 +1359,12 @@ modulate = Color(0.8, 0.75, 0.75, 1)
 position = Vector2(846, -122)
 
 [node name="Shape" type="CollisionShape2D" parent="P1Body"]
-shape = SubResource("RectangleShape2D_lbhq7")
+shape = SubResource("RectangleShape2D_4x3tx")
 
 [node name="P2" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(1040, -150)
-texture = ExtResource("54_2ust6")
+texture = ExtResource("56_lbhq7")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1372,12 +1375,12 @@ modulate = Color(0.8, 0.75, 0.75, 1)
 position = Vector2(1046, -122)
 
 [node name="Shape" type="CollisionShape2D" parent="P2Body"]
-shape = SubResource("RectangleShape2D_1e6ix")
+shape = SubResource("RectangleShape2D_x7slf")
 
 [node name="P3" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(1250, -150)
-texture = ExtResource("54_2ust6")
+texture = ExtResource("56_lbhq7")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1388,12 +1391,12 @@ modulate = Color(0.8, 0.75, 0.75, 1)
 position = Vector2(1256, -122)
 
 [node name="Shape" type="CollisionShape2D" parent="P3Body"]
-shape = SubResource("RectangleShape2D_4x3tx")
+shape = SubResource("RectangleShape2D_h01du")
 
 [node name="GroundFloor" type="Sprite2D" parent="."]
 z_index = 1
 position = Vector2(0, 0)
-texture = ExtResource("26_rqm1z")
+texture = ExtResource("28_rsfdg")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1403,7 +1406,7 @@ region_rect = Rect2(0, 0, 1490, 10)
 position = Vector2(745, 5)
 
 [node name="Shape" type="CollisionShape2D" parent="GroundFloorBody"]
-shape = SubResource("RectangleShape2D_x7slf")
+shape = SubResource("RectangleShape2D_socgc")
 
 [node name="LadderDown" type="Node2D" parent="."]
 position = Vector2(1490, 0)
@@ -1414,22 +1417,22 @@ length = 180.0
 [node name="Costumes" type="Sprite2D" parent="."]
 z_index = -8
 position = Vector2(680, -58)
-texture = ExtResource("49_rnpk5")
+texture = ExtResource("51_x5fcd")
 centered = false
 
 [node name="Screen" type="Sprite2D" parent="."]
 z_index = -7
 position = Vector2(760, -66)
-texture = ExtResource("55_h01du")
+texture = ExtResource("57_sfo74")
 centered = false
 
 [node name="Trunk" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(800, -24)
-texture = ExtResource("56_socgc")
+texture = ExtResource("58_okvv5")
 centered = false
 
-[node name="Slugger" parent="." instance=ExtResource("57_sfo74")]
+[node name="Slugger" parent="." instance=ExtResource("59_qsgrn")]
 position = Vector2(720, 0)
 start_facing = 1.0
 respawn_time = 0.0
@@ -1448,12 +1451,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="R1Lamp"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_okvv5")
+shape = SubResource("RectangleShape2D_5cfoo")
 
 [node name="Lamp" type="Sprite2D" parent="R1Lamp"]
 z_index = -4
 position = Vector2(-4, 0)
-texture = ExtResource("58_qsgrn")
+texture = ExtResource("60_81vj9")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="R1Lamp"]
@@ -1469,12 +1472,12 @@ position = Vector2(5, 65)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="R1Lamp/Light"]
-shape = SubResource("RectangleShape2D_5cfoo")
+shape = SubResource("RectangleShape2D_9hgn3")
 
 [node name="Vanity" type="Sprite2D" parent="."]
 z_index = -8
 position = Vector2(900, -86)
-texture = ExtResource("59_81vj9")
+texture = ExtResource("61_xkn9v")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="."]
@@ -1490,7 +1493,7 @@ position = Vector2(935, -45)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="LightZone"]
-shape = SubResource("RectangleShape2D_9hgn3")
+shape = SubResource("RectangleShape2D_azj5v")
 
 [node name="TelegramSpot" type="Area2D" parent="."]
 position = Vector2(936, -20)
@@ -1499,32 +1502,32 @@ verb = "READ"
 hint_offset = Vector2(0, -70)
 
 [node name="Shape" type="CollisionShape2D" parent="TelegramSpot"]
-shape = SubResource("RectangleShape2D_xkn9v")
+shape = SubResource("RectangleShape2D_gfwc1")
 
 [node name="DrumSpot" type="Marker2D" parent="."]
 position = Vector2(880, -6)
 
 [node name="KnockDoor" type="StaticBody2D" parent="."]
 position = Vector2(1046, 0)
-script = ExtResource("60_azj5v")
+script = ExtResource("62_7xi4h")
 inside = Array[NodePath]([NodePath("../Drinker1"), NodePath("../Drinker2"), NodePath("../Drinker3")])
 out_x = -70.0
 
 [node name="Shape" type="CollisionShape2D" parent="KnockDoor"]
 position = Vector2(0, -47)
-shape = SubResource("RectangleShape2D_gfwc1")
+shape = SubResource("RectangleShape2D_3qzfc")
 
 [node name="Sprite" type="Sprite2D" parent="KnockDoor"]
 z_index = 2
 position = Vector2(-8, -94)
-texture = ExtResource("28_7ur8l")
+texture = ExtResource("30_v690j")
 centered = false
 hframes = 2
 
 [node name="CardTable" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(1120, -30)
-texture = ExtResource("61_7xi4h")
+texture = ExtResource("63_8ss4k")
 centered = false
 
 [node name="Cord6" type="Line2D" parent="."]
@@ -1539,12 +1542,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="R3Lamp"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_3qzfc")
+shape = SubResource("RectangleShape2D_s20zs")
 
 [node name="Lamp" type="Sprite2D" parent="R3Lamp"]
 z_index = -4
 position = Vector2(-4, 0)
-texture = ExtResource("58_qsgrn")
+texture = ExtResource("60_81vj9")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="R3Lamp"]
@@ -1560,9 +1563,9 @@ position = Vector2(9, 65)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="R3Lamp/Light"]
-shape = SubResource("RectangleShape2D_8ss4k")
+shape = SubResource("RectangleShape2D_qiof6")
 
-[node name="Drinker1" parent="." instance=ExtResource("39_5hid5")]
+[node name="Drinker1" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(1090, 0)
 start_facing = 1.0
 respawn_time = 0.0
@@ -1575,14 +1578,14 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="Drinker2" parent="." instance=ExtResource("39_5hid5")]
+[node name="Drinker2" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(1196, 0)
 start_facing = -1.0
 respawn_time = 0.0
 stationary = true
 needs_light = true
 
-[node name="Drinker3" parent="." instance=ExtResource("39_5hid5")]
+[node name="Drinker3" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(1226, 0)
 start_facing = -1.0
 respawn_time = 0.0
@@ -1602,25 +1605,25 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="KnockBark"]
-shape = SubResource("RectangleShape2D_s20zs")
+shape = SubResource("RectangleShape2D_p1u3v")
 
 [node name="Sofa" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(1290, -32)
-texture = ExtResource("62_qiof6")
+texture = ExtResource("64_299qe")
 centered = false
 
 [node name="BandTrunk" type="Sprite2D" parent="."]
 z_index = -6
 position = Vector2(1370, -24)
-texture = ExtResource("56_socgc")
+texture = ExtResource("58_okvv5")
 centered = false
 
-[node name="BandMedkit" parent="." instance=ExtResource("44_fkyr9")]
+[node name="BandMedkit" parent="." instance=ExtResource("46_4tvy9")]
 position = Vector2(1330, -10)
 kind = &"medkit"
 
-[node name="NightWatch" parent="." instance=ExtResource("39_5hid5")]
+[node name="NightWatch" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(400, -160)
 start_facing = -1.0
 respawn_time = 0.0
@@ -1637,7 +1640,7 @@ needs_light = true
 [node name="CellarWall" type="Sprite2D" parent="."]
 z_index = -20
 position = Vector2(-60, 10)
-texture = ExtResource("63_p1u3v")
+texture = ExtResource("65_em0t0")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1646,7 +1649,7 @@ region_rect = Rect2(0, 0, 1580, 170)
 [node name="CellarFloorFill" type="Sprite2D" parent="."]
 z_index = -1
 position = Vector2(-60, 180)
-texture = ExtResource("64_299qe")
+texture = ExtResource("66_ps1zg")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1656,158 +1659,158 @@ region_rect = Rect2(0, 0, 1580, 60)
 position = Vector2(160, 210)
 
 [node name="Shape" type="CollisionShape2D" parent="CellarFloor1"]
-shape = SubResource("RectangleShape2D_em0t0")
+shape = SubResource("RectangleShape2D_qwzop")
 
 [node name="CellarFloor2" type="StaticBody2D" parent="."]
 position = Vector2(500, 210)
 
 [node name="Shape" type="CollisionShape2D" parent="CellarFloor2"]
-shape = SubResource("RectangleShape2D_ps1zg")
+shape = SubResource("RectangleShape2D_v1vm6")
 
 [node name="CellarFloor3" type="StaticBody2D" parent="."]
 position = Vector2(860, 210)
 
 [node name="Shape" type="CollisionShape2D" parent="CellarFloor3"]
-shape = SubResource("RectangleShape2D_qwzop")
+shape = SubResource("RectangleShape2D_s9dw2")
 
 [node name="CellarFloor4" type="StaticBody2D" parent="."]
 position = Vector2(1230, 210)
 
 [node name="Shape" type="CollisionShape2D" parent="CellarFloor4"]
-shape = SubResource("RectangleShape2D_v1vm6")
+shape = SubResource("RectangleShape2D_s2x4s")
 
 [node name="CellarFloor5" type="StaticBody2D" parent="."]
 position = Vector2(1440, 210)
 
 [node name="Shape" type="CollisionShape2D" parent="CellarFloor5"]
-shape = SubResource("RectangleShape2D_s9dw2")
+shape = SubResource("RectangleShape2D_yd7zu")
 
 [node name="BottleRack" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(200, 110)
-texture = ExtResource("65_s2x4s")
+texture = ExtResource("67_5gcrn")
 centered = false
 
 [node name="BottleRack2" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(1000, 110)
-texture = ExtResource("65_s2x4s")
+texture = ExtResource("67_5gcrn")
 centered = false
 
 [node name="Barrel1" type="StaticBody2D" parent="."]
 position = Vector2(420, 166)
-script = ExtResource("66_yd7zu")
+script = ExtResource("68_t5ily")
 puddle_floor = NodePath("../CellarFloor2")
 puddle_half = 46.0
-leak_texture = ExtResource("67_5gcrn")
+leak_texture = ExtResource("69_j9jsv")
 
 [node name="Sprite" type="Sprite2D" parent="Barrel1"]
 z_index = -4
 position = Vector2(-14, -14)
-texture = ExtResource("68_t5ily")
+texture = ExtResource("70_lfj45")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Barrel1"]
-shape = SubResource("RectangleShape2D_j9jsv")
+shape = SubResource("RectangleShape2D_jyxrp")
 
 [node name="Puddle" type="Sprite2D" parent="Barrel1"]
 z_index = -3
 position = Vector2(0, 11)
 scale = Vector2(0, 1)
-texture = ExtResource("69_lfj45")
+texture = ExtResource("71_hfyef")
 
 [node name="Barrel2" type="StaticBody2D" parent="."]
 position = Vector2(560, 166)
-script = ExtResource("66_yd7zu")
+script = ExtResource("68_t5ily")
 puddle_floor = NodePath("../CellarFloor2")
 puddle_half = 46.0
-leak_texture = ExtResource("67_5gcrn")
+leak_texture = ExtResource("69_j9jsv")
 
 [node name="Sprite" type="Sprite2D" parent="Barrel2"]
 z_index = -4
 position = Vector2(-14, -14)
-texture = ExtResource("68_t5ily")
+texture = ExtResource("70_lfj45")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Barrel2"]
-shape = SubResource("RectangleShape2D_jyxrp")
+shape = SubResource("RectangleShape2D_zw91z")
 
 [node name="Puddle" type="Sprite2D" parent="Barrel2"]
 z_index = -3
 position = Vector2(0, 11)
 scale = Vector2(0, 1)
-texture = ExtResource("69_lfj45")
+texture = ExtResource("71_hfyef")
 
 [node name="Barrel3" type="StaticBody2D" parent="."]
 position = Vector2(1150, 166)
-script = ExtResource("66_yd7zu")
+script = ExtResource("68_t5ily")
 puddle_floor = NodePath("../CellarFloor4")
 puddle_half = 46.0
-leak_texture = ExtResource("67_5gcrn")
+leak_texture = ExtResource("69_j9jsv")
 
 [node name="Sprite" type="Sprite2D" parent="Barrel3"]
 z_index = -4
 position = Vector2(-14, -14)
-texture = ExtResource("68_t5ily")
+texture = ExtResource("70_lfj45")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Barrel3"]
-shape = SubResource("RectangleShape2D_hfyef")
+shape = SubResource("RectangleShape2D_mmhp4")
 
 [node name="Puddle" type="Sprite2D" parent="Barrel3"]
 z_index = -3
 position = Vector2(0, 11)
 scale = Vector2(0, 1)
-texture = ExtResource("69_lfj45")
+texture = ExtResource("71_hfyef")
 
 [node name="Barrel4" type="StaticBody2D" parent="."]
 position = Vector2(1240, 166)
-script = ExtResource("66_yd7zu")
+script = ExtResource("68_t5ily")
 puddle_floor = NodePath("../CellarFloor4")
 puddle_half = 46.0
-leak_texture = ExtResource("67_5gcrn")
+leak_texture = ExtResource("69_j9jsv")
 
 [node name="Sprite" type="Sprite2D" parent="Barrel4"]
 z_index = -4
 position = Vector2(-14, -14)
-texture = ExtResource("68_t5ily")
+texture = ExtResource("70_lfj45")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Barrel4"]
-shape = SubResource("RectangleShape2D_zw91z")
+shape = SubResource("RectangleShape2D_pj8e5")
 
 [node name="Puddle" type="Sprite2D" parent="Barrel4"]
 z_index = -3
 position = Vector2(0, 11)
 scale = Vector2(0, 1)
-texture = ExtResource("69_lfj45")
+texture = ExtResource("71_hfyef")
 
 [node name="Barrel5" type="StaticBody2D" parent="."]
 position = Vector2(1300, 166)
-script = ExtResource("66_yd7zu")
+script = ExtResource("68_t5ily")
 puddle_floor = NodePath("../CellarFloor4")
 puddle_half = 46.0
-leak_texture = ExtResource("67_5gcrn")
+leak_texture = ExtResource("69_j9jsv")
 
 [node name="Sprite" type="Sprite2D" parent="Barrel5"]
 z_index = -4
 position = Vector2(-14, -14)
-texture = ExtResource("68_t5ily")
+texture = ExtResource("70_lfj45")
 centered = false
 
 [node name="Shape" type="CollisionShape2D" parent="Barrel5"]
-shape = SubResource("RectangleShape2D_mmhp4")
+shape = SubResource("RectangleShape2D_mfiju")
 
 [node name="Puddle" type="Sprite2D" parent="Barrel5"]
 z_index = -3
 position = Vector2(0, 11)
 scale = Vector2(0, 1)
-texture = ExtResource("69_lfj45")
+texture = ExtResource("71_hfyef")
 
 [node name="Pipe" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(600, 22)
-texture = ExtResource("70_pj8e5")
+texture = ExtResource("72_f0lr3")
 centered = false
 texture_repeat = 2
 region_enabled = true
@@ -1816,133 +1819,133 @@ region_rect = Rect2(0, 0, 520, 10)
 [node name="Clamp1" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(652, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp2" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(696, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp3" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(740, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp4" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(784, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp5" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(828, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp6" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(872, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp7" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(916, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp8" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(960, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp9" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(1004, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp10" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(1048, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="Clamp11" type="Node2D" parent="."]
 z_index = -1
 position = Vector2(1092, 40)
-script = ExtResource("71_mfiju")
-texture = ExtResource("72_f0lr3")
+script = ExtResource("73_l6ftn")
+texture = ExtResource("74_im40r")
 
 [node name="CrateW1" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(610, 152)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="CrateW1Body" type="StaticBody2D" parent="."]
 position = Vector2(624, 166.5)
 
 [node name="Shape" type="CollisionShape2D" parent="CrateW1Body"]
-shape = SubResource("RectangleShape2D_im40r")
+shape = SubResource("RectangleShape2D_h5am0")
 
 [node name="CrateW2" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(610, 124)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="CrateW2Body" type="StaticBody2D" parent="."]
 position = Vector2(624, 138.5)
 
 [node name="Shape" type="CollisionShape2D" parent="CrateW2Body"]
-shape = SubResource("RectangleShape2D_cg3ov")
+shape = SubResource("RectangleShape2D_5e0dw")
 
 [node name="CrateE1" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(1090, 152)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="CrateE1Body" type="StaticBody2D" parent="."]
 position = Vector2(1104, 166.5)
 
 [node name="Shape" type="CollisionShape2D" parent="CrateE1Body"]
-shape = SubResource("RectangleShape2D_h5am0")
+shape = SubResource("RectangleShape2D_27smv")
 
 [node name="CrateE2" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(1090, 124)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="CrateE2Body" type="StaticBody2D" parent="."]
 position = Vector2(1104, 138.5)
 
 [node name="Shape" type="CollisionShape2D" parent="CrateE2Body"]
-shape = SubResource("RectangleShape2D_5e0dw")
+shape = SubResource("RectangleShape2D_7o45e")
 
 [node name="Hooch" type="Sprite2D" parent="."]
 z_index = -5
 position = Vector2(746, 152)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="Hooch2" type="Sprite2D" parent="."]
 z_index = -5
 position = Vector2(774, 152)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="Hooch3" type="Sprite2D" parent="."]
 z_index = -5
 position = Vector2(926, 152)
-texture = ExtResource("73_l6ftn")
+texture = ExtResource("75_cg3ov")
 centered = false
 
 [node name="Cord7" type="Line2D" parent="."]
@@ -1957,12 +1960,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="SmuggleBulb"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_27smv")
+shape = SubResource("RectangleShape2D_pem9s")
 
 [node name="Lamp" type="Sprite2D" parent="SmuggleBulb"]
 z_index = -4
 position = Vector2(-4, 0)
-texture = ExtResource("58_qsgrn")
+texture = ExtResource("60_81vj9")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="SmuggleBulb"]
@@ -1978,7 +1981,7 @@ position = Vector2(0, 80)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="SmuggleBulb/Light"]
-shape = SubResource("RectangleShape2D_7o45e")
+shape = SubResource("RectangleShape2D_2qlyb")
 
 [node name="Cord8" type="Line2D" parent="."]
 z_index = -4
@@ -1992,12 +1995,12 @@ script = ExtResource("6_nu4tm")
 
 [node name="Shape" type="CollisionShape2D" parent="StairBulb"]
 position = Vector2(0, 4)
-shape = SubResource("RectangleShape2D_pem9s")
+shape = SubResource("RectangleShape2D_zifn6")
 
 [node name="Lamp" type="Sprite2D" parent="StairBulb"]
 z_index = -4
 position = Vector2(-4, 0)
-texture = ExtResource("58_qsgrn")
+texture = ExtResource("60_81vj9")
 centered = false
 
 [node name="Glow" type="Sprite2D" parent="StairBulb"]
@@ -2013,9 +2016,9 @@ position = Vector2(0, 80)
 script = ExtResource("4_b7hyi")
 
 [node name="Shape" type="CollisionShape2D" parent="StairBulb/Light"]
-shape = SubResource("RectangleShape2D_2qlyb")
+shape = SubResource("RectangleShape2D_lexzd")
 
-[node name="Smuggler1" parent="." instance=ExtResource("39_5hid5")]
+[node name="Smuggler1" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(830, 180)
 start_facing = 1.0
 respawn_time = 0.0
@@ -2029,14 +2032,14 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="Smuggler2" parent="." instance=ExtResource("39_5hid5")]
+[node name="Smuggler2" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(890, 180)
 start_facing = -1.0
 respawn_time = 0.0
 stationary = true
 needs_light = true
 
-[node name="CellarTommy" parent="." instance=ExtResource("38_f25yu")]
+[node name="CellarTommy" parent="." instance=ExtResource("40_j3b0y")]
 position = Vector2(760, 180)
 start_facing = -1.0
 respawn_time = 0.0
@@ -2045,7 +2048,7 @@ patrol_span = 250.0
 walk_speed = 24.0
 needs_light = true
 
-[node name="StairGuard" parent="." instance=ExtResource("39_5hid5")]
+[node name="StairGuard" parent="." instance=ExtResource("41_wc660")]
 position = Vector2(80, 180)
 start_facing = 1.0
 respawn_time = 0.0
@@ -2059,7 +2062,7 @@ bullet_lifetime = 1.4
 preferred_range = 0.0
 needs_light = true
 
-[node name="CellarAmmo" parent="." instance=ExtResource("74_zifn6")]
+[node name="CellarAmmo" parent="." instance=ExtResource("76_pyf7c")]
 position = Vector2(940, 140)
 
 [node name="CellarBark" type="Area2D" parent="."]
@@ -2068,7 +2071,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="CellarBark"]
-shape = SubResource("RectangleShape2D_lexzd")
+shape = SubResource("RectangleShape2D_ggz9c")
 
 [node name="PipeBark" type="Area2D" parent="."]
 position = Vector2(1150, 140)
@@ -2076,9 +2079,9 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="PipeBark"]
-shape = SubResource("RectangleShape2D_pyf7c")
+shape = SubResource("RectangleShape2D_44r1w")
 
-[node name="RoofTommy" parent="." instance=ExtResource("38_f25yu")]
+[node name="RoofTommy" parent="." instance=ExtResource("40_j3b0y")]
 position = Vector2(700, -310)
 start_facing = 1.0
 respawn_time = 0.0
@@ -2092,12 +2095,12 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="RoofBark"]
-shape = SubResource("RectangleShape2D_ggz9c")
+shape = SubResource("RectangleShape2D_mwog4")
 
 [node name="GhostLight" type="Sprite2D" parent="."]
 z_index = -11
 position = Vector2(92, -64)
-texture = ExtResource("75_44r1w")
+texture = ExtResource("77_6t46b")
 centered = false
 
 [node name="Glow2" type="Sprite2D" parent="."]
@@ -2111,279 +2114,279 @@ texture = ExtResource("2_sq9g5")
 [node name="Deco" type="Sprite2D" parent="."]
 z_index = -13
 position = Vector2(240, -52)
-texture = ExtResource("76_mwog4")
+texture = ExtResource("78_ud8jn")
 centered = false
 
 [node name="Deco2" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(380, -22)
-texture = ExtResource("77_6t46b")
+texture = ExtResource("79_p6j8o")
 centered = false
 
 [node name="Deco3" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(432, -40)
-texture = ExtResource("78_ud8jn")
+texture = ExtResource("80_if7at")
 centered = false
 
 [node name="Deco4" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(500, -58)
-texture = ExtResource("79_p6j8o")
+texture = ExtResource("81_94fuw")
 centered = false
 
 [node name="Deco5" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(250, -112)
-texture = ExtResource("80_if7at")
+texture = ExtResource("82_bw3dc")
 centered = false
 
 [node name="Deco6" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(18, -114)
-texture = ExtResource("81_94fuw")
+texture = ExtResource("83_k4xw1")
 centered = false
 
 [node name="Deco7" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(350, -100)
-texture = ExtResource("82_bw3dc")
+texture = ExtResource("84_prfb8")
 centered = false
 
 [node name="Deco8" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(210, -214)
-texture = ExtResource("83_k4xw1")
+texture = ExtResource("85_oy5ld")
 centered = false
 
 [node name="Deco9" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(90, -182)
-texture = ExtResource("77_6t46b")
+texture = ExtResource("79_p6j8o")
 centered = false
 
 [node name="Deco10" type="Sprite2D" parent="."]
 z_index = -11
 position = Vector2(560, -218)
-texture = ExtResource("79_p6j8o")
+texture = ExtResource("81_94fuw")
 centered = false
 flip_h = true
 
 [node name="Deco11" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(650, -26)
-texture = ExtResource("84_prfb8")
+texture = ExtResource("86_dfszk")
 centered = false
 
 [node name="Deco12" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(700, -124)
-texture = ExtResource("85_oy5ld")
+texture = ExtResource("87_k6tjj")
 centered = false
 
 [node name="Deco13" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(858, -38)
-texture = ExtResource("86_dfszk")
+texture = ExtResource("88_g7oxm")
 centered = false
 
 [node name="Deco14" type="Sprite2D" parent="."]
 z_index = -7
 position = Vector2(954, -58)
-texture = ExtResource("87_k6tjj")
+texture = ExtResource("89_7losx")
 centered = false
 
 [node name="Deco15" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(996, -126)
-texture = ExtResource("88_g7oxm")
+texture = ExtResource("90_fh1me")
 centered = false
 
 [node name="Deco16" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1068, -112)
-texture = ExtResource("89_7losx")
+texture = ExtResource("91_cq9ot")
 centered = false
 
 [node name="Deco17" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1222, -124)
-texture = ExtResource("90_fh1me")
+texture = ExtResource("92_nz71v")
 centered = false
 
 [node name="Deco18" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1300, -132)
-texture = ExtResource("91_cq9ot")
+texture = ExtResource("93_il6a7")
 centered = false
 
 [node name="Deco19" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1330, -112)
-texture = ExtResource("92_nz71v")
+texture = ExtResource("94_wg7us")
 centered = false
 
 [node name="Deco20" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(1266, -62)
-texture = ExtResource("93_il6a7")
+texture = ExtResource("95_esl51")
 centered = false
 
 [node name="Deco21" type="Sprite2D" parent="."]
 z_index = -10
 position = Vector2(1404, -34)
-texture = ExtResource("94_wg7us")
+texture = ExtResource("96_3erh4")
 centered = false
 
 [node name="Deco22" type="Sprite2D" parent="."]
 z_index = -9
 position = Vector2(1452, -34)
-texture = ExtResource("95_esl51")
+texture = ExtResource("97_ez9oe")
 centered = false
 
 [node name="Deco23" type="Sprite2D" parent="."]
 z_index = -13
 position = Vector2(1376, 110)
-texture = ExtResource("96_3erh4")
+texture = ExtResource("98_dxcg3")
 centered = false
 
 [node name="Deco24" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(1432, 166)
-texture = ExtResource("97_ez9oe")
+texture = ExtResource("99_wkqnc")
 centered = false
 
 [node name="Deco25" type="Sprite2D" parent="."]
 z_index = -11
 position = Vector2(288, 124)
-texture = ExtResource("98_dxcg3")
+texture = ExtResource("100_c2mpt")
 centered = false
 
 [node name="Deco26" type="Sprite2D" parent="."]
 z_index = -13
 position = Vector2(470, 136)
-texture = ExtResource("99_wkqnc")
+texture = ExtResource("101_4z49m")
 centered = false
 
 [node name="Deco27" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1180, 70)
-texture = ExtResource("100_c2mpt")
+texture = ExtResource("102_goqi9")
 centered = false
 
 [node name="Deco28" type="Sprite2D" parent="."]
 z_index = -15
 position = Vector2(36, 10)
-texture = ExtResource("101_4z49m")
+texture = ExtResource("103_txckq")
 centered = false
 
 [node name="Deco29" type="Sprite2D" parent="."]
 z_index = -15
 position = Vector2(700, 10)
-texture = ExtResource("101_4z49m")
+texture = ExtResource("103_txckq")
 centered = false
 
 [node name="Deco30" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(-60, 12)
-texture = ExtResource("102_goqi9")
+texture = ExtResource("104_j98b4")
 centered = false
 
 [node name="Deco31" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1502, 12)
-texture = ExtResource("102_goqi9")
+texture = ExtResource("104_j98b4")
 centered = false
 flip_h = true
 
 [node name="Deco32" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(588, 12)
-texture = ExtResource("102_goqi9")
+texture = ExtResource("104_j98b4")
 centered = false
 
 [node name="Deco33" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(650, -230)
-texture = ExtResource("103_txckq")
+texture = ExtResource("105_9idce")
 centered = false
 
 [node name="Deco34" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(740, -198)
-texture = ExtResource("104_j98b4")
+texture = ExtResource("106_ie5o0")
 centered = false
 
 [node name="Deco35" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(770, -264)
-texture = ExtResource("105_9idce")
+texture = ExtResource("107_yz7bv")
 centered = false
 
 [node name="Deco36" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(980, -282)
-texture = ExtResource("90_fh1me")
+texture = ExtResource("92_nz71v")
 centered = false
 
 [node name="Deco37" type="Sprite2D" parent="."]
 z_index = -13
 position = Vector2(990, -214)
-texture = ExtResource("106_ie5o0")
+texture = ExtResource("108_6wbit")
 centered = false
 
 [node name="Deco38" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(652, -284)
-texture = ExtResource("107_yz7bv")
+texture = ExtResource("109_q4amw")
 centered = false
 
 [node name="Deco39" type="Sprite2D" parent="."]
 z_index = -11
 position = Vector2(1128, -194)
-texture = ExtResource("108_6wbit")
+texture = ExtResource("110_mxbuo")
 centered = false
 
 [node name="Deco40" type="Sprite2D" parent="."]
 z_index = -14
 position = Vector2(1284, -262)
-texture = ExtResource("109_q4amw")
+texture = ExtResource("111_5c5wc")
 centered = false
 
 [node name="Deco41" type="Sprite2D" parent="."]
 z_index = -11
 position = Vector2(1318, -198)
-texture = ExtResource("86_dfszk")
+texture = ExtResource("88_g7oxm")
 centered = false
 
 [node name="Deco42" type="Sprite2D" parent="."]
 z_index = -13
 position = Vector2(1378, -234)
-texture = ExtResource("110_mxbuo")
+texture = ExtResource("112_yi7z2")
 centered = false
 
 [node name="Deco43" type="Sprite2D" parent="."]
 z_index = -12
 position = Vector2(1426, -204)
-texture = ExtResource("111_5c5wc")
+texture = ExtResource("113_sj8yg")
 centered = false
 
 [node name="Deco44" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(600, -414)
-texture = ExtResource("112_yi7z2")
+texture = ExtResource("114_s922z")
 centered = false
 
 [node name="Deco45" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(1000, -370)
-texture = ExtResource("113_sj8yg")
+texture = ExtResource("115_cq0vz")
 centered = false
 
 [node name="Deco46" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(133, -357)
-texture = ExtResource("114_s922z")
+texture = ExtResource("116_r96nr")
 centered = false
 
 [node name="LaundryPole" type="Line2D" parent="."]
@@ -2395,7 +2398,7 @@ default_color = Color(0.3, 0.3, 0.34, 1)
 [node name="Deco47" type="Sprite2D" parent="."]
 z_index = -4
 position = Vector2(1160, -344)
-texture = ExtResource("115_cq0vz")
+texture = ExtResource("117_tmsia")
 centered = false
 
 [node name="Reinforce1" type="Marker2D" parent="." groups=["reinforce"]]
@@ -2437,7 +2440,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="Checkpoint18"]
-shape = SubResource("RectangleShape2D_r96nr")
+shape = SubResource("RectangleShape2D_74z27")
 
 [node name="Checkpoint19" type="Area2D" parent="."]
 position = Vector2(1440, 140)
@@ -2445,7 +2448,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="Checkpoint19"]
-shape = SubResource("RectangleShape2D_tmsia")
+shape = SubResource("RectangleShape2D_gtgpi")
 
 [node name="Checkpoint20" type="Area2D" parent="."]
 position = Vector2(-46, -200)
@@ -2453,7 +2456,7 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="Checkpoint20"]
-shape = SubResource("RectangleShape2D_74z27")
+shape = SubResource("RectangleShape2D_tfmet")
 
 [node name="Checkpoint21" type="Area2D" parent="."]
 position = Vector2(60, -350)
@@ -2461,9 +2464,9 @@ collision_layer = 0
 collision_mask = 2
 
 [node name="Shape" type="CollisionShape2D" parent="Checkpoint21"]
-shape = SubResource("RectangleShape2D_gtgpi")
+shape = SubResource("RectangleShape2D_6g5dt")
 
-[node name="Ricco" parent="." instance=ExtResource("116_tfmet")]
+[node name="Ricco" parent="." instance=ExtResource("118_pj59m")]
 position = Vector2(44, 0)
 
-[node name="HUD" parent="." instance=ExtResource("117_6g5dt")]
+[node name="HUD" parent="." instance=ExtResource("119_twras")]

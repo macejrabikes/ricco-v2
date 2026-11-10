@@ -19,5 +19,5 @@ func take_hit(damage: float, dir: Vector2 = Vector2.ZERO, _blood: bool = true) -
 	hit.emit(damage, dir)
 
 
-func hat_hit(damage: int, dir: Vector2) -> void:
+func hat_hit(damage: float, dir: Vector2) -> void:
 	hit.emit(float(damage), dir)

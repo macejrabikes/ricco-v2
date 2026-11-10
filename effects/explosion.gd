@@ -2,7 +2,8 @@ class_name Explosion
 extends Sprite2D
 ## Výbuch (dynamit, sud whisky, kabína žeriavu): ohnivá guľa z 8 snímok (effects/art/explosion.png), tlaková vlna,
 ## záblesk cez celú obrazovku, iskry, triesky a dym, ktorý ešte chvíľu stúpa, sadza na palube a zatrasenie kamery.
-## Zraní Ricca v dosahu (a odhodí ho), bossa (blast_hit), rozbije debny (shatter) a odpáli sudy (ignite) – reťazová reakcia.
+## Zraní Ricca v dosahu (a odhodí ho), bossa (blast_hit), zabije gangstrov v dosahu (take_hit), rozbije debny (shatter)
+## a odpáli sudy (ignite) – reťazová reakcia.
 ## Použitie: Explosion.spawn(get_tree().current_scene, pos, 1.0)
 ## Godot docs: classes/class_sprite2d (hframes), classes/class_tween, classes/class_canvaslayer
 
@@ -11,6 +12,7 @@ const RING := preload("res://effects/art/shock_ring.png")
 const SCORCH := preload("res://effects/art/scorch.png")
 const GLOW := preload("res://levels/level1/art/glow.png")
 const FRAME_TIME := 0.055
+const ENEMY_DAMAGE := 10.0   ## gangster v dosahu výbuchu (3 – 5 HP) neprežije
 
 var size: float = 1.0
 var _t: float = 0.0
@@ -126,6 +128,16 @@ func _boom(damage: int, boss_damage: float, radius: float, flash: bool) -> void:
 			var bn := b as Node2D
 			if bn and bn.global_position.distance_to(pos) < radius + 20.0 and bn.has_method(&"blast_hit"):
 				bn.blast_hit(boss_damage, Vector2(signf(bn.global_position.x - pos.x), -0.6))
+	# gangstri v dosahu (sud benzínu, nádrž s palivom…) – nie bossovia (blast_hit vyššie) ani nezraniteľní (collision_layer 0,
+	# napr. Mancini na útese); výbuch bez damage (cutscéna) nezraní nikoho. Meria sa k stredu tela (pôvod gangstra = nohy).
+	if damage > 0:
+		for g in tree.get_nodes_in_group(&"enemies"):
+			var gn := g as CollisionObject2D
+			if gn == null or gn.is_in_group(&"boss") or gn.collision_layer == 0 or not gn.has_method(&"take_hit"):
+				continue
+			var gd: Vector2 = (gn.global_position + Vector2(0, -30)) - pos
+			if gd.length() < radius + 12.0:
+				gn.take_hit(ENEMY_DAMAGE, Vector2(signf(gd.x) if gd.x != 0.0 else 1.0, -0.6).normalized())
 	# debny a sudy v dosahu
 	for c in tree.get_nodes_in_group(&"ship_cover"):
 		var cn := c as Node2D

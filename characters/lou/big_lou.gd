@@ -1057,7 +1057,11 @@ func _bulldoze() -> void:
 
 # ---------------------------------------------------------------- zásahy
 
-## Zásah guľkou s miestom zásahu (weapons/pistol/bullet.gd): vesta pod sakom chráni trup, hlava a nohy naplno
+## Zásah guľkou s miestom zásahu (weapons/pistol/bullet.gd): vesta pod sakom chráni trup, hlava = headshot (×1,5 – boss),
+## nohy menej (×0,6)
+const HEADSHOT_FACTOR := 1.5
+const LEG_FACTOR := 0.6
+
 func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
 	if state == State.DEAD:
 		return
@@ -1079,6 +1083,11 @@ func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
 		return
 	if y <= NECK.y + 3.0:
 		_hurt_t = 0.35   # trafil hlavu – zaťaté zuby
+		take_hit(damage * HEADSHOT_FACTOR, dir)
+		return
+	if y > HIP.y + 4.0:
+		take_hit(damage * LEG_FACTOR, dir)   # nohy – menej
+		return
 	take_hit(damage, dir)
 
 
@@ -1118,7 +1127,7 @@ func cargo_hit(damage: float) -> void:
 
 
 ## Riccov klobúk: zhodí mu fedoru a zarazí ho
-func hat_hit(damage: int, dir: Vector2) -> void:
+func hat_hit(damage: float, dir: Vector2) -> void:
 	if state == State.DEAD or _dying:
 		return
 	Sfx.play(&"hat_bonk", global_position + Vector2(0, -90))

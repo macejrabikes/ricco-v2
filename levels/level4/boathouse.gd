@@ -97,6 +97,9 @@ func _ride_up() -> void:
 	var tw := create_tween()
 	tw.set_process_mode(Tween.TWEEN_PROCESS_PHYSICS)
 	tw.tween_property(lift, "position:y", lift.position.y - LIFT_RISE, 4.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# Ricco ide s kabínou – v cutscéne nemá fyziku (set_cutscene vypne _physics_process), sám by na podlahe kabíny neostal
+	tw.parallel().tween_property(player, "global_position:y", player.global_position.y - LIFT_RISE, 4.0) \
+			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	await _wait(1.8)
 	var black := _fade_rect()
 	var fade := create_tween()

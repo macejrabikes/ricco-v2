@@ -72,7 +72,7 @@ class HookBody extends StaticBody2D:
 	func take_hit(_damage: float, dir: Vector2) -> void:
 		crane.call(&"_hook_shot", dir, false)
 
-	func hat_hit(_damage: int, dir: Vector2) -> void:
+	func hat_hit(_damage: float, dir: Vector2) -> void:
 		crane.call(&"_hook_shot", dir, true)
 
 

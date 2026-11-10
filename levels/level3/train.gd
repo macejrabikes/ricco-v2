@@ -7,14 +7,14 @@ extends Level3
 ## Šesť vozňov zľava (scéna train.tscn, píše ju _art_src/make_train_scene.py):
 ##   1 strecha (nosníky) → 2 strecha: po vedľajšej koľaji dobehne expres so strelcami na streche (Express – chvíľu ide
 ##   vedľa, potom odíde; keď sú strelci mŕtvi, odíde skôr) → rebrík dole k dverám vozňa 3 →
-##   3 vnútri (prierez – predná stena zmizne, keď je Ricco dnu): v tme mafián s luparou a sediaci cestujúci, v strede
+##   3 vnútri: v tme mafián s luparou a sediaci cestujúci, v strede
 ##   svetlo a stojaci cestujúci – ponad nich po remienkoch (train_strap.gd), vzadu ochrankár s Coltom 1911.
 ##   Alebo hore po streche vozňa 3. → 4 strecha v zákrute: kamera sa nakloní, odstredivá sila tlačí Ricca dozadu
 ##   (prikrčiť sa za vetrák alebo šmyk ju nepustí) → 5 poštový vozeň v tme: Tommy s baterkou, cez otvorené bočné dvere
 ##   občas prebehne svetlo pouličnej lampy (MailSweep) → 6 čelný vozeň: mafián drží motorovodiča ako rukojemníka.
 ##   Keď ho Ricco zloží, motorovodič zabrzdí v stanici 125 St (keby Ricco trafil motorovodiča, zabrzdí „mŕtvy muž“).
-##   Všetky vozne sú prierezy – zoskočí zo strechy do medzery a dverami dnu (1, 2, 4: cestujúci, v 2 a 4 aj mafián).
-##   Kým je Ricco vonku, predná stena je zatvorená a baterky ani „?“/„!“ mafiánov vnútri cez ňu nevidno.
+##   Všetky vozne sú otvorené prierezy (bez prednej steny, vnútro vidno stále) – zo strechy do medzery a dverami dnu
+##   (1, 2, 4: cestujúci, v 2 a 4 aj mafián).
 ##   Ricco vyjde čelom vozňa na nástupište stanice 125 St → jazzový klub The Blue Canary (časť 5 – club.gd).
 ## Checkpointy (Level3.checkpoint): 9 = strecha vozňa 1, 10 = pred vozňom 3, 11 = pred vozňom 4, 12 = pred vozňom 5,
 ## 13 = pred vozňom 6.
@@ -28,15 +28,6 @@ const BEAM_HALF := 16.0          ## polovica šírky nosníka
 const BEAM_DAMAGE := 2
 const BEAM_END := 2500.0         ## px – za touto čiarou (koniec strechy čelného vozňa) už nosníky nechodia
 const DUCK_NEAR := 90.0          ## px – takto ďaleko pred nosníkom sa mafián prikrčí
-## prierezy (všetkých šesť vozňov): predná stena zmizne, keď je Ricco vnútri (uzol → vnútro od–do x)
-const WALLS := {
-	^"Car1Wall": Vector2(2.0, 398.0),
-	^"Car2Wall": Vector2(434.0, 830.0),
-	^"Car4Wall": Vector2(1298.0, 1694.0),
-	^"Car3Wall": Vector2(866.0, 1262.0),
-	^"Car5Wall": Vector2(1730.0, 2126.0),
-	^"Car6Wall": Vector2(2162.0, 2558.0),
-}
 const STATION_X := 1964.0        ## kde zastane ľavý okraj stanice (obrázok station.png, 800 px – siaha po koniec mapy)
 const BRAKE_TIME := 6.0          ## s brzdenia do stanice (stanica príde spoza pravého okraja mapy)
 const EXPRESS_LAYER := 256       ## vrstva strechy expresu – stoja na nej len strelci
@@ -62,7 +53,6 @@ var _beam_t: float = 2.5
 var _beam_n: int = 0
 var _blink: float = 0.0
 var _warn: Label
-var _walls: Array = []                 ## [CanvasItem, Vector2 x od–do]
 var _station: Node2D
 var _front: Array[CollisionShape2D] = []
 var _braking: bool = false
@@ -91,10 +81,6 @@ func _ready() -> void:
 	if black == null:
 		return
 	checkpoint = maxi(checkpoint, 9)
-	for path in WALLS:
-		var w := get_node_or_null(path as NodePath) as CanvasItem
-		if w:
-			_walls.append([w, WALLS[path]])
 	_station = get_node_or_null(^"Station") as Node2D
 	for path in [^"FrontStop/Shape", ^"Car6WallR/Shape"]:
 		var sh := get_node_or_null(path as NodePath) as CollisionShape2D
@@ -145,7 +131,6 @@ func _process(delta: float) -> void:
 	_tick_say(delta)
 	_update_speed(delta)
 	_update_beams(delta)
-	_update_walls(delta)
 	_update_express()
 	_update_sweep(delta)
 	_update_hostage()
@@ -493,28 +478,7 @@ func _view_rect() -> Rect2:
 	return Rect2(-ct.origin / sc, get_viewport().get_visible_rect().size / sc)
 
 
-# ---------------------------------------------------------------- prierezy a Colt
-
-## Predná stena vozňa zmizne, keď je Ricco vnútri (prierez ako v návrhu B). Mafiánom vo vozni so zatvorenou stenou
-## schová baterku a „?“/„!“ (Gangster.set_wall_cover) – zvonku ich cez plech nevidno.
-func _update_walls(delta: float) -> void:
-	var p: Vector2 = player.global_position
-	var enemies := get_tree().get_nodes_in_group(&"enemies")
-	var covered := {}
-	for w in _walls:
-		var r: Vector2 = w[1]
-		var inside: bool = p.x > r.x and p.x < r.y and p.y > ROOF_Y + 14.0
-		var c := w[0] as CanvasItem
-		c.modulate.a = move_toward(c.modulate.a, 0.0 if inside else 1.0, delta * 4.0)
-		for e in enemies:
-			var g := e as Node2D
-			if g and g.has_method(&"set_wall_cover") and g.global_position.x > r.x - 2.0 and g.global_position.x < r.y + 2.0 \
-					and g.global_position.y > ROOF_Y + 14.0:
-				covered[g] = c.modulate.a
-	for e in enemies:
-		if e.has_method(&"set_wall_cover"):
-			e.set_wall_cover(covered.get(e, 0.0))
-
+# ---------------------------------------------------------------- Colt
 
 func _on_weapon(w: WeaponData) -> void:
 	if w != null and w.name == "Pistol":   # weapons/pistol/pistol.tres = Colt 1911 (ui/arsenal)

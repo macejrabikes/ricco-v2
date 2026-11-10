@@ -2,7 +2,7 @@ class_name ThoughtBox
 extends CanvasLayer
 ## Riccova samomluva (myšlienky) – menšia sestra DialogBox: malý tmavý panel vľavo hore s výrezom portrétu,
 ## tenký sivomodrý rám (nie mosadzný ako rozhovor), menšie písmo. Vypisuje sa ako na stroji a sám pokračuje,
-## takže sa netreba preklikávať a hra beží ďalej (Ricco sa môže hýbať).
+## takže sa netreba preklikávať a hra beží ďalej (Ricco sa môže hýbať). Tab (DialogBox.SKIP_KEY) myšlienku hneď zavrie.
 ##
 ## Použitie:
 ##     ThoughtBox.think(self, ["Line one.", "Line two."])            # nečaká
@@ -28,6 +28,7 @@ var _panel: Panel
 var _text: Label
 var _shown: float = 0.0
 var _hold: float = 0.0
+var _closing: bool = false
 
 
 ## Ukáže myšlienky jednu po druhej a sama zmizne
@@ -115,7 +116,19 @@ func _process(delta: float) -> void:
 		_next()
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key and key.pressed and not key.echo and key.physical_keycode == DialogBox.SKIP_KEY and not get_tree().paused:
+		get_viewport().set_input_as_handled()
+		_lines.clear()
+		_hold = 0.0
+		_close()
+
+
 func _close() -> void:
+	if _closing:
+		return
+	_closing = true
 	var tw := create_tween().set_ignore_time_scale(true)
 	tw.tween_property(_panel, "modulate:a", 0.0, 0.3)
 	tw.tween_callback(func():

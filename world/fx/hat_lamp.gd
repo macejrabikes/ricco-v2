@@ -10,7 +10,7 @@ func _ready() -> void:
 	collision_mask = 0
 
 
-func hat_hit(_damage: int, dir: Vector2) -> void:
+func hat_hit(_damage: float, dir: Vector2) -> void:
 	switch_off(dir)
 
 

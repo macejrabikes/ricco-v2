@@ -11,12 +11,21 @@ extends Sprite2D
 @export var falloff_range: float = 1.0
 
 const MIN_DAMAGE := 0.1   ## podiel damage na konci poklesu
+const PIERCE_KEEP := 0.6  ## brok, ktorý prestrelí telo, letí ďalej so 60 % damage
+
+## Brok z brokovnice (Ricco – weapon.pellets > 1): šanca, že prestrelí zasiahnuté telo a letí ďalej (ďalší za ním).
+## Po každom prestrelení sa šanca polovičí. Stena a kryt ho zastavia vždy.
+var pierce_chance: float = 0.0
+var _skip: Array[RID] = []   ## telá, ktoré už prestrelil (lúč ich ďalej ignoruje)
 
 var _traveled: float = 0.0
 @export_flags_2d_physics var hit_mask: int = 1 | 4 | 32 | 64   ## world + enemies + kryt (visiace mäso, debny na páse) + nevinní (hostia – len Riccove guľky)
 
 var direction: Vector2 = Vector2.RIGHT
 var shooter: CollisionObject2D = null
+## Odkiaľ guľka „naozaj“ vyletela (napr. rameno strelca). Prvý lúč ide odtiaľto, nie od ústia hlavne –
+## inak nepriateľ, ktorý stojí tesne pri hlavni (ústie je už za ním / v ňom), nedostane zásah.
+var origin: Vector2 = Vector2.INF
 
 
 func _ready() -> void:
@@ -31,19 +40,32 @@ func _physics_process(delta: float) -> void:
 	var from: Vector2 = global_position
 	var to: Vector2 = from + direction * speed * delta
 	_traveled += speed * delta
+	var first: bool = origin != Vector2.INF
+	if first:
+		from = origin
+		origin = Vector2.INF
 	var q := PhysicsRayQueryParameters2D.create(from, to, hit_mask)
+	q.hit_from_inside = first   # nepriateľ natlačený na Ricca – lúč začína priamo v ňom
+	var ex: Array[RID] = _skip.duplicate()
 	if shooter:
-		q.exclude = [shooter.get_rid()]
-	var hit := get_world_2d().direct_space_state.intersect_ray(q)
+		ex.append(shooter.get_rid())
+	q.exclude = ex
+	var hit := Gangster.solid_ray(get_world_2d().direct_space_state, q)   # plošiny, cez ktoré sa dá vyskočiť, guľku nezastavia
 	if hit.is_empty():
 		global_position = to
 		return
 	global_position = hit.position
 	var target: Object = hit.collider
-	if target.has_method("take_hit_at"):
-		target.take_hit_at(damage * _falloff(), direction, hit.position)   # gangster vo veste rozlíši trup a hlavu
-	elif target.has_method("take_hit"):
-		target.take_hit(damage * _falloff(), direction)
+	if target.has_method("take_hit_at") or target.has_method("take_hit"):
+		if target.has_method("take_hit_at"):
+			target.take_hit_at(damage * _falloff(), direction, hit.position)   # gangster vo veste rozlíši trup a hlavu
+		else:
+			target.take_hit(damage * _falloff(), direction)
+		if pierce_chance > 0.0 and target is CharacterBody2D and randf() < pierce_chance:   # len telá (nie auto, okno, kryt)
+			_skip.append((target as CollisionObject2D).get_rid())   # prestrelil telo – letí ďalej, slabší
+			damage *= PIERCE_KEEP
+			pierce_chance *= 0.5
+			return
 	else:
 		Burst.spawn(get_parent(), hit.position, hit.normal, Color(1.0, 0.85, 0.4), 6, 80.0)  # iskry od steny
 		Sfx.play([&"impact_wall", &"impact_wall", &"ricochet_1", &"ricochet_2"][randi() % 4], hit.position, -6.0, 0.12)

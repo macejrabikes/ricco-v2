@@ -184,7 +184,8 @@ func _run(delta: float) -> void:
 	_run_t += delta * 15.0
 	global_position.x += _flee_dir * flee_speed * delta
 	offset = _base_offset + Vector2(0, -absf(sin(_run_t)) * 2.0)
-	rotation = _flee_dir * 0.09
+	scale = Vector2(1.04, 0.86)          # zohnutý – hlava dole pred guľkami
+	rotation = _flee_dir * 0.16
 	if player and is_instance_valid(player) and absf(global_position.x - player.global_position.x) > 420.0:
 		queue_free()
 
@@ -198,6 +199,7 @@ func take_hit(_damage: float, dir: Vector2) -> void:
 	dead = true
 	fleeing = false
 	offset = _base_offset if _base_offset != Vector2.ZERO else offset
+	scale = Vector2.ONE   # z behu zohnutý – padá v normálnej veľkosti
 	witness = false
 	if _body:
 		_body.queue_free()

@@ -203,11 +203,12 @@ func _open_safe() -> void:
 	await _wait(3.0)
 	await ThoughtBox.think(self, SAFE_THOUGHT).finished
 	_window_open = true
-	var wb := get_node_or_null(^"WindowBlock/Shape") as CollisionShape2D
-	if wb:
-		wb.set_deferred(&"disabled", true)
-	Sfx.play(&"door_open", Vector2(1530.0, UP - 40.0), -6.0)
-	say("OUT THE WINDOW, KID.\nWE GOT A PARTY TO CRASH.")
+	var w := get_node_or_null(^"WindowBlock")   # sklo za Salom (shoot_window.gd) – prestreliť a von na požiarne schodisko
+	if w and not w.get(&"is_broken"):
+		w.call(&"glint")
+		say("SHOOT OUT THAT WINDOW, KID.\nWE GOT A PARTY TO CRASH.")
+	else:
+		say("OUT THE WINDOW, KID.\nWE GOT A PARTY TO CRASH.")
 
 
 ## Kancelária sa zamkne: Sal za prevráteným stolom, bodyguard otočený k dverám (quiet = už pri načítaní scény)
@@ -260,7 +261,8 @@ func _reinforce() -> void:
 # ---------------------------------------------------------------- koniec
 
 func _on_exit_window() -> void:
-	if not _window_open:
+	if not _window_open:   # okno rozbil skôr (guľka) – von až po Salovi a trezore
+		say("NOT SO FAST, KID. SAL FIRST." if not _sal_down else "THE SAFE, KID. CHECK THE SAFE.")
 		return
 	player.set_cutscene(true)
 	bark("SUBTLE AS A BRASS BAND, KID." if club_loud or alarm_on else "QUIET AS A CHURCH MOUSE, KID.")

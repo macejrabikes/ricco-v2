@@ -12,7 +12,8 @@ extends Gangster
 ##    Klobúk ho omráči, šmyk ho podkopne. → zadnými dverami vlezie do voza.
 ## 3. fáza – nájazdy vozom: voz cúvne za pravý okraj mosta, zatrúbi, rozsvieti reflektor a vytúruje motor (výstraha),
 ##    potom sa rúti doľava. Na ceste zrazí Ricca (2 kúsky pizze) – hore na lávke alebo za barikádami vľavo je v bezpečí.
-##    Po zabrzdení Murphy vystúpi omámený (chvíľa na streľbu); cez okno kabíny sa dá trafiť aj za jazdy (polovičný damage).
+##    Po zabrzdení Murphy vystúpi omámený (hviezdičky – chvíľa na streľbu), spamätá sa, pustí dávku a vráti sa k vozu;
+##    cez okno kabíny sa dá trafiť aj za jazdy (polovičný damage).
 ## Smrť: zrúti sa na cestu, stage(&"dying") a died – ďalej režíruje level (koniec kapitoly III).
 ## Godot docs: classes/class_characterbody2d, classes/class_tween
 
@@ -21,7 +22,7 @@ signal died
 ## Udalosti pre level (hlášky, réžia): summon, duck, jump_down, landed, reload, kick, to_wagon, telegraph, ram, dazed, dying
 signal stage(name: StringName)
 
-enum Boss { WAIT, DUCK, POP, AIM, BURST, JUMP_DOWN, WALK, RELOAD, KICK, TO_WAGON, DRIVE_OUT, TELEGRAPH, RAM, DAZED, SCRIPTED }
+enum Boss { WAIT, DUCK, POP, AIM, BURST, JUMP_DOWN, WALK, RELOAD, KICK, TO_WAGON, DRIVE_OUT, TELEGRAPH, RAM, DAZED, BACK_TO_CAB, SCRIPTED }
 
 const PHASE_HP := 10.0                  ## zdravia na fázu (max_health = 30 → tri fázy)
 const ROOF_X := -60.0                   ## px od stredu voza (proti smeru jazdy) – kde stojí na streche
@@ -36,7 +37,7 @@ const DUCK_SCALE := 0.55                ## kostra prikrčená za zábradlím
 @export var ram_speed: float = 380.0
 @export var kick_range: float = 34.0
 @export var reload_time: float = 2.0
-@export var dazed_time: float = 2.6
+@export var dazed_time: float = 2.2
 @export var summon_every: float = 12.0
 
 var boss: Boss = Boss.WAIT
@@ -52,6 +53,7 @@ var _walk_t: float = 0.0
 var _summon_t: float = 6.0
 var _hidden_t: float = 0.0
 var _kick_cd: float = 0.0
+var _star_t: float = 0.0
 
 
 func _ready() -> void:
@@ -150,7 +152,7 @@ func _physics_process(delta: float) -> void:
 			_track_aim(delta)
 			_update_laser(true)
 			if timer <= 0.0:
-				if los or phase == 1:
+				if los or phase != 2 or _hidden_t > 1.5:   # zo strechy, po nájazde a keď sa Ricco schová – strieľa aj naslepo do krytu
 					boss = Boss.BURST
 					state = State.SHOOT
 					shots_left = burst_count + (2 if phase == 2 else 0)
@@ -169,6 +171,10 @@ func _physics_process(delta: float) -> void:
 					_bursts += 1
 					if phase == 1:
 						_duck(randf_range(1.2, 2.0))
+					elif phase == 3:   # po nájazde: dávka a späť do voza
+						boss = Boss.BACK_TO_CAB
+						state = State.IDLE
+						timer = 3.0
 					else:
 						_next_action()
 		Boss.WALK:
@@ -211,11 +217,27 @@ func _physics_process(delta: float) -> void:
 				_set_facing(signf(lx))
 				velocity.x = signf(lx) * walk_speed * 2.4
 			_aim_low(delta)
-		Boss.DAZED:
+		Boss.DAZED:   # omámený po náraze – hviezdičky nad hlavou, potom sa spamätá a vystrelí
 			velocity.x = 0.0
+			_star_t -= delta
+			if _star_t <= 0.0:
+				_star_t = 0.35
+				Burst.spawn(get_tree().current_scene, global_position + Vector2(randf_range(-8.0, 8.0), -78.0), Vector2.UP,
+						Color(1.0, 0.95, 0.4), 3, 30.0, Vector2.ZERO, 0.5)
 			if timer <= 0.0:
+				state = State.AIM
+				_start_aim()
+		Boss.BACK_TO_CAB:   # späť ku kapote voza (vlezie do kabíny) – potom ďalší nájazd
+			var cab: float = wagon.front_x() if wagon else global_position.x
+			var cx: float = cab - global_position.x
+			if absf(cx) < 10.0 or is_on_wall() or timer <= 0.0:
+				velocity.x = 0.0
 				_enter_wagon()
 				_drive_out()
+			else:
+				_set_facing(signf(cx))
+				velocity.x = signf(cx) * walk_speed * 2.0
+			_aim_low(delta)
 	_end_frame(delta)
 
 
@@ -250,7 +272,7 @@ func _has_los() -> bool:
 	var q := PhysicsRayQueryParameters2D.create(eye, _player_target(), 1 | COVER_LAYER)
 	if wagon:
 		q.exclude = [wagon.get_rid()]   # zo strechy cez vlastný voz (zábradlie)
-	return get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+	return Gangster.solid_ray(get_world_2d().direct_space_state, q).is_empty()
 
 
 func _player_close(r: float) -> bool:
@@ -437,6 +459,8 @@ func _step_out() -> void:
 	boss = Boss.DAZED
 	state = State.STUN
 	timer = dazed_time
+	_star_t = 0.0
+	Sfx.play(&"hat_bonk", global_position + Vector2(0, -60), -4.0)
 	stage.emit(&"dazed")
 
 
@@ -488,7 +512,7 @@ func blast_hit(damage: float, dir: Vector2) -> void:
 	take_hit(damage, dir)
 
 
-func hat_hit(damage: int, dir: Vector2) -> void:
+func hat_hit(damage: float, dir: Vector2) -> void:
 	if invulnerable or not active or boss == Boss.SCRIPTED or _ducked or in_wagon:
 		Sfx.play(&"hat_bonk", global_position + Vector2(0, -60))
 		return

@@ -30,6 +30,8 @@ const PHASE_HP := 12.0                     ## zdravia na fázu (max_health = 36 
 const MIRROR_TINT := Color(0.72, 0.84, 1.0)   ## odraz aj ona v zrkadle – rovnaký nádych skla
 const MIRROR_HIT_CAP := 3.0                ## v zrkadle vezme jeden zásah najviac toľko (aspoň 4 trafené zrkadlá)
 const HIT_CAP := 6.0                       ## inak najviac toľko (luster = pol fázy)
+const RUN_TO_MAST := 3.6                   ## × walk_speed – beh na strechu k stožiaru (Ricco je vtedy omráčený – mirror_hall.gd)
+const CLIMB_SPEED := 140.0                 ## px/s – lezenie na plošinu stožiara
 
 @export_group("Margaret")
 @export var clip: int = 10                       ## nábojov v C96
@@ -254,7 +256,7 @@ func _physics_process(delta: float) -> void:
 				_climb_mast()
 			else:
 				_set_facing(signf(lx))
-				velocity.x = signf(lx) * walk_speed * 2.4
+				velocity.x = signf(lx) * walk_speed * RUN_TO_MAST
 			_aim_low(delta)
 		Boss.CLIMB:
 			velocity = Vector2.ZERO
@@ -606,7 +608,7 @@ func _climb_mast() -> void:
 	_set_facing(-1.0)
 	var top := Vector2(mast_span.y - 14.0, mast_top_y)
 	var h: float = absf(global_position.y - mast_top_y)
-	var t: float = maxf(h / 90.0, 0.8)
+	var t: float = maxf(h / CLIMB_SPEED, 0.6)
 	var tw := create_tween()
 	tw.tween_property(self, "global_position:y", mast_top_y - 6.0, t)
 	tw.parallel().tween_method(_climb_pose, 0.0, t, t)
@@ -678,7 +680,7 @@ func take_hit(damage: float, dir: Vector2, blood: bool = true) -> void:
 			_start_dying()
 
 
-func hat_hit(damage: int, dir: Vector2) -> void:
+func hat_hit(damage: float, dir: Vector2) -> void:
 	if decoy:
 		shatter()
 		return

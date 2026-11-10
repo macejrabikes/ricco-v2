@@ -24,7 +24,7 @@ func take_hit(_damage: float, _dir: Vector2 = Vector2.ZERO) -> void:
 	explode()
 
 
-func hat_hit(_damage: int, _dir: Vector2) -> void:
+func hat_hit(_damage: float, _dir: Vector2) -> void:
 	explode()
 
 

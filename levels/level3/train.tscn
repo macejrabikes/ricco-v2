@@ -1695,12 +1695,6 @@ script = ExtResource("22_ao4fr")
 witness = true
 see_range = 150.0
 
-[node name="Car1Wall" type="Sprite2D" parent="."]
-z_index = 2
-position = Vector2(0, -152)
-texture = ExtResource("36_0i8d9")
-centered = false
-
 [node name="Car1RoofStrip" type="Sprite2D" parent="."]
 z_index = 2
 position = Vector2(0, -152)
@@ -1709,11 +1703,13 @@ centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 400, 12)
 
-[node name="Car2Wall" type="Sprite2D" parent="."]
+[node name="Car1Under" type="Sprite2D" parent="."]
 z_index = 2
-position = Vector2(432, -152)
-texture = ExtResource("37_gb19z")
+position = Vector2(0, 0)
+texture = ExtResource("36_0i8d9")
 centered = false
+region_enabled = true
+region_rect = Rect2(0, 152, 400, 24)
 
 [node name="Car2RoofStrip" type="Sprite2D" parent="."]
 z_index = 2
@@ -1723,11 +1719,13 @@ centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 400, 12)
 
-[node name="Car3Wall" type="Sprite2D" parent="."]
+[node name="Car2Under" type="Sprite2D" parent="."]
 z_index = 2
-position = Vector2(864, -152)
-texture = ExtResource("38_vqxyw")
+position = Vector2(432, 0)
+texture = ExtResource("37_gb19z")
 centered = false
+region_enabled = true
+region_rect = Rect2(0, 152, 400, 24)
 
 [node name="Car3RoofStrip" type="Sprite2D" parent="."]
 z_index = 2
@@ -1737,11 +1735,13 @@ centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 400, 12)
 
-[node name="Car4Wall" type="Sprite2D" parent="."]
+[node name="Car3Under" type="Sprite2D" parent="."]
 z_index = 2
-position = Vector2(1296, -152)
-texture = ExtResource("39_o6h7v")
+position = Vector2(864, 0)
+texture = ExtResource("38_vqxyw")
 centered = false
+region_enabled = true
+region_rect = Rect2(0, 152, 400, 24)
 
 [node name="Car4RoofStrip" type="Sprite2D" parent="."]
 z_index = 2
@@ -1751,11 +1751,13 @@ centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 400, 12)
 
-[node name="Car5Wall" type="Sprite2D" parent="."]
+[node name="Car4Under" type="Sprite2D" parent="."]
 z_index = 2
-position = Vector2(1728, -152)
-texture = ExtResource("40_ykgbt")
+position = Vector2(1296, 0)
+texture = ExtResource("39_o6h7v")
 centered = false
+region_enabled = true
+region_rect = Rect2(0, 152, 400, 24)
 
 [node name="Car5RoofStrip" type="Sprite2D" parent="."]
 z_index = 2
@@ -1765,11 +1767,13 @@ centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 400, 12)
 
-[node name="Car6Wall" type="Sprite2D" parent="."]
+[node name="Car5Under" type="Sprite2D" parent="."]
 z_index = 2
-position = Vector2(2160, -152)
-texture = ExtResource("41_9qb7l")
+position = Vector2(1728, 0)
+texture = ExtResource("40_ykgbt")
 centered = false
+region_enabled = true
+region_rect = Rect2(0, 152, 400, 24)
 
 [node name="Car6RoofStrip" type="Sprite2D" parent="."]
 z_index = 2
@@ -1778,6 +1782,14 @@ texture = ExtResource("41_9qb7l")
 centered = false
 region_enabled = true
 region_rect = Rect2(0, 0, 400, 12)
+
+[node name="Car6Under" type="Sprite2D" parent="."]
+z_index = 2
+position = Vector2(2160, 0)
+texture = ExtResource("41_9qb7l")
+centered = false
+region_enabled = true
+region_rect = Rect2(0, 152, 400, 24)
 
 [node name="Gap" type="Sprite2D" parent="."]
 z_index = -6

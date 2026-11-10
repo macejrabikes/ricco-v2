@@ -22,7 +22,7 @@ func _ready() -> void:
 	_sprite = get_node(^"Sprite") as Sprite2D
 
 
-func hat_hit(_damage: int, dir: Vector2) -> void:
+func hat_hit(_damage: float, dir: Vector2) -> void:
 	if not _gone:
 		_startle(signf(dir.x) if dir.x != 0.0 else 1.0)
 

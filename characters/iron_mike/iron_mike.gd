@@ -13,7 +13,8 @@ extends Gangster
 ##    kopnutím do vyhne (rozžeravené nity – world/tower/rivet_forge.gd). Šmyk ho podkopne, klobúk omráči,
 ##    debna zo žeriavu mu na hlavu = 4 HP (cargo_hit).
 ## 3. fáza – uteká po rebríku na plošinu stožiara pre vzducholoď „M.“; strieľa zhora, keď Ricco lezie, čaká a doberá
-##    si ho; pažbou ho zhodí z plošiny. Smrť: Winchester mu vypadne, chytí sa povrazového rebríka gondoly – réžiu
+##    si ho; pažbou ho zhodí z plošiny.
+## Na diaľku (ďalej ako PISTOL_FROM) vytiahne pištoľ (sidearm) – dve rýchle rany, brokovnicu (a náboje v nej) šetrí na blízko. Smrť: Winchester mu vypadne, chytí sa povrazového rebríka gondoly – réžiu
 ##    (vzducholoď, závoj v okne, pád) robí level (signál stage(&"dying")).
 ## Godot docs: classes/class_characterbody2d, classes/class_tween
 
@@ -28,6 +29,8 @@ const PHASE_HP := 12.0                  ## zdravia na fázu (max_health = 36 →
 const PUMP_TEX := preload("res://weapons/winchester/winchester_pump.png")
 const BODY_TEX := preload("res://weapons/winchester/winchester_body.png")
 const SHELL_TEX := preload("res://weapons/winchester/shell_red.png")
+const PISTOL_FROM := 190.0              ## px – ďalej ako toto strieľa z pištole (broky by tam aj tak nedoleteli)
+const PISTOL_BURST := 2                 ## rán z pištole naraz
 
 @export_group("Iron Mike")
 @export var shells: int = 5                       ## nábojov v zásobníkovej rúrke
@@ -39,6 +42,7 @@ const SHELL_TEX := preload("res://weapons/winchester/shell_red.png")
 @export var mast_ladder: Vector2 = Vector2(731, -780) ## päta rebríka na stožiar (globálne)
 @export var mast_top_y: float = -930.0
 @export var forge_path: NodePath
+@export var sidearm: WeaponData = preload("res://weapons/pistol/pistol.tres")   ## pištoľ na diaľku
 
 var boss: Boss = Boss.WAIT
 var phase: int = 1
@@ -55,6 +59,10 @@ var _pump: Sprite2D
 var _pump_off: float = 0.0
 var _forge: Node2D
 var hands_up: bool = false   ## level: drží sa povrazového rebríka (smrť)
+var _shotgun: WeaponData            ## Winchester (weapon zo scény)
+var _shotgun_stats: Array = []      ## [pellets, spread_deg, bullet_speed, bullet_lifetime] brokovnice
+var _pistol: bool = false           ## práve drží pištoľ
+var _burst: int = 0
 
 
 func _ready() -> void:
@@ -72,6 +80,36 @@ func _ready() -> void:
 		_pump.position = weapon.pump_px
 		gun.add_child(_pump)
 	_forge = get_node_or_null(forge_path) as Node2D
+	_shotgun = weapon
+	_shotgun_stats = [pellets, spread_deg, bullet_speed, bullet_lifetime]
+
+
+func _far() -> bool:
+	return player != null and player.global_position.distance_to(global_position) > PISTOL_FROM
+
+
+## Prepne zbraň v ruke: pištoľ (na diaľku) ↔ Winchester. Obrázok, rukoväť, ústie, broky/guľka.
+func _use_pistol(on: bool) -> void:
+	if on == _pistol or gun == null or sidearm == null or not gun.visible:
+		return
+	_pistol = on
+	weapon = sidearm if on else _shotgun
+	gun.texture = sidearm.texture if on else BODY_TEX
+	gun.position = ARM_GRIP - PIVOT_ARM - weapon.grip_px
+	muzzle.position = gun.position + weapon.muzzle_px
+	if _pump:
+		_pump.visible = not on
+	if on:
+		pellets = 1
+		spread_deg = sidearm.spread_deg
+		bullet_speed = sidearm.bullet_speed
+		bullet_lifetime = 1.1
+	else:
+		pellets = _shotgun_stats[0]
+		spread_deg = _shotgun_stats[1]
+		bullet_speed = _shotgun_stats[2]
+		bullet_lifetime = _shotgun_stats[3]
+	if on: Sfx.play(&"slide_rack", global_position + Vector2(0, -40), -10.0, 0.1)
 
 
 ## Začiatok boja vo fáze p (po smrti Ricca pokračuje v dosiahnutej fáze). at = kde stojí (2. a 3. fáza)
@@ -160,7 +198,16 @@ func _physics_process(delta: float) -> void:
 					_next_action()
 		Boss.BLAST:
 			_slow_down(delta)
-			if timer <= 0.0:
+			_track_aim(delta)
+			if timer <= 0.0 and _pistol:   # pištoľ: ďalšia rana dávky, potom krátka pauza (bez pumpy)
+				if _burst > 0 and los:
+					_burst -= 1
+					timer = 0.22
+					_fire()
+				else:
+					boss = Boss.PUMP
+					timer = 0.5
+			elif timer <= 0.0:
 				boss = Boss.PUMP
 				timer = pump_time
 				_pump_action()
@@ -241,7 +288,7 @@ func _has_los() -> bool:
 		return false
 	var eye := global_position + Vector2(EYE.x * facing, EYE.y)
 	var q := PhysicsRayQueryParameters2D.create(eye, _player_target(), 1 | COVER_LAYER)
-	return get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+	return Gangster.solid_ray(get_world_2d().direct_space_state, q).is_empty()
 
 
 func _player_close(r: float) -> bool:
@@ -273,8 +320,8 @@ func _next_action() -> void:
 	if _mobile() and _player_close(bash_range + 6.0):
 		_start_bash()
 		return
-	if _shells <= 0:
-		_start_reload()
+	if _shells <= 0 and not (_far() and _hidden_t <= 0.0):
+		_start_reload()   # na diaľku na neho stačí pištoľ
 		return
 	if _mobile() and phase == 2 and _hidden_t > 2.2 and _kick_cd <= 0.0 and _forge and _forge.has_method(&"kick") \
 			and absf(_forge.global_position.y - global_position.y) < 20.0:
@@ -284,7 +331,7 @@ func _next_action() -> void:
 	if _hidden_t > 1.5 and _shells < shells:
 		_start_reload()   # Ricco je za krytom – využije čas a dobije
 		return
-	if _mobile() and (_hidden_t > 0.6 or absf(player.global_position.x - global_position.x) > preferred_range):
+	if _mobile() and (_hidden_t > 0.6 or (absf(player.global_position.x - global_position.x) > preferred_range and randf() < 0.5)):
 		boss = Boss.WALK
 		_walk_t = 2.2
 		return
@@ -292,6 +339,7 @@ func _next_action() -> void:
 
 
 func _start_aim() -> void:
+	_use_pistol(_far())
 	boss = Boss.AIM
 	state = State.AIM
 	timer = aim_time if phase == 1 else aim_time * (0.85 if phase == 2 else 0.7)
@@ -300,6 +348,11 @@ func _start_aim() -> void:
 func _blast() -> void:
 	boss = Boss.BLAST
 	state = State.SHOOT
+	if _pistol:
+		_burst = PISTOL_BURST - 1
+		timer = 0.22
+		_fire()
+		return
 	timer = 0.08
 	_fire()
 	_shells -= 1
@@ -310,7 +363,7 @@ func _blast() -> void:
 
 ## Pumpa: predpažbie dozadu (prázdna nábojnica vyletí) a dopredu
 func _pump_action() -> void:
-	if _pump == null:
+	if _pump == null or _pistol:
 		return
 	var tw := create_tween()
 	tw.tween_interval(0.12)
@@ -340,6 +393,7 @@ func _eject_shell() -> void:
 
 
 func _start_reload() -> void:
+	_use_pistol(false)
 	boss = Boss.RELOAD
 	state = State.COOLDOWN
 	_reload_empty = _shells <= 0
@@ -364,6 +418,7 @@ func _shell_in() -> void:
 
 
 func _start_bash() -> void:
+	_use_pistol(false)
 	boss = Boss.BASH
 	state = State.WINDUP
 	timer = 0.32
@@ -518,7 +573,7 @@ func cargo_hit(damage: float) -> void:
 		timer = 1.6
 
 
-func hat_hit(damage: int, dir: Vector2) -> void:
+func hat_hit(damage: float, dir: Vector2) -> void:
 	if invulnerable or not active or boss == Boss.SCRIPTED:
 		Sfx.play(&"hat_bonk", global_position + Vector2(0, -60))
 		return
@@ -565,6 +620,7 @@ func _start_dying() -> void:
 func _drop_gun() -> void:
 	if gun == null or not gun.visible:
 		return
+	_use_pistol(false)   # vypadne mu Winchester
 	var d := WEAPON_PICKUP.new()
 	d.weapon = weapon
 	d.ammo = weapon.mag_size

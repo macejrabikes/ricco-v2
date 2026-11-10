@@ -11,6 +11,7 @@ const GLOW := preload("res://levels/level1/art/glow.png")
 @export var height: float = 206.0         ## px – 206 = od podlahy po strop poschodia
 @export var block: bool = true            ## stena (nedá sa prejsť) / nízky oheň (dá sa preskočiť)
 @export var player_damage: int = 1
+@export var hurt_every: float = 1.6     ## s – kým stojí v plameňoch, raz za takýto čas ho popáli
 @export var crackle: bool = true          ## praskanie ohňa (slučka) – stačí pár stien na poschodie
 
 var _flames: Array[Sprite2D] = []
@@ -78,7 +79,7 @@ func _process(delta: float) -> void:
 		return
 	for b in _hurt.get_overlapping_bodies():
 		if b.is_in_group(&"player") and b.has_method(&"take_damage") and int(b.get(&"state")) != 3:
-			_cd = 1.0
+			_cd = hurt_every
 			b.call(&"take_damage", player_damage, global_position + Vector2(0, -20.0))
 	if randf() < delta * 2.0:   # iskry
 		Burst.spawn(get_parent(), global_position + Vector2(randf_range(-width / 2.0, width / 2.0), -randf_range(10.0, height)),

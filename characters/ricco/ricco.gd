@@ -27,6 +27,8 @@ extends CharacterBody2D
 ## krok 21: animácia lezenia po rebríku (sprites/ladder.png – bokom čelom k stene, snímky podľa prelezenej vzdialenosti)
 ## krok 22: akimbo – druhá ruka ducha drží druhú bočnú zbraň (kláves B pri bočnej zbrani, odomkne sa v kapitole IV).
 ##          Obe mieria na myš a strieľajú striedavo; zásobník je dvojnásobný, prebíjanie dlhšie, rozptyl väčší.
+## krok 23: omráčenie (stun) – chvíľu stojí, nestrieľa, kýve sa a nad hlavou mu lietajú hviezdičky (boss Margaret);
+##          dusenie v dyme (suffocate) – uberie zdravie bez animácie zásahu, Ricco len sčervenie (málo vzduchu)
 ## Pri behu sa Ricco kýve zo strany na stranu ako tučniak (waddle) – rieši to kód.
 
 enum State { NORMAL, HANG, CLIMB, DEAD, SLIDE, SWIM, HOOK, LADDER }
@@ -251,8 +253,18 @@ var aim_base_y: float = 0.0
 
 var _takedown_hint: Label
 
+const PARALLAX_FILL := preload("res://world/fx/parallax_fill.gd")
+
+
+func _fill_parallax() -> void:
+	if is_inside_tree():
+		PARALLAX_FILL.apply(get_tree().current_scene)
+
+
 func _ready() -> void:
 	_ensure_actions()
+	# vrstvy pozadia (mesto, more) siahajú nadol – pod spodnou hranou nie je „ďalšie mesto“ (world/fx/parallax_fill.gd)
+	call_deferred(&"_fill_parallax")
 	# schody: cez schodíky je neviditeľná šikmá rampa (tools/build_level1.gd – _stair_ramp), Ricco po nej ide plynule
 	floor_max_angle = deg_to_rad(50.0)
 	floor_snap_length = 16.0         # pri zostupe ostane prilepený na rampe (ani na hornej hrane schodov nevyskočí)
@@ -533,6 +545,11 @@ func _physics_process(delta: float) -> void:
 		State.LADDER:
 			_process_ladder(delta)
 			return
+
+	# omráčený – stojí (padá), nestrieľa, neovláda sa
+	if stun_timer > 0.0:
+		_process_stun(delta)
+		return
 
 	# rebrík: skok pri ňom (alebo pád popri ňom) = chytí sa, S pri jeho vrchu = zlezie dole
 	if _try_ladder():
@@ -1006,7 +1023,10 @@ func _shoot() -> void:
 		b.lifetime = weapon.bullet_lifetime
 		b.effective_range = weapon.effective_range
 		b.falloff_range = weapon.falloff_range
+		if weapon.pellets > 1:
+			b.pierce_chance = 0.35   # brok občas prestrelí mafiána a trafí aj toho za ním (weapons/pistol/bullet.gd)
 		b.global_position = from
+		b.origin = global_position + Vector2(0, from.y - global_position.y).limit_length(HEIGHT - 4.0)   # od tela vo výške hlavne
 		get_tree().current_scene.add_child(b)
 	_bloom = minf(_bloom + weapon.spread_bloom_deg * (0.5 if semi else 1.0), weapon.spread_max_deg)
 	# šťava: zvuk, záblesk (3 snímky + žiara + dym), cuknutie a nadhodenie zbrane, zatrasenie kamery
@@ -1542,6 +1562,71 @@ func _finish_reload() -> void:
 		_holster()
 
 
+# ---------------------------------------------------------------- omráčenie, dusenie
+## Ricco je chvíľu omráčený (napr. Margaret mu zhodí na hlavu sklo z kupoly, keď uteká na strechu): stojí, nestrieľa,
+## nehýbe sa, kýve sa a nad hlavou mu lietajú hviezdičky. Gravitácia platí (vo vzduchu dopadne). Na rebríku, háku,
+## vo vode a pri visení na hrane sa omráčenie neuplatní. Godot docs: classes/class_characterbody2d
+
+const SUFFOCATE_TINT := Color(1.0, 0.45, 0.4)   ## farba Ricca, keď sa dusí v dyme
+
+var stun_timer: float = 0.0   ## s – ako dlho ešte je omráčený
+var _stun_t: float = 0.0
+var _stun_star: float = 0.0
+var _suffocate_tw: Tween
+
+
+func stun(t: float) -> void:
+	if state == State.SLIDE:
+		_end_slide(true)
+	if state != State.NORMAL or in_cutscene:
+		return
+	_cancel_eat()
+	_set_duck(false)
+	stun_timer = maxf(stun_timer, t)
+	_stun_t = 0.0
+	sprite.speed_scale = 1.0
+	sprite.play(_hat_anim(&"idle"))
+
+
+func _process_stun(delta: float) -> void:
+	stun_timer -= delta
+	_stun_t += delta
+	aim.visible = false
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+	velocity.x = move_toward(velocity.x, 0.0, friction * delta)
+	move_and_slide()
+	visual.rotation = sin(_stun_t * 9.0) * 0.12   # kýve sa ako po rane
+	_stun_star -= delta
+	if _stun_star <= 0.0:   # hviezdičky okolo hlavy
+		_stun_star = 0.22
+		var a: float = _stun_t * 8.0
+		Burst.spawn(get_tree().current_scene, global_position + Vector2(cos(a) * 9.0, -50.0 + sin(a) * 3.0), Vector2.UP,
+				Color(1.0, 0.92, 0.4), 2, 24.0, Vector2(0, -6), 0.45)
+	if stun_timer <= 0.0:
+		stun_timer = 0.0
+		visual.rotation = 0.0
+
+
+## Dusí sa v dyme (levels/level4/smoke_zone.gd): uberie zdravie bez animácie zásahu, krvi, odhodenia a zastavenia času –
+## Ricco len sčervenie a pomaly zbledne, okraje obrazovky slabo začervenajú. Pri nule zomrie ako inak.
+func suffocate(amount: int = 1) -> void:
+	if state == State.DEAD or amount <= 0:
+		return
+	health = maxi(health - amount, 0)
+	health_changed.emit(health, max_health)
+	if health == 0:
+		_hurt_fx(true)
+		_die()
+		return
+	sprite.modulate = SUFFOCATE_TINT
+	if _suffocate_tw:
+		_suffocate_tw.kill()
+	_suffocate_tw = create_tween()
+	_suffocate_tw.tween_property(sprite, "modulate", Color.WHITE, 0.9).set_delay(0.15)
+	_hurt_flash = maxf(_hurt_flash, 0.35) if _hurt_rect else _hurt_flash
+
+
 # ---------------------------------------------------------------- akimbo (dve bočné zbrane)
 ## Druhá ruka ducha drží druhú, rovnakú bočnú zbraň (duch si ju „vyčaruje“ – netreba zbierať druhú). Zadná zbraň je
 ## kúsok vpredu a vyššie (AKIMBO_OFF), za Riccom (z_index -1) a tmavšia – je ďalej od kamery. Obe mieria na myš
@@ -1557,6 +1642,9 @@ const AKIMBO_SPREAD := 1.5                    ## × rozptyl – z dvoch zbraní 
 const AKIMBO_RELOAD := 1.5                    ## × reload_time – prebíja obe
 const GHOST_HAND_SCENE := preload("res://characters/ricco/ghost_hand/ghost_hand.tscn")
 
+## Zbraň, ktorú mal hráč naposledy v ruke (sám si ju vybral / zdvihol) – po zmene scény (set_loadout) ju znova vezme,
+## ak ju vo výbave má (inak bočná). Pamätá sa medzi scénami.
+static var held_weapon: WeaponData = null
 static var akimbo: bool = false   ## hráč má akimbo zapnuté (pamätá sa medzi časťami kapitoly); platí len pri bočnej zbrani
 var _gun2: Sprite2D               ## zadná zbraň (dieťa Aim)
 var _gun2_mag: Sprite2D
@@ -1779,6 +1867,8 @@ func _equip(i: int, animate: bool = true) -> void:
 	reloading = false
 	weapon_index = i
 	weapon = loadout[i]
+	if animate:   # vybral si ju hráč (kláves, koliesko, zdvihnutie) – po zmene scény ju bude mať znova v ruke
+		held_weapon = weapon
 	Progress.unlock(weapon.name)   # prvý raz v ruke → odomknutá v Arsenale
 	_bloom = 0.0
 	_barrels.visible = false   # prerušené lámacie prebíjanie
@@ -1849,6 +1939,15 @@ func set_loadout(list: Array[WeaponData]) -> void:
 		ammo_changed.emit(0, 0, false)
 	else:
 		_equip(0, false)
+		# zbraň z minulej scény – až na konci snímky, keď level dopíše náboje (napr. tommy_ammo v level3.gd)
+		_equip_held.call_deferred(held_weapon)
+
+
+func _equip_held(w: WeaponData) -> void:
+	var i: int = loadout.find(w) if w else -1
+	if i > 0 and i != weapon_index:
+		_equip(i, false)
+		held_weapon = w
 
 
 ## Zdvihne zbraň (napr. duch Dona podá Colt, alebo zbraň po gangstrovi) a hneď ju vezme do ruky.
@@ -1863,7 +1962,7 @@ func give_weapon(w: WeaponData) -> void:
 
 ## 1–3 = zbraň z výbavy (1 bočná, 2–3 hlavné), koliesko myši = ďalšia/predošlá, Q = posledná použitá (klávesy z KeyBindings)
 func _weapon_switch_input(event: InputEvent) -> void:
-	if state == State.DEAD:
+	if state == State.DEAD or stun_timer > 0.0:
 		return
 	for n in 3:
 		if event.is_action_pressed(StringName("weapon_%d" % (n + 1))) and n < loadout.size():
@@ -2448,7 +2547,7 @@ func _update_invulnerability(delta: float) -> void:
 		var k: float = clampf(invulnerable_timer / maxf(invulnerable_time, 0.01), 0.0, 1.0)
 		var pulse: float = 0.75 + 0.25 * cos(invulnerable_timer * TAU * 4.0)
 		sprite.modulate = Color.WHITE.lerp(HURT_TINT, k * pulse)
-	elif sprite.modulate != Color.WHITE:
+	elif sprite.modulate != Color.WHITE and not (_suffocate_tw and _suffocate_tw.is_running()):   # dusenie bledne samo
 		sprite.modulate = Color.WHITE
 
 

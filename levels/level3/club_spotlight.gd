@@ -125,7 +125,7 @@ func take_hit(_damage: float, _dir: Vector2) -> void:
 	switch_off()
 
 
-func hat_hit(_damage: int, _dir: Vector2) -> void:
+func hat_hit(_damage: float, _dir: Vector2) -> void:
 	switch_off()
 
 

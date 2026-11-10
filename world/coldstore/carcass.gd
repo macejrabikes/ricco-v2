@@ -43,5 +43,5 @@ func take_hit(_damage: float, dir: Vector2) -> void:
 
 
 ## Hodený klobúk – len odrazí a rozhojdá
-func hat_hit(_damage: int, dir: Vector2) -> void:
+func hat_hit(_damage: float, dir: Vector2) -> void:
 	_spin += -signf(dir.x) * 1.0

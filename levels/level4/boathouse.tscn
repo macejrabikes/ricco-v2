@@ -58,7 +58,7 @@ size = Vector2(170, 10)
 size = Vector2(60, 10)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_t6c2o"]
-size = Vector2(160, 4)
+size = Vector2(160, 10)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ncbrs"]
 size = Vector2(40, 8)
@@ -225,12 +225,11 @@ position = Vector2(2270, 663)
 [node name="Shape" type="CollisionShape2D" parent="Floor3"]
 shape = SubResource("RectangleShape2D_ypily")
 
-[node name="Cradle" type="StaticBody2D" parent="." groups=["platform"]]
-position = Vector2(1640, 660)
+[node name="Cradle" type="StaticBody2D" parent="."]
+position = Vector2(1640, 663)
 
 [node name="Shape" type="CollisionShape2D" parent="Cradle"]
 shape = SubResource("RectangleShape2D_t6c2o")
-one_way_collision = true
 
 [node name="Loft1" type="StaticBody2D" parent="."]
 position = Vector2(360, 474)
@@ -291,14 +290,14 @@ shape = SubResource("RectangleShape2D_alla3")
 one_way_collision = true
 
 [node name="Scaffold1" type="StaticBody2D" parent="." groups=["platform"]]
-position = Vector2(800, 520)
+position = Vector2(800, 480)
 
 [node name="Shape" type="CollisionShape2D" parent="Scaffold1"]
 shape = SubResource("RectangleShape2D_htpyf")
 one_way_collision = true
 
 [node name="Scaffold2" type="StaticBody2D" parent="." groups=["platform"]]
-position = Vector2(1180, 520)
+position = Vector2(1180, 480)
 
 [node name="Shape" type="CollisionShape2D" parent="Scaffold2"]
 shape = SubResource("RectangleShape2D_gb09m")
@@ -380,16 +379,16 @@ side = -1.0
 length = 140.0
 
 [node name="LadderScafW" type="Node2D" parent="."]
-position = Vector2(700, 518)
+position = Vector2(700, 478)
 script = ExtResource("3_jjj3k")
 side = 1.0
-length = 140.0
+length = 180.0
 
 [node name="LadderScafE" type="Node2D" parent="."]
 position = Vector2(1120, 400)
 script = ExtResource("3_jjj3k")
 side = -1.0
-length = 118.0
+length = 78.0
 
 [node name="LadderSlip1" type="Node2D" parent="."]
 position = Vector2(1500, 658)
@@ -725,7 +724,7 @@ look_back = Vector2(6, 10)
 needs_light = true
 
 [node name="Mech1" parent="." instance=ExtResource("23_weepl")]
-position = Vector2(800, 518)
+position = Vector2(800, 478)
 start_facing = 1.0
 respawn_time = 0.0
 kind = "smuggler"
@@ -740,7 +739,7 @@ look_back = Vector2(5, 9)
 needs_light = true
 
 [node name="Mech2" parent="." instance=ExtResource("23_weepl")]
-position = Vector2(1180, 518)
+position = Vector2(1180, 478)
 start_facing = -1.0
 respawn_time = 0.0
 kind = "smuggler"
@@ -788,7 +787,7 @@ stationary = true
 needs_light = true
 
 [node name="SlipLupara" parent="." instance=ExtResource("23_weepl")]
-position = Vector2(1790, 658)
+position = Vector2(1806, 658)
 start_facing = 1.0
 respawn_time = 0.0
 kind = "smuggler"

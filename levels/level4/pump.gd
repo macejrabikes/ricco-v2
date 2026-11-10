@@ -50,7 +50,7 @@ func take_hit(_damage: float, _dir: Vector2) -> void:
 	switch_off(true)
 
 
-func hat_hit(_damage: int, _dir: Vector2) -> void:
+func hat_hit(_damage: float, _dir: Vector2) -> void:
 	Sfx.play(&"hat_bonk", global_position, -6.0, 0.1)   # klobúk stroj nezastaví
 
 

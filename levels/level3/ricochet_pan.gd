@@ -29,7 +29,7 @@ func _physics_process(delta: float) -> void:
 	rotation = _angle
 
 
-func hat_hit(_damage: int, dir: Vector2) -> void:
+func hat_hit(_damage: float, dir: Vector2) -> void:
 	_spin += signf(dir.x) * 3.0
 	Sfx.play(&"beam_clang", global_position, -6.0, 0.15)
 

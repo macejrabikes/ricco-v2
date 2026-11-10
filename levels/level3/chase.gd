@@ -9,7 +9,8 @@ extends Level3
 ##    na rane z oboch strán – pred autami vzadu sa schová na kapote (kabína ho kryje), pred motorkami vpredu na kufri.
 ##    Šofér auta (trafiť cez čelné sklo) = auto sa vybúra aj so strelcami. Pod stanicami nadzemky sú nízke nosníky
 ##    (ako nad vlakom – train.gd): kto stojí na streche taxíka, toho zhodia → zísť na kapotu / kufor alebo šmyk.
-##    Spadnúť na cestu = zásah a Ricco sa vráti na strechu. Vlny: policajné auto → nosníky a dve motorky →
+##    Spadnúť na cestu = zásah a Ricco sa vráti na strechu. Taxík sa postupne ničí (drgnutia áut, guľky do karosérie –
+##    taxi_body.gd): dym z kapoty → vybité okná (kabína už nekryje – guľky aj pohľad ňou prejdú) → oheň. Vlny: policajné auto → nosníky a dve motorky →
 ##    auto ľudí Margaret → policajné auto s motorkou → Queensboro Bridge: zápcha, taxikár nezabrzdí a nabúra.
 ## 2. Most (checkpointy 34–36) – zápcha na Queensboro Bridge za svitania: Ricco skáče po strechách áut, nákladiakov
 ##    a električky (rebrík na čele), policajti a mafiáni na ceste aj na strechách, sudy s benzínom na korbe (výbuch
@@ -30,6 +31,12 @@ const TAXI_SPAN := Vector2(222, 406)   ## taxík (x od–do)
 const GIRDER_BOTTOM := -118.0    ## spodok nosníka (30 px nad strechou – ako BEAM_CLEAR v train.gd)
 const GIRDER_HALF := 20.0
 const GIRDER_DAMAGE := 2
+const TAXI_HP := 12.0            ## „zdravie“ taxíka (len vzhľad a kryt – taxík nevybuchne, jazdu ukončí až nehoda)
+const TAXI_BUMP := 1.5           ## drgnutie auta
+const TAXI_BULLET := 0.25        ## podiel damage guľky do karosérie
+const TAXI_STAGES: Array[float] = [8.0, 4.0, 1.0]   ## pod touto hranicou: dym, vybité okná, oheň
+const CAB_LAYER := 512           ## vrstva 10: kabína s vybitými oknami – Ricco po nej chodí, guľky a pohľad prejdú
+const TAXI_WINDOWS: Array[Vector2] = [Vector2(55, -66), Vector2(98, -66)]   ## stredy okien (voči taxíku)
 const BRIDGE_IN := 1500.0        ## px – odkiaľ sa most prisunie (potom nehoda)
 const BOMB_RADIUS := 70.0        ## px – výbuch sudu na korbe zraní gangstrov v tomto okruhu
 const DAWN := Color(1.0, 0.92, 0.86)   ## mafiáni a policajti v rannom svetle
@@ -86,6 +93,8 @@ var _ending: bool = false
 var _cops: Array[Node] = []
 var _line_cd: float = 0.0
 var _said: Array[StringName] = []
+var _taxi_hp: float = TAXI_HP
+var _taxi_stage: int = 0
 
 
 func _ready() -> void:
@@ -100,6 +109,10 @@ func _ready() -> void:
 			rig.modulate = DAWN
 	_taxi = get_node_or_null(^"Taxi") as Node2D
 	_taxi_sprite = get_node_or_null(^"Taxi/Sprite") as Sprite2D
+	var tb := get_node_or_null(^"Taxi/Body")
+	if tb and tb.has_signal(&"hit"):
+		tb.connect(&"hit", func(d: float, _p: Vector2): _taxi_damage(d * TAXI_BULLET))
+	player.collision_mask |= CAB_LAYER   # kabína po vybití okien je na vrstve 10 – Ricco na nej stojí ďalej
 	_cabbie = get_node_or_null(^"Taxi/Cabbie") as Sprite2D
 	_bridge = get_node_or_null(^"Bridge") as Node2D
 	_murphy = get_node_or_null(^"Bridge/Murphy") as ChiefMurphy
@@ -272,7 +285,84 @@ func _on_bump() -> void:
 	var p: Vector2 = player.global_position
 	if p.x > TAXI_SPAN.x and p.x < TAXI_SPAN.y and p.y < -40.0 and player.state == 0 and player.is_on_floor():
 		player.velocity += Vector2(90.0, -150.0)
+	if _taxi:   # odletí lak a kúsok nárazníka
+		Burst.spawn(self, _taxi.global_position + Vector2(6, -30), Vector2(-1, -0.6).normalized(), Color(0.95, 0.75, 0.2), 8, 120.0, Vector2(0, 500), 0.7)
 	_said_once(&"bump", "HE'S RAMMIN' US! HOLD ON!")
+	_taxi_damage(TAXI_BUMP)
+
+
+## Taxík dostal ranu (drgnutie, guľky) – postupne sa ničí; nikdy úplne (jazdu končí nehoda na moste)
+func _taxi_damage(d: float) -> void:
+	if _crashed or _taxi == null:
+		return
+	_taxi_hp = maxf(_taxi_hp - d, 0.5)
+	while _taxi_stage < TAXI_STAGES.size() and _taxi_hp <= TAXI_STAGES[_taxi_stage]:
+		_taxi_stage += 1
+		_taxi_stage_fx(_taxi_stage)
+
+
+func _taxi_stage_fx(stage: int) -> void:
+	var at: Vector2 = _taxi.global_position
+	match stage:
+		1:   # kapota sa dymí, karoséria otlčená
+			_taxi_particles(Vector2(150, -50), Color(0.55, 0.53, 0.52, 0.6), 18, 1.2)
+			if _taxi_sprite:
+				_taxi_sprite.modulate = Color(0.92, 0.9, 0.86)
+			Sfx.play(&"metal_crash", at + Vector2(150, -40), -10.0, 0.1)
+			if _cabbie:
+				_speak(_cabbie, "MY CAB! I JUST HAD HER PAINTED!", 40.0)
+		2:   # vybité okná – kabína už nekryje (guľky a pohľad prejdú, Ricco po nej chodí ďalej)
+			for w in TAXI_WINDOWS:
+				Burst.spawn(self, at + w, Vector2(randf_range(-0.6, 0.6), -1.0).normalized(), Color(0.75, 0.9, 1.0), 12, 140.0, Vector2(0, 500), 0.8)
+			Sfx.play(&"glass_break", at + Vector2(76, -66), -2.0, 0.08)
+			if _taxi_sprite:
+				_taxi_sprite.modulate = Color(0.84, 0.82, 0.78)
+			var cab := get_node_or_null(^"Taxi/Body/Shape2")
+			if cab:
+				_open_cab.call_deferred(cab)
+			say("THEY SHOT OUT THE WINDOWS! THE CAB
+WON'T STOP 'EM NOW - GO FOR THE DRIVER!")
+		3:   # oheň pod kapotou, čierny dym
+			_taxi_particles(Vector2(150, -50), Color(0.12, 0.11, 0.11, 0.75), 26, 1.6)
+			var fire := _taxi_particles(Vector2(156, -48), Color(1.0, 0.55, 0.15, 0.9), 16, 0.45)
+			fire.initial_velocity_min = 30.0
+			fire.initial_velocity_max = 55.0
+			fire.scale_amount_min = 1.5
+			fire.scale_amount_max = 3.0
+			if _taxi_sprite:
+				_taxi_sprite.modulate = Color(0.74, 0.7, 0.66)
+			Sfx.play(&"metal_crash", at + Vector2(150, -40), -6.0, 0.1)
+			_said_once(&"taxi_fire", "SHE'S ON FIRE, KID!
+SHE AIN'T GONNA LAST MUCH LONGER!")
+
+
+## Kabína prejde na vrstvu 10: Ricco (maska) po nej chodí, guľky mafiánov aj ich pohľad (vrstva 1 | kryt) prejdú
+func _open_cab(shape: Node) -> void:
+	var cab := StaticBody2D.new()
+	cab.name = &"Cab"
+	cab.collision_layer = CAB_LAYER
+	cab.collision_mask = 0
+	_taxi.add_child(cab)
+	shape.reparent(cab)
+
+
+## Dym / oheň z taxíka (častice letia dozadu – taxík ide dopredu)
+func _taxi_particles(pos: Vector2, col: Color, amount: int, life: float) -> CPUParticles2D:
+	var p := CPUParticles2D.new()
+	p.position = pos
+	p.amount = amount
+	p.lifetime = life
+	p.direction = Vector2(-0.3, -1)
+	p.spread = 25.0
+	p.gravity = Vector2(-160, -40)
+	p.initial_velocity_min = 20.0
+	p.initial_velocity_max = 40.0
+	p.scale_amount_min = 2.0
+	p.scale_amount_max = 4.0
+	p.color = col
+	p.z_index = 1
+	_taxi.add_child(p)
+	return p
 
 
 ## Spadol na cestu – zásah a späť na strechu taxíka; náboje a zásobníky na ceste ubiehajú s ňou

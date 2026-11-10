@@ -7,7 +7,8 @@ extends Level4
 ## Boss (characters/margaret/margaret.gd, pás zdravia ui/boss_bar.gd – tri fázy):
 ##   1. zrkadlá – ona a jej odrazy; blesk (tu: _lightning) odrazy zhasne, praskne zrkadlo, kam ju Ricco trafí
 ##   2. vystúpi zo zrkadla, kopne do svietnika – závesy horia a oheň sa šíri na susedné (každých SPREAD s)
-##   3. sklenými dverami na strechu, hore na plošinu stožiara; blesk do stožiara ju omráči (a Ricca na rebríku popáli)
+##   3. sklenými dverami na strechu, hore na plošinu stožiara; blesk do stožiara ju omráči (a Ricca na rebríku popáli).
+##      Keď uteká, prestrelí kupolu nad Riccom – sklo ho na chvíľu omráči (ricco.gd – stun), ona zatiaľ zmizne hore.
 ##   smrť – C96 jej vypadne, kľačí („I just signed the checks“), blesk, padá zo stožiara do tmy nad morom, vzducholoď
 ##   odletí; niekto podpálil vilu → poklop pri stožiari = útek (časť 7 – villa_fire.gd, na útese čaká Mancini).
 ## Checkpoint 11 = začiatok boja (margaret_phase = dosiahnutá fáza – po smrti sa pokračuje v nej).
@@ -232,13 +233,35 @@ func _on_stage(n: StringName) -> void:
 			_say_queue.clear()
 			_open_door(true)
 			_speak(_m, "THE IRON IS WAITING FOR ME. NOT FOR YOU.", 96.0)
-			say("SHE'S RUNNIN' FOR THE ROOF!")
+			_glass_on_ricco()
 		&"on_mast":
 			_say_once(&"mast", "UP THE LADDER. SHE WON'T SHOOT\nTILL YOU'RE ON TOP - SHE WANTS TO WATCH.")
 		&"taunt":
 			_speak(_m, TAUNTS[randi() % TAUNTS.size()], 96.0)
 		&"dying":
 			_margaret_dies()
+
+
+const STUN_TIME := 2.4   ## s – Ricco omráčený sklom z kupoly, kým Margaret uteká na strechu
+
+## Margaret na úteku prestrelí kupolu nad Riccom – sklo mu padne na klobúk a chvíľu je omráčený (bez zranenia)
+func _glass_on_ricco() -> void:
+	var p: Vector2 = player.global_position
+	Sfx.shot(C96, _m.global_position, -2.0)
+	if p.x > ROOF_X:   # už je na streche – nad ním nie je sklo
+		say("SHE'S RUNNIN' FOR THE ROOF!")
+		return
+	Sfx.play(&"glass_break", p + Vector2(0, -120), 0.0, 0.1)
+	Burst.spawn(self, p + Vector2(0, -150), Vector2.DOWN, Color(0.85, 0.95, 1.0), 16, 90.0, Vector2(0, 700), 0.7)
+	await _wait(0.25)
+	if _ending:
+		return
+	Sfx.play(&"glass_break", p + Vector2(0, -40), -2.0, 0.15)
+	Burst.spawn(self, p + Vector2(0, -44), Vector2.UP, Color(0.85, 0.95, 1.0), 10, 80.0, Vector2(0, 500), 0.5)
+	player.set(&"shake_timer", 0.3)
+	if player.has_method(&"stun"):
+		player.stun(STUN_TIME)
+	say("KID! KID, SHAKE IT OFF -\nSHE'S RUNNIN' FOR THE ROOF!")
 
 
 ## Prasklo zrkadlo, kde ju Ricco trafil

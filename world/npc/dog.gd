@@ -179,7 +179,7 @@ func _show_mark() -> void:
 
 
 ## Klobúk (weapons/hat/hat_projectile.gd): omráči ho – chvíľu leží a nič necíti
-func hat_hit(_damage: int, _dir: Vector2) -> void:
+func hat_hit(_damage: float, _dir: Vector2) -> void:
 	Sfx.play(&"hat_bonk", global_position + Vector2(0, -12))
 	Sfx.play(&"dog_yelp", global_position + Vector2(0, -12), -4.0)
 	state = State.STUN

@@ -2,6 +2,7 @@ class_name DialogBox
 extends CanvasLayer
 ## Dialógové okno (štýl D1): tmavý panel s mosadzným rámom (hore, aby nezakrýval postavy na zemi), portrét vľavo, meno v štítku nad panelom,
 ## text sa vypisuje ako na písacom stroji. Ďalej / dopísať: medzerník, Enter, E alebo ľavé tlačidlo myši.
+## Preskočiť celý rozhovor: Tab (SKIP_KEY) – okno zmizne a ďalšie say() sa vrátia hneď, cutscéna beží ďalej bez textu.
 ## Duch Dona má rám, meno aj text v modrej (rovnaká farba ako jeho ruka).
 ##
 ## Použitie (v cutscéne):
@@ -19,6 +20,9 @@ const GHOST_TEXT := Color8(200, 244, 250)
 const CHARS_PER_SEC := 38.0
 const TOP := 18.0
 const FONT := preload("res://ui/fonts/tiny5.ttf")
+const SKIP_KEY := KEY_TAB
+
+var skipping: bool = false   ## hráč rozhovor preskočil – zvyšné repliky sa už neukážu
 
 var _panel: Panel
 var _frame: StyleBoxFlat
@@ -70,6 +74,10 @@ func _ready() -> void:
 	_arrow.color = BRASS
 	_arrow.position = Vector2(544, 70)
 	_panel.add_child(_arrow)
+	var skip := _label(8, Color(CREAM, 0.45))
+	skip.text = OS.get_keycode_string(SKIP_KEY).to_upper() + "  SKIP"
+	skip.position = Vector2(560 - 8 - FONT.get_string_size(skip.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 8).x, -11)
+	_panel.add_child(skip)
 	_panel.modulate.a = 0.0
 
 
@@ -92,6 +100,8 @@ func _label(size: int, col: Color) -> Label:
 
 ## Povie jednu repliku a počká, kým ju hráč odklikne
 func say(speaker: String, portrait: Texture2D, text: String, ghost: bool = false) -> void:
+	if skipping:
+		return
 	var col := GHOST if ghost else BRASS
 	_frame.border_color = col
 	(_portrait_frame.get_theme_stylebox(&"panel") as StyleBoxFlat).border_color = col
@@ -134,7 +144,12 @@ func _process(delta: float) -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if get_tree().paused or _panel.modulate.a < 0.5:
+	if get_tree().paused or skipping or _panel.modulate.a < 0.5:
+		return
+	var key := event as InputEventKey
+	if key and key.pressed and not key.echo and key.physical_keycode == SKIP_KEY:
+		get_viewport().set_input_as_handled()
+		_skip()
 		return
 	var go: bool = event.is_action_pressed(&"ui_accept") or event.is_action_pressed(&"jump") \
 			or event.is_action_pressed(&"throw_hat") or event.is_action_pressed(&"shoot")
@@ -149,3 +164,12 @@ func _input(event: InputEvent) -> void:
 		_text.visible_characters = -1
 	else:
 		advanced.emit()
+
+
+## Preskočí zvyšok rozhovoru: okno zmizne, čakajúca replika aj všetky ďalšie sa hneď vrátia
+func _skip() -> void:
+	skipping = true
+	_typing = false
+	var tw := create_tween().set_ignore_time_scale(true)
+	tw.tween_property(_panel, "modulate:a", 0.0, 0.12)
+	advanced.emit()

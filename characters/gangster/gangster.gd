@@ -27,6 +27,8 @@ enum State { PATROL, IDLE, AIM, SHOOT, COOLDOWN, CHASE, WINDUP, PUNCH, RECOVER, 
 @export var weapon: WeaponData                    ## zbraň (obrázok, ústie); null = bije päsťami
 @export var weapon_texture: Texture2D             ## iný obrázok zbrane (napr. Tommy aj s bubnom)
 @export var max_health: int = 3
+@export var headshot_factor: float = 2.0   ## guľka do hlavy (nad krkom) – násobok damage
+@export var leg_factor: float = 0.6        ## guľka do nôh (pod opaskom) – násobok damage
 
 @export_group("Movement")
 @export var walk_speed: float = 35.0
@@ -150,6 +152,8 @@ const WHISTLE_RANGE := 480.0   ## px – píšťalku policajta počujú všetci 
 const DARK_SIGHT := 80.0       ## px – v tme (needs_light) rozozná Ricca pred sebou do tejto vzdialenosti, aj prikrčeného
 const HEAR_STEPS := 90.0       ## px – za chrbtom počuje Riccove kroky, keď nejde potichu (zakrádanie: close_sense · 0,45)
 const HOP_MAX := 46.0          ## px – najvyššia prekážka, ktorú preskočí (dve debny na palube)
+const CLIMB_MAX := 64.0        ## px – prevrátený stôl (flip_table.gd) do tejto výšky pomaly prelezie (nepreskočí)
+const CLIMB_TIME := Vector2(0.55, 0.45)   ## s – vyliezť hore, prejsť cez dosku a zliezť
 const CHASE_DROP := 64.0       ## px – z takej výšky zoskočí, keď ide za Riccom (z debny dole)
 const HIT_AGGRO := 5.0         ## s – po zásahu vie, kde Ricco je (aj v tme)
 
@@ -180,6 +184,7 @@ var _hop_dir: float = 0.0       ## smer skoku cez prekážku (0 = neskáče)
 var _hop_speed: float = 0.0
 var _hop_air: bool = false      ## už je vo vzduchu (pristátie skok ukončí)
 var _hop_cool: float = 0.0
+var _climb_tw: Tween            ## práve prelieza prevrátený stôl (null = nie)
 var _last_seen: Vector2 = Vector2.INF   ## kde Ricca naposledy videl
 var spawn_pos: Vector2
 var player: Node2D
@@ -216,10 +221,12 @@ func _ready() -> void:
 	add_to_group(&"enemies")
 	var shape := CollisionShape2D.new()
 	var cap := CapsuleShape2D.new()
-	cap.radius = 9.0
-	cap.height = 66.0
+	# kapsula od chodidiel po temeno (hlava siaha po y ≈ −71, klobúk vyššie); širší typy (trup 28 px) majú širšiu
+	var wide: bool = (RIGS.get(kind, RIGS["tommy"])["torso"] as Vector2).x >= 14.0
+	cap.radius = 11.0 if wide else 10.0
+	cap.height = 72.0
 	shape.shape = cap
-	shape.position = Vector2(0, -33)
+	shape.position = Vector2(0, -36)
 	add_child(shape)
 	_build_rig()
 	if flashlight:
@@ -406,6 +413,12 @@ func _physics_process(delta: float) -> void:
 	_hop_cool -= delta
 	_flash_t -= delta
 	flash.visible = _flash_t > 0.0
+	if _climb_tw:   # prelieza stôl – pohyb vedie tween (_climb_over)
+		if state == State.DEAD or state == State.STUN or not _climb_tw.is_valid():
+			_end_climb()
+		else:
+			_animate(delta)
+			return
 	if player == null:
 		move_and_slide()
 		return
@@ -846,8 +859,14 @@ func _try_hop(dir: float, speed: float) -> bool:
 	var base := global_position
 	var low := PhysicsRayQueryParameters2D.create(base + Vector2(0, -6), base + Vector2(dir * 22.0, -6), 1)
 	low.exclude = [get_rid()]
-	if space.intersect_ray(low).is_empty():
+	var low_hit := space.intersect_ray(low)
+	if low_hit.is_empty():
 		return false
+	var table: Node = null
+	if low_hit.collider is Node:
+		table = (low_hit.collider as Node).get_parent()
+	if table and table.has_method(&"flip") and table.get(&"is_flipped"):
+		return _climb_over(dir, (low_hit.position as Vector2).x)   # prevrátený stôl – pomaly ho prelezie
 	var h: float = 10.0
 	while h <= HOP_MAX:
 		var q := PhysicsRayQueryParameters2D.create(base + Vector2(0, -h), base + Vector2(dir * 26.0, -h), 1)
@@ -870,6 +889,48 @@ func _try_hop(dir: float, speed: float) -> bool:
 	_hop_cool = 0.5
 	_set_facing(dir)
 	return true
+
+
+## Prevrátený stôl (flip_table.gd – doska na boku je pevná): vylezie hore, prejde cez dosku a zlezie na druhú stranu.
+## Pomaly (CLIMB_TIME) – Ricco má čas strieľať. wall_x = kde lúč narazil na dosku.
+func _climb_over(dir: float, wall_x: float) -> bool:
+	var space := get_world_2d().direct_space_state
+	var base := global_position
+	var h: float = 10.0
+	while h <= CLIMB_MAX:
+		var q := PhysicsRayQueryParameters2D.create(base + Vector2(0, -h), base + Vector2(dir * 26.0, -h), 1)
+		q.exclude = [get_rid()]
+		if space.intersect_ray(q).is_empty():
+			break
+		h += 4.0
+	if h > CLIMB_MAX:
+		return false
+	# za doskou musí byť zem a miesto na postavenie (lúč dole kúsok za stolom)
+	var land_x: float = wall_x + dir * 34.0
+	var down := PhysicsRayQueryParameters2D.create(Vector2(land_x, base.y - h - 4.0), Vector2(land_x, base.y + 20.0), 1)
+	down.exclude = [get_rid()]
+	var ground := space.intersect_ray(down)
+	if ground.is_empty() or (ground.position as Vector2).y < base.y - 8.0:
+		return false
+	_set_facing(dir)
+	velocity = Vector2.ZERO
+	_hop_cool = 1.5
+	laser.visible = false
+	var top := Vector2(wall_x - dir * 4.0, base.y - h - 2.0)
+	var over := Vector2(land_x, base.y - h - 2.0)
+	Sfx.play(&"plank_creak", base + Vector2(0, -h), -8.0, 0.1)
+	_climb_tw = create_tween()
+	_climb_tw.tween_property(self, "global_position", top, CLIMB_TIME.x).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_climb_tw.tween_property(self, "global_position", over, CLIMB_TIME.y).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_climb_tw.tween_callback(_end_climb)   # zvyšok spadne gravitáciou na zem za stolom
+	return true
+
+
+func _end_climb() -> void:
+	if _climb_tw:
+		_climb_tw.kill()
+	_climb_tw = null
+	velocity = Vector2.ZERO
 
 
 func _player_target() -> Vector2:
@@ -927,7 +988,27 @@ func _can_see_player() -> bool:
 	elif not alerted and signf(dx) != facing and absf(dx) > 40.0:
 		return false   # nevidí za seba
 	var q := PhysicsRayQueryParameters2D.create(eye, target, 1 | COVER_LAYER)
-	return get_world_2d().direct_space_state.intersect_ray(q).is_empty()
+	return Gangster.solid_ray(get_world_2d().direct_space_state, q).is_empty()
+
+
+## Lúč, ktorý preletí jednosmernými plošinami (one_way_collision – cez ne sa dá vyskočiť zdola, takže nekryjú:
+## guľky aj pohľad nimi prejdú). Používa aj weapons/pistol/bullet.gd. Godot docs: classes/class_collisionobject2d
+static func solid_ray(space: PhysicsDirectSpaceState2D, q: PhysicsRayQueryParameters2D) -> Dictionary:
+	for i in 6:
+		var hit := space.intersect_ray(q)
+		if hit.is_empty() or not _one_way_hit(hit):
+			return hit
+		q.from = (hit.position as Vector2) + (q.to - q.from).normalized() * 0.5   # pokračuje za plošinou
+		q.hit_from_inside = false
+	return {}
+
+
+static func _one_way_hit(hit: Dictionary) -> bool:
+	var co := hit.collider as CollisionObject2D
+	if co == null:
+		return false
+	var o: Object = co.shape_owner_get_owner(co.shape_find_owner(int(hit.shape)))
+	return o != null and bool(o.get(&"one_way_collision"))
 
 
 ## Je gangster na obrazovke? (Godot docs: CanvasItem.get_global_transform_with_canvas – poloha v okne hry)
@@ -1040,13 +1121,24 @@ func _bat_smear() -> void:
 
 ## Guľka (alebo broky) od Ricca
 ## Zásah guľkou aj s miestom zásahu (weapons/pistol/bullet.gd). Vesta chráni trup (od krku po opasok) – iskry, zlomok damage.
+## Hlava (nad krkom) = headshot_factor × damage a zhodí klobúk, nohy (pod opaskom) = leg_factor × damage.
+## Keď leží (podkopnutý), zóny podľa výšky neplatia – berie sa obyčajný zásah.
 func take_hit_at(damage: float, dir: Vector2, pos: Vector2) -> void:
 	var y: float = pos.y - global_position.y
-	if vest and state != State.DEAD and y > NECK.y + 2.0 and y < HIP.y + 6.0:
+	var upright: bool = not _tripped and absf(rig.rotation) < 0.3
+	if vest and state != State.DEAD and upright and y > NECK.y + 2.0 and y < HIP.y + 6.0:
 		Burst.spawn(get_tree().current_scene, pos, -dir + Vector2(0, -0.4), Color(1.0, 0.85, 0.45), 7, 110.0)
 		Sfx.play(&"vest_hit", pos, -2.0, 0.1)
 		take_hit(damage * vest_factor, dir, false)
 		return
+	if upright and state != State.DEAD:
+		if y <= NECK.y:
+			_knock_hat(dir)
+			take_hit(damage * headshot_factor, dir)
+			return
+		if y > HIP.y:
+			take_hit(damage * leg_factor, dir)
+			return
 	take_hit(damage, dir)
 
 
@@ -1199,7 +1291,7 @@ func _arm_local(w: float, r: float, f: float) -> float:
 
 
 ## Riccov hodený klobúk: omráči ho a zhodí mu klobúk
-func hat_hit(damage: int, dir: Vector2) -> void:
+func hat_hit(damage: float, dir: Vector2) -> void:
 	if state == State.DEAD:
 		return
 	_knock_hat(dir)
@@ -1252,7 +1344,9 @@ func _die(dir: Vector2, quiet: bool = false) -> void:
 	if gun and drops_weapon:
 		var d := WEAPON_PICKUP.new()
 		d.weapon = weapon
-		d.ammo = weapon.mag_size
+		# samopal (Thompson) už mafián čiastočne vystrieľal – v bubne ostane tretina až polovica (nech sa nedá prejsť
+		# celý level len s ním); ostatné zbrane majú plný zásobník
+		d.ammo = randi_range(int(weapon.mag_size * 0.3), int(weapon.mag_size * 0.55)) if weapon.automatic else weapon.mag_size
 		d.texture = gun.texture
 		d.velocity = Vector2(fall * 70.0, -120.0)
 		d.spin = randf_range(-8.0, 8.0)

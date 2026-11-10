@@ -48,7 +48,11 @@ func _process(delta: float) -> void:
 	var vp: Vector2 = get_viewport_rect().size
 	var right: float = vp.x - MARGIN.x
 	var ammo := get_node_or_null(ammo_panel_path) as Control
-	if ammo and ammo.visible:
+	# kým Ricco nemá zbraň (panel nábojov je skrytý), políčka na jedlo sa neukazujú
+	visible = ammo == null or ammo.visible
+	if not visible:
+		return
+	if ammo:
 		right = ammo.position.x - AMMO_GAP
 	position = Vector2(right - size.x, vp.y - MARGIN.y - size.y).floor()
 	queue_redraw()

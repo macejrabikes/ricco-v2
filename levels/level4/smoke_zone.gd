@@ -1,14 +1,14 @@
 extends Node2D
 ## Dym pod stropom horiacej izby (kapitola IV – útek z vily): tmavý pás od stropu skoro po zem, dole ostáva pár pixelov
 ## čistého vzduchu. Kto v ňom stojí vzpriamene, dusí sa (každých damage_time s jeden zásah); prikrčený (sneak) alebo
-## na bruchu (šmyk) dýcha. Poloha uzla = ľavý horný roh izby, size = šírka × výška (po podlahu).
+## na bruchu (šmyk) dýcha. Dusenie uberá zdravie bez animácie zásahu (ricco.gd – suffocate), Ricco len sčervenie. Poloha uzla = ľavý horný roh izby, size = šírka × výška (po podlahu).
 ## Godot docs: classes/class_gradienttexture2d
 
 signal choking   ## Ricco sa prvý raz rozkašle (level povie hlášku)
 
 @export var size: Vector2 = Vector2(1000, 206)
 @export var clear: float = 40.0           ## px nad podlahou bez dymu
-@export var damage_time: float = 1.8      ## s vzpriamene v dyme → 1 zásah
+@export var damage_time: float = 3.0      ## s vzpriamene v dyme → 1 zásah (0 = dym nezraňuje, len zakrýva)
 @export var density: float = 0.72         ## nepriehľadnosť pod stropom
 
 var _c: float = 0.0
@@ -45,7 +45,7 @@ func _process(delta: float) -> void:
 	var inside: bool = p.x >= 0.0 and p.x <= size.x and p.y > 0.0 and p.y <= size.y + 4.0
 	var st: int = int(_player.get(&"state"))
 	var low: bool = bool(_player.get(&"sneaking")) or st == 4   # prikrčený / šmyk na bruchu
-	if not inside or low or st == 3 or bool(_player.get(&"in_cutscene")):
+	if not inside or low or st == 3 or bool(_player.get(&"in_cutscene")) or damage_time <= 0.0:
 		_c = maxf(0.0, _c - delta * 2.0)
 		return
 	_c += delta
@@ -58,5 +58,7 @@ func _process(delta: float) -> void:
 		choking.emit()
 	if _c >= damage_time:
 		_c = 0.0
-		if _player.has_method(&"take_damage"):
+		if _player.has_method(&"suffocate"):   # bez animácie zásahu – len sčervenie (málo vzduchu)
+			_player.call(&"suffocate", 1)
+		elif _player.has_method(&"take_damage"):
 			_player.call(&"take_damage", 1, _player.global_position + Vector2(0, -60))

@@ -277,8 +277,8 @@ size = Vector2(1860, 206)
 position = Vector2(800, 794)
 script = ExtResource("15_uz0la")
 size = Vector2(1100, 206)
-density = 0.5
-damage_time = 2.4
+density = 0.4
+damage_time = 0.0
 
 [node name="GlassRain" type="Node2D" parent="."]
 script = ExtResource("16_ait1a")

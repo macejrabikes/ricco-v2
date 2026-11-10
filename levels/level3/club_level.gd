@@ -125,7 +125,9 @@ func _tick_flee(delta: float) -> void:
 			continue
 		var dx: float = e[1] - g.global_position.x
 		g.global_position.x += signf(dx) * minf(absf(dx), RUN_SPEED * delta)
-		g.rotation = sin(Time.get_ticks_msec() * 0.03) * 0.06   # beží – kýve sa
+		# beží zohnutý (hlava dole pred guľkami): nižší, predklonený v smere behu, kýve sa
+		g.scale = Vector2(1.04, 0.86)
+		g.rotation = signf(dx) * 0.16 + sin(Time.get_ticks_msec() * 0.03) * 0.05
 		if absf(dx) < 2.0:
 			_fleeing.erase(e)
 			g.witness = false

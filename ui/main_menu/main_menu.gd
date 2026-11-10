@@ -135,7 +135,13 @@ func _open_arsenal() -> void:
 	var a := Arsenal.new()
 	add_child(a)
 	move_child(a, fade.get_index())   # pod stmievaním
+	# dážď má z_index 20 (world/fx/rain.gd) – kreslil by sa aj cez stenu arzenálu, kým je otvorený, schová sa
+	var rain := get_node_or_null(^"World/Rain") as CanvasItem
+	if rain:
+		rain.visible = false
 	a.closed.connect(func():
+		if rain:
+			rain.visible = true
 		a.queue_free()
 		_show_page(Page.MAIN))
 

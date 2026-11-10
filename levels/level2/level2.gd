@@ -531,8 +531,16 @@ func _spawn_revolver() -> void:
 
 # ---------------------------------------------------------------- duch a hlášky
 
+## Duch je len jeden: viac udalostí ho môže chcieť naraz (napr. Ricco zdvihne zápalky, kým ešte dobieha pohreb),
+## preto sa počíta, koľko ich ho práve drží – zmizne až s poslednou. Inak by druhé volanie vyrobilo druhého Dona
+## a ten prvý by ostal visieť na mieste.
+var _ghost_users: int = 0
+
 func _ghost_show(on: bool) -> void:
 	if on:
+		_ghost_users += 1
+		if _ghost:
+			return
 		_ghost_glow = _light_sprite(Vector2.ZERO, Color(0.45, 0.9, 1.0, 0.6), 1.3)
 		_ghost_glow.scale = Vector2(1.3, 1.8)
 		_ghost = Sprite2D.new()
@@ -545,7 +553,8 @@ func _ghost_show(on: bool) -> void:
 		tw.tween_property(_ghost, "modulate:a", 0.85, 0.8)
 		tw.tween_property(_ghost_glow, "modulate:a", 0.6, 0.8)
 		return
-	if _ghost == null:
+	_ghost_users = maxi(_ghost_users - 1, 0)
+	if _ghost == null or _ghost_users > 0:
 		return
 	var g := _ghost
 	var gg := _ghost_glow
