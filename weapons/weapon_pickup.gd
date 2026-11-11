@@ -19,7 +19,7 @@ const SWAP := 2                   ## Ricco.Pickup.SWAP
 var _t: float = 0.0
 var _bounces: int = 0
 var _sprite: Sprite2D
-var _hint: Label
+var _hint: InteractHint
 
 
 func _ready() -> void:
@@ -32,17 +32,15 @@ func _ready() -> void:
 	rect.size = Vector2(24.0, 14.0)
 	shape.shape = rect
 	add_child(shape)
-	_hint = Label.new()   # rovnaký štýl ako nápoveda zneškodnenia nad gangstrom
-	_hint.text = KeyBindings.short(&"takedown")
-	_hint.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
-	_hint.add_theme_font_size_override(&"font_size", 8)
-	_hint.add_theme_color_override(&"font_color", Color8(255, 214, 90))
-	_hint.add_theme_color_override(&"font_outline_color", Color8(14, 10, 12))
-	_hint.add_theme_constant_override(&"outline_size", 4)
-	_hint.z_index = 40
+	_hint = InteractHint.new()   # rovnaká tabuľka ako pri dverách a zneškodnení (world/fx/interact_hint.gd)
 	_hint.visible = false
 	add_child(_hint)
 	_set_weapon(weapon, ammo, texture)
+	# zbraň na zemi jemne žiari (keď leží) – pri výmene F silnejšie
+	InteractGlow.attach(_sprite, func() -> int:
+		if _bounces < 2:
+			return InteractGlow.OFF
+		return InteractGlow.NEAR if _hint.visible else InteractGlow.FAR)
 	add_to_group(&"weapon_pickups")
 	body_entered.connect(_try_pickup)
 
@@ -98,7 +96,8 @@ func _update_swap() -> void:
 	_hint.visible = player != null
 	if player == null:
 		return
-	_hint.position = Vector2(-_hint.size.x / 2.0, -22.0 + sin(_t * 8.0) * 1.5)
+	_hint.set_hint([KeyBindings.short(&"takedown")], "SWAP")
+	_hint.position = Vector2(-_hint.size.x / 2.0, -26.0 + sin(_t * 8.0) * 1.5).round()
 	if not Input.is_action_just_pressed(&"takedown"):
 		return
 	var old: Array = player.swap_weapon(weapon, ammo)

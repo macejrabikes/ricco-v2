@@ -9,6 +9,7 @@ const PATH := "user://progress.cfg"
 static var unlocked: PackedStringArray = []   ## WeaponData.name odomknutých zbraní
 static var seen: PackedStringArray = []       ## zbrane, ktoré si hráč už pozrel v Arsenale (inak svieti NEW)
 static var chapter: int = 0                   ## posledná rozohratá kapitola (0 = ešte nehral, CONTINUE sa neukáže)
+static var tips: PackedStringArray = []       ## okná „nová schopnosť“, ktoré už hráč videl (ui/dialog/ability_popup.gd)
 static var _loaded: bool = false
 
 
@@ -22,6 +23,7 @@ static func ensure_loaded() -> void:
 	unlocked = PackedStringArray(cfg.get_value("arsenal", "unlocked", []))
 	seen = PackedStringArray(cfg.get_value("arsenal", "seen", []))
 	chapter = int(cfg.get_value("story", "chapter", 0))
+	tips = PackedStringArray(cfg.get_value("tips", "seen", []))
 
 
 static func save() -> void:
@@ -30,6 +32,7 @@ static func save() -> void:
 	cfg.set_value("arsenal", "unlocked", Array(unlocked))
 	cfg.set_value("arsenal", "seen", Array(seen))
 	cfg.set_value("story", "chapter", chapter)
+	cfg.set_value("tips", "seen", Array(tips))
 	cfg.save(PATH)
 
 
@@ -64,4 +67,18 @@ static func mark_seen(weapon_name: String) -> void:
 	if not is_new(weapon_name):
 		return
 	seen.append(weapon_name)
+	save()
+
+
+## Okno novej schopnosti (AbilityPopup) sa ukáže len raz
+static func tip_seen(id: StringName) -> bool:
+	ensure_loaded()
+	return String(id) in tips
+
+
+static func mark_tip(id: StringName) -> void:
+	ensure_loaded()
+	if String(id) in tips:
+		return
+	tips.append(String(id))
 	save()

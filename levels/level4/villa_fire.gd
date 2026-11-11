@@ -96,6 +96,9 @@ func _show_akimbo() -> void:
 		player._equip(i)
 	player.set_akimbo(true)
 	player.refill_weapon(player.weapon)   # duch ju podá nabitú
+	var tip := AbilityPopup.unlock(self, &"akimbo")   # okno: nová schopnosť – akimbo (len prvý raz)
+	if tip:
+		await tip.closed
 	bark("TWO HANDS, KID. ONE FOR EACH PISTOL.\n%s TO PUT ONE AWAY." % KeyBindings.short(&"fire_mode"))
 
 

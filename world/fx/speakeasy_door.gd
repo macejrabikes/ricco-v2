@@ -23,7 +23,7 @@ var doorman: Node2D
 var _sprite: Sprite2D
 var _sprite_x: float   ## pôvodná poloha obrázka – dvere sa pri klopaní trasú okolo nej
 var _shape: CollisionShape2D
-var _hint: Label
+var _hint: InteractHint
 var _busy: bool = false
 var _open: bool = false
 var _knocks: Array[float] = []
@@ -37,16 +37,16 @@ func _ready() -> void:
 	_sprite_x = _sprite.position.x
 	_shape = $Shape
 	doorman = get_node_or_null(doorman_path) as Node2D
-	_hint = Label.new()
-	_hint.text = "%s  -  KNOCK" % KeyBindings.short(&"takedown")
-	_hint.add_theme_font_override(&"font", FONT)
-	_hint.add_theme_font_size_override(&"font_size", 8)
-	_hint.add_theme_color_override(&"font_color", Color8(245, 235, 209))
-	_hint.add_theme_color_override(&"font_outline_color", Color8(14, 10, 12))
-	_hint.add_theme_constant_override(&"outline_size", 4)
-	_hint.position = Vector2(-22, -80)
+	_hint = InteractHint.new()
 	_hint.visible = false
 	add_child(_hint)
+	_hint.set_hint([KeyBindings.short(&"takedown")], "KNOCK")
+	_hint.position = Vector2(-_hint.size.x / 2.0, -80).round()
+	# dvere jemne žiaria, kým sa dá klopať (world/fx/interact_glow.gd)
+	InteractGlow.attach(_sprite, func() -> int:
+		if _open or _busy or not _demo_started:
+			return InteractGlow.OFF
+		return InteractGlow.NEAR if _hint.visible else InteractGlow.FAR)
 	if Level1.checkpoint >= 2:   # už bol vnútri – scénka sa neopakuje, vyhadzovač pozerá do herne
 		_demo_done = true
 		_demo_started = true

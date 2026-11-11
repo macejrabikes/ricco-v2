@@ -154,6 +154,10 @@ func _play() -> void:
 	Level1.checkpoint = 5
 	_set_hints(true)
 	await _wait(0.25)   # aby klik, ktorým sa zavrel dialóg, hneď nevystrelil
+	var tip := AbilityPopup.unlock(self, &"focus")   # okno: nová schopnosť – spomalenie (len prvý raz)
+	if tip:
+		await tip.closed
+		await _wait(0.15)   # klik, ktorým sa okno zavrelo, nevystrelí
 	player.set_cutscene(false)
 	await _wait(1.6)
 	_start_fight()

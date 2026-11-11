@@ -11,26 +11,23 @@ extends StaticBody2D
 @export var look_time: float = 3.6           ## s – ako dlho sa vonku obzerá
 @export var lines: PackedStringArray = ["WHO'S THERE?", "HELLO? ...FUNNY GUY.", "QUIT KNOCKIN', WISE GUY!"]
 
-const FONT := preload("res://ui/fonts/tiny5.ttf")
-
 var _player: Node2D
-var _hint: Label
+var _hint: InteractHint
 var _busy: bool = false
 var _open: bool = false
 var _n: int = 0
 
 
 func _ready() -> void:
-	_hint = Label.new()
-	_hint.add_theme_font_override(&"font", FONT)
-	_hint.add_theme_font_size_override(&"font_size", 8)
-	_hint.add_theme_color_override(&"font_color", Color8(245, 235, 209))
-	_hint.add_theme_color_override(&"font_outline_color", Color8(14, 10, 12))
-	_hint.add_theme_constant_override(&"outline_size", 4)
-	_hint.position = Vector2(-22, -112)
-	_hint.z_index = 40
+	_hint = InteractHint.new()
 	_hint.visible = false
 	add_child(_hint)
+	var spr := get_node_or_null(^"Sprite") as CanvasItem
+	if spr:   # dvere jemne žiaria, kým sa dá klopať (world/fx/interact_glow.gd)
+		InteractGlow.attach(spr, func() -> int:
+			if _open or _busy:
+				return InteractGlow.OFF
+			return InteractGlow.NEAR if _hint.visible else InteractGlow.FAR)
 
 
 func _process(_delta: float) -> void:
@@ -41,7 +38,8 @@ func _process(_delta: float) -> void:
 	var near: bool = absf(d.x) < 30.0 and absf(d.y) < 20.0 and int(_player.get(&"state")) == 0 and not _player.get(&"in_cutscene")
 	_hint.visible = near and not _busy and not _open
 	if _hint.visible:
-		_hint.text = "%s  -  KNOCK" % KeyBindings.short(&"takedown")
+		_hint.set_hint([KeyBindings.short(&"takedown")], "KNOCK")
+		_hint.position = Vector2(-_hint.size.x / 2.0, -112).round()
 		if Input.is_action_just_pressed(&"takedown"):
 			_knock()
 

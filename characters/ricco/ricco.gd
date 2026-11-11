@@ -251,7 +251,7 @@ var slide_shape: CapsuleShape2D      ## ležiaca kapsula pri šmyku
 var aim_base_y: float = 0.0
 
 
-var _takedown_hint: Label
+var _takedown_hint: InteractHint
 
 const PARALLAX_FILL := preload("res://world/fx/parallax_fill.gd")
 
@@ -273,13 +273,7 @@ func _ready() -> void:
 	_add_throw_walk_anim()
 	_add_hook_anim()
 	_add_ladder_anim()
-	_takedown_hint = Label.new()
-	_takedown_hint.text = KeyBindings.short(&"takedown")
-	_takedown_hint.add_theme_font_override(&"font", preload("res://ui/fonts/tiny5.ttf"))
-	_takedown_hint.add_theme_font_size_override(&"font_size", 8)
-	_takedown_hint.add_theme_color_override(&"font_color", Color8(255, 214, 90))
-	_takedown_hint.add_theme_color_override(&"font_outline_color", Color8(14, 10, 12))
-	_takedown_hint.add_theme_constant_override(&"outline_size", 4)
+	_takedown_hint = InteractHint.new()   # tabuľka s klávesom (world/fx/interact_hint.gd)
 	_takedown_hint.top_level = true
 	_takedown_hint.z_index = 40
 	_takedown_hint.visible = false
@@ -444,8 +438,8 @@ func _update_takedown() -> void:
 	if takedown_target == null:
 		return
 	var key: String = KeyBindings.short(&"takedown")
-	_takedown_hint.text = key if weapon != null and not holstered else "%s / %s" % [key, KeyBindings.short(&"shoot")]
-	_takedown_hint.global_position = takedown_target.global_position + Vector2(-_takedown_hint.size.x / 2.0, -88 + sin(Time.get_ticks_msec() * 0.008) * 1.5)
+	_takedown_hint.set_hint([key] if weapon != null and not holstered else [key, KeyBindings.short(&"shoot")])
+	_takedown_hint.global_position = (takedown_target.global_position + Vector2(-_takedown_hint.size.x / 2.0, -90 + sin(Time.get_ticks_msec() * 0.008) * 1.5)).round()
 	var press: bool = Input.is_action_just_pressed(&"takedown") or ((weapon == null or holstered) and Input.is_action_just_pressed(&"shoot"))
 	if not press:
 		return

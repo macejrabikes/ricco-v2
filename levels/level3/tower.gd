@@ -121,6 +121,29 @@ func _process(delta: float) -> void:
 		return
 	_tick_say(delta)
 	_line_cd -= delta
+	_sink_skyline()
+
+
+## Vzdialené mesto pri lezení hore: vrstvy (Parallax2D) idú vodorovne s parallaxou, ale zvislo by išli so svetom
+## (scroll_scale.y = 1) – na 5. poschodí by mesto zmizlo dole a ukázala by sa jeho horná hrana s ďalším mestom nad ňou.
+## Preto ich obrázky posúvame za kamerou: ostane z nich len zlomok pohybu (SKYLINE_SINK), mesto pomaly klesá ako
+## horizont a je vidno celé lezenie. Pod obrázkami je výplň (world/fx/parallax_fill.gd), spodná hrana sa neukáže.
+const SKYLINE_SINK := {^"FarCity/Sprite": 0.06, ^"FarCity2/Sprite": 0.12, ^"Fog/Sprite": 0.2}
+const GROUND_CAM_Y := -100.0   ## stred kamery na ulici (limit_bottom 80 − pol obrazovky)
+var _skyline_base: Dictionary = {}
+
+func _sink_skyline() -> void:
+	var cam := get_viewport().get_camera_2d()
+	if cam == null:
+		return
+	var rise: float = cam.get_screen_center_position().y - GROUND_CAM_Y   # záporné = kamera je vyššie
+	for path in SKYLINE_SINK:
+		var s := get_node_or_null(path) as Node2D
+		if s == null:
+			continue
+		if not _skyline_base.has(path):
+			_skyline_base[path] = s.position.y
+		s.position.y = roundf(_skyline_base[path] + rise * (1.0 - SKYLINE_SINK[path]))
 
 
 func _say_once(key: StringName, t: String) -> void:
