@@ -178,7 +178,7 @@ func display_page(back: Callable) -> MenuItem:
 	return full
 
 
-## Kategória HUD A MIERENIE: štýl HUD, plagát, zameriavač, zoznam ovládania
+## Kategória HUD A MIERENIE: štýl HUD, plagát, zameriavač, zoznam ovládania, aktuálny cieľ, šípka „kam ďalej“
 func hud_page(back: Callable) -> MenuItem:
 	clear()
 	esc_back = back
@@ -199,6 +199,12 @@ func hud_page(back: Callable) -> MenuItem:
 	setting("CONTROLS HINT", _on_off(GameSettings.show_controls), func(_d: int, it: MenuItem):
 		GameSettings.show_controls = not GameSettings.show_controls
 		it.set_value(_on_off(GameSettings.show_controls)))
+	setting("OBJECTIVE", _on_off(GameSettings.show_objective), func(_d: int, it: MenuItem):
+		GameSettings.show_objective = not GameSettings.show_objective
+		it.set_value(_on_off(GameSettings.show_objective)))
+	setting("GUIDE ARROW", _on_off(GameSettings.guide_arrow), func(_d: int, it: MenuItem):
+		GameSettings.guide_arrow = not GameSettings.guide_arrow
+		it.set_value(_on_off(GameSettings.guide_arrow)))
 	spacer()
 	item("BACK", back)
 	hint("LEFT / RIGHT  CHANGE     ENTER  LIST     ESC  BACK")

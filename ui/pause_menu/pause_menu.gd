@@ -1,7 +1,7 @@
 extends CanvasLayer
 ## Pause menu – ESC alebo P. Hra sa zastaví (get_tree().paused, Godot docs: tutorials/scripting/pausing_games),
 ## pozadie sa rozmaže a stmaví (pause_blur.gdshader), menu je vpravo (štýl „minimal“, po anglicky).
-## Stránky: hlavná (Resume, Arsenal, Settings, Restart, Main menu, Quit), nastavenia (kategórie vrátane ovládania)
+## Stránky: hlavná (Resume, Arsenal, Journal, Settings, Restart, Main menu, Quit), nastavenia (kategórie vrátane ovládania)
 ## (nastavenia a ovládanie sú spoločné s úvodným menu – ui/pause_menu/menu_pages.gd).
 ## Tento uzol má process_mode = ALWAYS, takže beží aj počas pauzy.
 ## F11 prepína celú obrazovku kedykoľvek (aj bez menu).
@@ -10,7 +10,7 @@ const FADE_TIME := 0.15
 const BLUR := 2.5
 const DIM := 0.55
 
-enum Page { MAIN, SETTINGS, CONTROLS, AUDIO }
+enum Page { MAIN, SETTINGS, CONTROLS, AUDIO, JOURNAL }
 
 const MAIN_MENU := "res://ui/main_menu/main_menu.tscn"
 const LoadingScreen := preload("res://ui/loading/loading_screen.gd")   ## prechod bez preblikovania (odpauzuje až pri výmene scény)
@@ -104,6 +104,7 @@ func _show_page(p: Page) -> void:
 			pages.title("PAUSED")
 			var first := pages.item("RESUME", close)
 			pages.item("ARSENAL", _open_arsenal)
+			pages.item("JOURNAL", _show_page.bind(Page.JOURNAL))
 			pages.item("SETTINGS", _show_page.bind(Page.SETTINGS))
 			pages.item("RESTART", _restart)
 			pages.item("MAIN MENU", _to_main_menu)
@@ -116,6 +117,57 @@ func _show_page(p: Page) -> void:
 			pages.audio_page(_show_page.bind(Page.SETTINGS))
 		Page.CONTROLS:
 			pages.controls_page(_show_page.bind(Page.MAIN))
+		Page.JOURNAL:
+			_journal_page()
+
+
+## Denník: dokumenty, ktoré už Ricco čítal (Progress.docs), Enter ich ukáže znova – hra ostane v pauze
+func _journal_page(select: int = 0) -> void:
+	pages.clear()
+	pages.esc_back = _show_page.bind(Page.MAIN)
+	pages.title("JOURNAL")
+	Progress.ensure_loaded()
+	var docs: PackedStringArray = Journal.available()
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.follow_focus = true
+	var row_h: int = pages.item_size + 4 + 11   # riadok s podnadpisom (kapitola)
+	scroll.custom_minimum_size.y = mini(maxi(docs.size(), 1), 5) * row_h
+	pages.column.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override(&"separation", 0)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	var focus_it: MenuItem = null
+	for i in docs.size():
+		var it := MenuItem.new(Journal.title(docs[i]))
+		it.font_size = pages.item_size
+		var ch: String = Journal.chapter(docs[i])
+		it.subtitle = "CHAPTER " + ch if ch != "" else ""
+		it.pressed.connect(_read_doc.bind(docs[i], i))
+		list.add_child(it)
+		if i == select or focus_it == null:
+			focus_it = it
+	if docs.is_empty():
+		var l := Label.new()
+		l.text = "NOTHING READ YET"
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		l.add_theme_color_override(&"font_color", MenuPages.HINT)
+		list.add_child(l)
+	pages.spacer()
+	var back := pages.item("BACK", _show_page.bind(Page.MAIN))
+	pages.hint("ENTER  READ     ESC  BACK")
+	pages.focus(focus_it if focus_it else back)
+
+
+func _read_doc(id: String, index: int) -> void:
+	var card := Journal.open(self, id)
+	if card == null:
+		return
+	await card.closed
+	if is_open and page == Page.JOURNAL:
+		_journal_page(index)
 
 
 ## Arsenal (ui/arsenal/arsenal.gd) prekryje menu, ESC ho zavrie a vráti sa na hlavnú stránku pauzy

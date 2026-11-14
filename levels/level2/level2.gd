@@ -455,7 +455,7 @@ func _found_clue() -> void:
 	clue_found = true
 	Sfx.play(&"pickup_ammo")
 	_matchbook.queue_free()
-	await ReadCard.open_card(self, _matchbook_card()).closed   # ui/dialog/read_card.gd
+	await ReadCard.open_card(self, matchbook_card(), Journal.MATCHBOOK).closed   # ui/dialog/read_card.gd, denník: ui/dialog/journal.gd
 	var lines: Array[String] = ["Matches. 'Fontana Shipping Co. - Pier 13.'"]
 	await ThoughtBox.think(self, lines).finished
 	_ghost_show(true)
@@ -468,7 +468,8 @@ func _found_clue() -> void:
 
 
 ## Zväčšené zápalky (obrázok 2×, nápisy písmom Tiny5 cez neho) pre ReadCard
-func _matchbook_card() -> Control:
+## Statická, aby ju vedel znova ukázať aj denník v pause menu (ui/dialog/journal.gd)
+static func matchbook_card() -> Control:
 	const K := 2.0
 	var root := Control.new()
 	root.size = MATCHBOOK_BIG.get_size() * K

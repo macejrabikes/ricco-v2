@@ -2559,7 +2559,7 @@ func _die() -> void:
 	sprite.play(&"death")
 	Sfx.play(&"death")
 	died.emit()
-	get_tree().create_timer(respawn_delay, false).timeout.connect(get_tree().reload_current_scene)  # počas pauzy stojí
+	DeathPrompt.start(self, respawn_delay)   # [F] TRY AGAIN – hneď znova, inak reštart po respawn_delay (počas pauzy stojí)
 
 
 ## TEST, kým nie sú nepriatelia: K = zásah, H = vyliečenie (aj v zozname ovládania)

@@ -3,6 +3,7 @@ extends CanvasLayer
 ## Čítanie dokumentu (účtovná kniha, list…): hra sa zastaví, obrazovka stmavne a obrázok je v strede.
 ## Zavrie sa klávesom použiť (F), ESC, Enterom alebo kliknutím – potom hra beží ďalej.
 ## Použitie:  await ReadCard.open(self, LEDGER_BIG).closed
+## Každý prečítaný dokument sa zapíše do denníka (Progress.docs → JOURNAL v pause menu, ui/dialog/journal.gd).
 ## Godot docs: tutorials/scripting/pausing_games, classes/class_canvaslayer
 
 signal closed
@@ -14,9 +15,12 @@ var _root: Control
 var _dim: ColorRect
 var _t: float = 0.0
 var _closing: bool = false
+var keep_paused: bool = false   ## z denníka v pause menu – po zatvorení hra ostane zastavená
 
 
-static func open(parent: Node, tex: Texture2D) -> ReadCard:
+static func open(parent: Node, tex: Texture2D, record: bool = true) -> ReadCard:
+	if record and tex and tex.resource_path != "":
+		Progress.add_doc(tex.resource_path)
 	var c := ReadCard.new()
 	c._build(tex)
 	parent.add_child(c)
@@ -25,7 +29,10 @@ static func open(parent: Node, tex: Texture2D) -> ReadCard:
 
 ## Vlastný obsah namiesto jedného obrázka (napr. zápalky – obrázok 2× a nápisy cez neho).
 ## card = Control s nastavenou veľkosťou (size), postaví sa do stredu obrazovky.
-static func open_card(parent: Node, card: Control) -> ReadCard:
+## doc_id = pod akým menom ide do denníka (ui/dialog/journal.gd), "" = nezapíše sa.
+static func open_card(parent: Node, card: Control, doc_id: String = "") -> ReadCard:
+	if doc_id != "":
+		Progress.add_doc(doc_id)
 	var c := ReadCard.new()
 	c._build(null, card)
 	parent.add_child(c)
@@ -101,6 +108,7 @@ func close() -> void:
 	tw.tween_property(_dim, "color:a", 0.0, 0.15)
 	tw.tween_property(_root, "modulate:a", 0.0, 0.15)
 	tw.chain().tween_callback(func():
-		get_tree().paused = false
+		if not keep_paused:
+			get_tree().paused = false
 		closed.emit()
 		queue_free())

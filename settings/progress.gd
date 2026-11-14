@@ -10,6 +10,7 @@ static var unlocked: PackedStringArray = []   ## WeaponData.name odomknutých zb
 static var seen: PackedStringArray = []       ## zbrane, ktoré si hráč už pozrel v Arsenale (inak svieti NEW)
 static var chapter: int = 0                   ## posledná rozohratá kapitola (0 = ešte nehral, CONTINUE sa neukáže)
 static var tips: PackedStringArray = []       ## okná „nová schopnosť“, ktoré už hráč videl (ui/dialog/ability_popup.gd)
+static var docs: PackedStringArray = []       ## prečítané dokumenty v poradí (ReadCard → denník v pause menu)
 static var _loaded: bool = false
 
 
@@ -24,6 +25,7 @@ static func ensure_loaded() -> void:
 	seen = PackedStringArray(cfg.get_value("arsenal", "seen", []))
 	chapter = int(cfg.get_value("story", "chapter", 0))
 	tips = PackedStringArray(cfg.get_value("tips", "seen", []))
+	docs = PackedStringArray(cfg.get_value("journal", "docs", []))
 
 
 static func save() -> void:
@@ -33,6 +35,7 @@ static func save() -> void:
 	cfg.set_value("arsenal", "seen", Array(seen))
 	cfg.set_value("story", "chapter", chapter)
 	cfg.set_value("tips", "seen", Array(tips))
+	cfg.set_value("journal", "docs", Array(docs))
 	cfg.save(PATH)
 
 
@@ -81,4 +84,13 @@ static func mark_tip(id: StringName) -> void:
 	if String(id) in tips:
 		return
 	tips.append(String(id))
+	save()
+
+
+## Dokument prečítaný v hre (ReadCard) – pribudne do denníka JOURNAL v pause menu
+static func add_doc(id: String) -> void:
+	ensure_loaded()
+	if id in docs:
+		return
+	docs.append(id)
 	save()
